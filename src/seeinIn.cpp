@@ -1,6 +1,7 @@
 #include <pangolin/pangolin.h>
 
 #include <iostream>
+#include <limits>
 
 #include <assert.h>
 
@@ -11,7 +12,9 @@
 #include <vector_functions.h>
 #include <helper_math.h>
 
+#include "gl_helpers.h"
 #include "mnist_io.h"
+#include "seein_in_mouse_handler.h"
 
 static const int guiWidth = 1920;
 static const int guiHeight = 1080;
@@ -73,22 +76,6 @@ static const uchar3 digitColors[10] = {
 
 int main(int argc, char * * argv) {
 
-    // -=-=-=-=- set up pangolin -=-=-=-=-
-    pangolin::CreateGlutWindowAndBind("Seein' In", guiWidth+panelWidth, guiHeight,GLUT_MULTISAMPLE | GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-
-    glewInit();
-
-    pangolin::View & imgDisp = pangolin::Display("img").SetAspect(aspectRatio);
-
-    pangolin::CreatePanel("panel").SetBounds(0.0, 1.0, 0.0, pangolin::Attach::Pix(panelWidth));
-
-    pangolin::Display("display")
-            .SetBounds(1.0,0.0,1.0,pangolin::Attach::Pix(panelWidth))
-            .SetLayout(pangolin::LayoutEqual)
-            .AddDisplay(imgDisp);
-
-    glEnable(GL_DEPTH_TEST);
-
     // -=-=-=-=- set up caffe -=-=-=-=-
     caffe::GlobalInit(&argc,&argv);
     caffe::Caffe::SetDevice(0);
@@ -124,21 +111,40 @@ int main(int argc, char * * argv) {
     }
 
     float2 embeddingSize = maxEmbedding - minEmbedding;
-    float2 embeddingCenter = minEmbedding + 0.5*embeddingSize;
+
+    float2 paddedEmbeddingSize = embeddingSize + make_float2(0.1,0.1);
 
     float2 viewportSize;
-    if (embeddingSize.x / aspectRatio < embeddingSize.y) {
+    if (paddedEmbeddingSize.x / aspectRatio < paddedEmbeddingSize.y) {
         //embedding height is limiting dimension
-        viewportSize = make_float2(embeddingSize.y * aspectRatio, embeddingSize.y);
+        viewportSize = make_float2(paddedEmbeddingSize.y * aspectRatio, paddedEmbeddingSize.y);
     } else {
         //embedding width is limiting dimension
-        viewportSize = make_float2(embeddingSize.x, embeddingSize.x / aspectRatio );
+        viewportSize = make_float2(paddedEmbeddingSize.x, paddedEmbeddingSize.x / aspectRatio );
     }
+    float2 viewportCenter = minEmbedding + 0.5*embeddingSize;
 
     std::cout << "embedding spans " << minEmbedding.x << " -> " << maxEmbedding.x << ", " << minEmbedding.y << " -> " << maxEmbedding.y << std::endl;
     std::cout << "embedding size: " << embeddingSize.x << ", " << embeddingSize.y << std::endl;
-    std::cout << "embedding center: " << embeddingCenter.x << ", " << embeddingCenter.y << std::endl;
+    std::cout << "embedding center: " << viewportCenter.x << ", " << viewportCenter.y << std::endl;
     std::cout << "viewport size: " << viewportSize.x << ", " << viewportSize.y << std::endl;
+
+    // -=-=-=-=- set up pangolin -=-=-=-=-
+    pangolin::CreateGlutWindowAndBind("Seein' In", guiWidth+panelWidth, guiHeight,GLUT_MULTISAMPLE | GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+
+    glewInit();
+
+    SeeinInMouseHander handler(viewportSize,viewportCenter,
+                               (const float2 *)outputBlob->cpu_data(),nTestImages);
+
+    pangolin::View & imgDisp = pangolin::Display("img").SetAspect(aspectRatio).SetHandler(&handler);
+
+    pangolin::CreatePanel("panel").SetBounds(0.0, 1.0, 0.0, pangolin::Attach::Pix(panelWidth));
+
+    pangolin::Display("display")
+            .SetBounds(1.0,0.0,1.0,pangolin::Attach::Pix(panelWidth))
+            .SetLayout(pangolin::LayoutEqual)
+            .AddDisplay(imgDisp);
 
     for (long frame=1; !pangolin::ShouldQuit(); ++frame) {
 
@@ -150,8 +156,7 @@ int main(int argc, char * * argv) {
         imgDisp.ActivateScissorAndClear();
         imgDisp.ActivatePixelOrthographic();
         glPushMatrix();
-        glScalef(imgDisp.GetBounds().w/viewportSize.x,imgDisp.GetBounds().h/viewportSize.y,1);
-        glTranslatef(viewportSize.x/2 - embeddingCenter.x,viewportSize.y/2 - embeddingCenter.y,0);
+        setUpViewport(imgDisp,viewportSize,viewportCenter);
 
         glPointSize(3);
         glColor3ub(0,0,0);
@@ -164,6 +169,18 @@ int main(int argc, char * * argv) {
         glDrawArrays(GL_POINTS, 0, nTestImages);
         glDisableClientState(GL_VERTEX_ARRAY);
         glDisableClientState(GL_COLOR_ARRAY);
+
+        int hoveredPoint = handler.getHoveredOverPoint();
+        glPointSize(12);
+        glBegin(GL_POINTS);
+        glColor3ub(255,255,255);
+        glVertex2fv(outputBlob->cpu_data() + 2*hoveredPoint);
+        glEnd();
+        glPointSize(9);
+        glBegin(GL_POINTS);
+        glColor(testColors[hoveredPoint]);
+        glVertex2fv(outputBlob->cpu_data() + 2*hoveredPoint);
+        glEnd();
         glPointSize(1);
 
         glPopMatrix();

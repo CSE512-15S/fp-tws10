@@ -45,8 +45,14 @@ link_directories(${CAFFE_ROOT}/build/lib)
 link_libraries(caffe)
 
 set(sources
+    src/gl_helpers.h
+    src/gl_helpers.cpp
+
     src/mnist_io.h
     src/mnist_io.cpp
+
+    src/seein_in_mouse_handler.h
+    src/seein_in_mouse_handler.cpp
 )
 
 cuda_add_executable(
