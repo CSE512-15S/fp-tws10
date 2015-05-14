@@ -86,8 +86,8 @@ int main(int argc, char * * argv) {
     net.CopyTrainedLayersFrom(weightFile);
 
     // -=-=-=-=- load mnist test data -=-=-=-=-
-    int nTestImages;
-    float * testImages = loadMNISTImages(mnistTestImageFile,nTestImages);
+    int nTestImages, imageWidth, imageHeight;
+    float * testImages = loadMNISTImages(mnistTestImageFile,nTestImages, imageWidth, imageHeight);
     std::vector<unsigned char> testLabels;
     loadMNISTLabels(mnistTestLabelFile,testLabels);
     assert(nTestImages == testLabels.size());
@@ -146,6 +146,9 @@ int main(int argc, char * * argv) {
             .SetLayout(pangolin::LayoutEqual)
             .AddDisplay(imgDisp);
 
+    pangolin::GlTexture imageTex(imageWidth,imageHeight);
+    imageTex.SetNearestNeighbour();
+
     for (long frame=1; !pangolin::ShouldQuit(); ++frame) {
 
         if (pangolin::HasResized()) {
@@ -170,18 +173,46 @@ int main(int argc, char * * argv) {
         glDisableClientState(GL_VERTEX_ARRAY);
         glDisableClientState(GL_COLOR_ARRAY);
 
-        int hoveredPoint = handler.getHoveredOverPoint();
+        int hoveredPointIndex = handler.getHoveredOverPoint();
         glPointSize(12);
         glBegin(GL_POINTS);
         glColor3ub(255,255,255);
-        glVertex2fv(outputBlob->cpu_data() + 2*hoveredPoint);
+        glVertex2fv(outputBlob->cpu_data() + 2*hoveredPointIndex);
         glEnd();
         glPointSize(9);
         glBegin(GL_POINTS);
-        glColor(testColors[hoveredPoint]);
-        glVertex2fv(outputBlob->cpu_data() + 2*hoveredPoint);
+        glColor(testColors[hoveredPointIndex]);
+        glVertex2fv(outputBlob->cpu_data() + 2*hoveredPointIndex);
         glEnd();
         glPointSize(1);
+
+        if (hoveredPointIndex >= 0 && hoveredPointIndex < nTestImages) {
+            imageTex.Upload(testImages + hoveredPointIndex*imageWidth*imageHeight,GL_LUMINANCE,GL_FLOAT);
+            const float2 hoveredPoint = make_float2(outputBlob->cpu_data()[2*hoveredPointIndex], outputBlob->cpu_data()[2*hoveredPointIndex+1]);
+            const float2 textureLocation = hoveredPoint + make_float2(0.075,0.075);
+            const float2 textureSize = make_float2(0.5,0.5);
+
+            glLineWidth(2);
+            glColor3ub(196,196,196);
+            float linePts[] = { textureLocation.x,                 textureLocation.y,
+                                textureLocation.x + textureSize.x, textureLocation.y,
+                                textureLocation.x + textureSize.x, textureLocation.y + textureSize.y,
+                                textureLocation.x,                 textureLocation.y + textureSize.y,
+                                textureLocation.x,                 textureLocation.y,
+                                hoveredPoint.x,                    hoveredPoint.y };
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glVertexPointer( 2, GL_FLOAT, 0, linePts);
+
+            glDrawArrays(GL_LINE_STRIP, 0, 6);
+
+            glDisableClientState(GL_VERTEX_ARRAY);
+
+            glColor3ub(255,255,255);
+            renderTexture(imageTex,
+                          textureLocation,
+                          textureSize);
+            glLineWidth(1);
+        }
 
         glPopMatrix();
 
