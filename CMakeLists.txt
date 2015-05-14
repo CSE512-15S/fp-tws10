@@ -10,10 +10,14 @@ endif()
 add_definitions(-std=c++11)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/CMakeModules/")
 
-find_package(Gflags REQUIRED)
 find_package(CUDA REQUIRED)
-find_package(Protobuf REQUIRED)
+message(STATUS "Found CUDA ${CUDA_VERSION_STRING}")
+message(STATUS "CUDA Toolkit Root dir: ${CUDA_TOOLKIT_ROOT_DIR}")
+message(STATUS "CUDA SDK Root dir: ${CUDA_SDK_ROOT_DIR}")
+include_directories(${CUDA_TOOLKIT_ROOT_DIR}/samples/common/inc)
 
+find_package(Gflags REQUIRED)
+find_package(Protobuf REQUIRED)
 find_package(Pangolin REQUIRED)
 
 include_directories(${Pangolin_INCLUDE_DIRS})

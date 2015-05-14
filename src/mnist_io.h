@@ -12,6 +12,6 @@ static const int mnistMagicLabelNumber = 2049;
 static const int mnistMagicImageNumber = 2051;
 
 void loadMNISTLabels(const std::string filename, std::vector<unsigned char> & labels);
-float * loadMNISTImages(const std::string filename);
+float * loadMNISTImages(const std::string filename, int & nImages);
 
 #endif // MNIST_IO_H

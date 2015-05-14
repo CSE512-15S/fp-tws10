@@ -2,17 +2,37 @@
 
 #include <iostream>
 
+#include <assert.h>
+
 #include <Eigen/Dense>
-#include <GL/glut.h>
 #include <caffe/caffe.hpp>
+
+#include <vector_types.h>
+#include <vector_functions.h>
+#include <helper_math.h>
 
 #include "mnist_io.h"
 
 static const int guiWidth = 1920;
 static const int guiHeight = 1080;
 static const int panelWidth = 200;
+static const float aspectRatio = guiWidth/(float)guiHeight;
 
+static const std::string weightFile = "/home/tws10/Development/caffe/examples/siamese/mnist_siamese_iter_50000.caffemodel";
+static const std::string netFile = "/home/tws10/Development/caffe/examples/siamese/mnist_siamese.prototxt";
 
+static const uchar3 digitColors[10] = {
+    make_uchar3(166,206,227 ),
+    make_uchar3(31,120,180  ),
+    make_uchar3(178,223,138 ),
+    make_uchar3(51,160,44   ),
+    make_uchar3(251,154,153 ),
+    make_uchar3(227,26,28   ),
+    make_uchar3(253,191,111 ),
+    make_uchar3(255,127,0   ),
+    make_uchar3(202,178,214 ),
+    make_uchar3(106,61,154  )
+};
 
 //void loadWeights(caffe::Net<float> & net, std::string weightFile) {
 
@@ -53,11 +73,12 @@ static const int panelWidth = 200;
 
 int main(int argc, char * * argv) {
 
-    pangolin::CreateGlutWindowAndBind("Seein' In", guiWidth, guiHeight,GLUT_MULTISAMPLE | GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+    // -=-=-=-=- set up pangolin -=-=-=-=-
+    pangolin::CreateGlutWindowAndBind("Seein' In", guiWidth+panelWidth, guiHeight,GLUT_MULTISAMPLE | GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 
     glewInit();
 
-    pangolin::View & imgDisp = pangolin::Display("img").SetAspect(640.0/480.0);
+    pangolin::View & imgDisp = pangolin::Display("img").SetAspect(aspectRatio);
 
     pangolin::CreatePanel("panel").SetBounds(0.0, 1.0, 0.0, pangolin::Attach::Pix(panelWidth));
 
@@ -67,27 +88,57 @@ int main(int argc, char * * argv) {
             .AddDisplay(imgDisp);
 
     glEnable(GL_DEPTH_TEST);
-    glClearColor(1,1,1,1);
+
+    // -=-=-=-=- set up caffe -=-=-=-=-
+    caffe::GlobalInit(&argc,&argv);
+    caffe::Caffe::SetDevice(0);
+    caffe::Caffe::set_mode(caffe::Caffe::GPU);
 
     // -=-=-=-=- load learned network -=-=-=-=-
-    std::string weightFile = "/home/tws10/Development/caffe/examples/siamese/mnist_siamese_iter_50000.caffemodel";
-    std::string netFile = "/home/tws10/Development/caffe/examples/siamese/mnist_siamese.prototxt";
-
-    caffe::GlobalInit(&argc,&argv);
     caffe::Net<float> net(netFile,caffe::TEST);
     net.CopyTrainedLayersFrom(weightFile);
 
     // -=-=-=-=- load mnist test data -=-=-=-=-
+    int nTestImages;
+    float * testImages = loadMNISTImages(mnistTestImageFile,nTestImages);
     std::vector<unsigned char> testLabels;
-    float * testImages = loadMNISTImages(mnistTestImageFile);
     loadMNISTLabels(mnistTestLabelFile,testLabels);
+    assert(nTestImages == testLabels.size());
+    std::vector<uchar3> testColors(nTestImages);
+    for (int i=0; i<nTestImages; ++i) { testColors[i] = digitColors[testLabels[i]]; }
 
-    std::cout << net.input_blobs().size() << " input blobs" << std::endl;
-    for (int i=0; i<net.input_blobs().size(); ++i) {
-        std::cout << net.input_blob_indices()[i] << std::endl;
-        boost::shared_ptr<caffe::Blob<float> > inputBlob = net.blobs()[net.input_blob_indices()[i]];
-        std::cout << inputBlob->num() << " x " << inputBlob->channels() << " x " << inputBlob->height() << " x " << inputBlob->width() << std::endl;
+    // -=-=-=-=- process test data -=-=-=-=-
+    boost::shared_ptr<caffe::Blob<float> > inputBlob = net.blobs()[net.input_blob_indices()[0]];
+    assert(inputBlob->num() == nTestImages);
+    memcpy(inputBlob->mutable_cpu_data(),testImages,inputBlob->count()*sizeof(float));
+    net.ForwardPrefilled();
+
+    // -=-=-=-=- process embedding -=-=-=-=-
+    boost::shared_ptr<caffe::Blob<float> > outputBlob = net.blobs()[net.output_blob_indices()[0]];
+    float2 minEmbedding = make_float2(std::numeric_limits<float>::infinity(),std::numeric_limits<float>::infinity());
+    float2 maxEmbedding = -1*minEmbedding;
+    for (int i=0; i<nTestImages; ++i) {
+        float2 embedding = make_float2(outputBlob->cpu_data()[2*i],outputBlob->cpu_data()[2*i + 1]);
+        minEmbedding = fminf(minEmbedding,embedding);
+        maxEmbedding = fmaxf(maxEmbedding,embedding);
     }
+
+    float2 embeddingSize = maxEmbedding - minEmbedding;
+    float2 embeddingCenter = minEmbedding + 0.5*embeddingSize;
+
+    float2 viewportSize;
+    if (embeddingSize.x / aspectRatio < embeddingSize.y) {
+        //embedding height is limiting dimension
+        viewportSize = make_float2(embeddingSize.y * aspectRatio, embeddingSize.y);
+    } else {
+        //embedding width is limiting dimension
+        viewportSize = make_float2(embeddingSize.x, embeddingSize.x / aspectRatio );
+    }
+
+    std::cout << "embedding spans " << minEmbedding.x << " -> " << maxEmbedding.x << ", " << minEmbedding.y << " -> " << maxEmbedding.y << std::endl;
+    std::cout << "embedding size: " << embeddingSize.x << ", " << embeddingSize.y << std::endl;
+    std::cout << "embedding center: " << embeddingCenter.x << ", " << embeddingCenter.y << std::endl;
+    std::cout << "viewport size: " << viewportSize.x << ", " << viewportSize.y << std::endl;
 
     for (long frame=1; !pangolin::ShouldQuit(); ++frame) {
 
@@ -95,11 +146,29 @@ int main(int argc, char * * argv) {
             pangolin::DisplayBase().ActivateScissorAndClear();
         }
 
+        glClearColor(1,1,1,1);
         imgDisp.ActivateScissorAndClear();
         imgDisp.ActivatePixelOrthographic();
+        glPushMatrix();
+        glScalef(imgDisp.GetBounds().w/viewportSize.x,imgDisp.GetBounds().h/viewportSize.y,1);
+        glTranslatef(viewportSize.x/2 - embeddingCenter.x,viewportSize.y/2 - embeddingCenter.y,0);
 
+        glPointSize(3);
+        glColor3ub(0,0,0);
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glVertexPointer(2,GL_FLOAT,0,outputBlob->cpu_data());
 
+        glEnableClientState(GL_COLOR_ARRAY);
+        glColorPointer(3,GL_UNSIGNED_BYTE,0,testColors.data());
 
+        glDrawArrays(GL_POINTS, 0, nTestImages);
+        glDisableClientState(GL_VERTEX_ARRAY);
+        glDisableClientState(GL_COLOR_ARRAY);
+        glPointSize(1);
+
+        glPopMatrix();
+
+        glClearColor(0,0,0,1);
         pangolin::FinishGlutFrame();
 
     }
