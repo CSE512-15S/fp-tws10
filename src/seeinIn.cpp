@@ -169,9 +169,23 @@ int main(int argc, char * * argv) {
     pangolin::GlTexture imageTex(imageWidth,imageHeight);
     imageTex.SetNearestNeighbour();
 
-    const boost::shared_ptr<caffe::Blob<float> > conv1ResponseBlob = net.blob_by_name("conv1");
-    pangolin::GlTexture conv1ResponseTex(conv1ResponseBlob->width(),conv1ResponseBlob->height());
-    conv1ResponseTex.SetNearestNeighbour();
+//    for (int layer=0; layer < net.layers().size(); ++layer) {
+
+//    }
+
+    // -=-=-=-=- set up layer visualizations -=-=-=-=-
+    std::vector<std::string> layerResponsesToVisualize;
+    layerResponsesToVisualize.push_back("conv1");
+    layerResponsesToVisualize.push_back("pool1");
+    layerResponsesToVisualize.push_back("conv2");
+    layerResponsesToVisualize.push_back("pool2");
+
+    std::map<std::string,pangolin::GlTexture*> layerResponseTextures;
+    for (std::string layerResponse : layerResponsesToVisualize) {
+        const boost::shared_ptr<caffe::Blob<float> > responseBlob = net.blob_by_name(layerResponse);
+        layerResponseTextures[layerResponse] = new pangolin::GlTexture(responseBlob->width(),responseBlob->height());
+        layerResponseTextures[layerResponse]->SetNearestNeighbour();
+    }
 
     int selectedImage = -1;
 
@@ -250,10 +264,16 @@ int main(int argc, char * * argv) {
         filterView.ActivatePixelOrthographic();
         if (selectedImage >= 0) {
             glColor3f(1,1,1);
-            for (int c=0; c<conv1ResponseBlob->channels(); ++c) {
-                conv1ResponseTex.Upload(conv1ResponseBlob->cpu_data() + (selectedImage*conv1ResponseBlob->channels() + c)*conv1ResponseBlob->width()*conv1ResponseBlob->height(),GL_LUMINANCE,GL_FLOAT);
-                renderTexture(conv1ResponseTex,make_float2(60*c,500),make_float2(60,60));
+            int y = 500;
+            for (std::string layerResponse : layerResponsesToVisualize) {
+                const boost::shared_ptr<caffe::Blob<float> > responseBlob = net.blob_by_name(layerResponse);
+                for (int c=0; c<responseBlob->channels(); ++c) {
+                    layerResponseTextures[layerResponse]->Upload(responseBlob->cpu_data() + (selectedImage*responseBlob->channels() + c)*responseBlob->width()*responseBlob->height(),GL_LUMINANCE,GL_FLOAT);
+                    renderTexture(*layerResponseTextures[layerResponse],make_float2(45*c,y),make_float2(40,40));
+                }
+                y -= 100;
             }
+
         }
 
         // -=-=-=-=-=-=- input handling -=-=-=-=-=-=-
@@ -265,6 +285,10 @@ int main(int argc, char * * argv) {
         glClearColor(0,0,0,1);
         pangolin::FinishGlutFrame();
 
+    }
+
+    for (auto it : layerResponseTextures) {
+        delete it.second;
     }
 
     return 0;
