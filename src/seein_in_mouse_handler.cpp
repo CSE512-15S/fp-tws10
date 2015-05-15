@@ -5,12 +5,19 @@
 #include <helper_math.h>
 #include <limits>
 
-SeeinInMouseHander::SeeinInMouseHander(const float2 viewportSize, const float2 viewportCenter,
+SeeinInMouseHandler::SeeinInMouseHandler(const float2 viewportSize, const float2 viewportCenter,
                                        const float2 * embeddedPoints, const int nEmbeddedPoints) :
     vpSize_(viewportSize), vpCenter_(viewportCenter),
-    embeddedPoints_(embeddedPoints), nEmbeddedPoints_(nEmbeddedPoints) { }
+    embeddedPoints_(embeddedPoints), nEmbeddedPoints_(nEmbeddedPoints),
+    hasClicked_(false) { }
 
-void SeeinInMouseHander::PassiveMouseMotion(pangolin::View & v, int x, int y, int button_state) {
+void SeeinInMouseHandler::Mouse(pangolin::View & v, pangolin::MouseButton button, int x, int y, bool pressed, int button_state) {
+    pangolin::Handler::Mouse(v,button,x,y,pressed,button_state);
+
+    if (pressed && hoveredOverPoint_ >= 0) { hasClicked_ = true; }
+}
+
+void SeeinInMouseHandler::PassiveMouseMotion(pangolin::View & v, int x, int y, int button_state) {
     pangolin::Handler::PassiveMouseMotion(v,x,y,button_state);
 
     float2 vpPoint = make_float2((x - v.GetBounds().l)/(float)v.GetBounds().w - 0.5,
@@ -18,7 +25,7 @@ void SeeinInMouseHander::PassiveMouseMotion(pangolin::View & v, int x, int y, in
     hoveredOverPoint_ = computeClosestEmbeddedPoint(vpPoint);
 }
 
-int SeeinInMouseHander::computeClosestEmbeddedPoint(const float2 queryPt) {
+int SeeinInMouseHandler::computeClosestEmbeddedPoint(const float2 queryPt) {
 
     int closestPoint = -1;
     float closestDist = std::numeric_limits<float>::infinity();
@@ -29,6 +36,7 @@ int SeeinInMouseHander::computeClosestEmbeddedPoint(const float2 queryPt) {
             closestPoint = i;
         }
     }
-    return closestPoint;
+
+    return closestDist < 0.05 ? closestPoint : -1;
 
 }

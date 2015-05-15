@@ -134,7 +134,7 @@ int main(int argc, char * * argv) {
 
     glewInit();
 
-    SeeinInMouseHander handler(viewportSize,viewportCenter,
+    SeeinInMouseHandler handler(viewportSize,viewportCenter,
                                (const float2 *)outputBlob->cpu_data(),nTestImages);
 
     pangolin::View & imgDisp = pangolin::Display("img").SetAspect(aspectRatio).SetHandler(&handler);
@@ -174,25 +174,25 @@ int main(int argc, char * * argv) {
         glDisableClientState(GL_COLOR_ARRAY);
 
         int hoveredPointIndex = handler.getHoveredOverPoint();
-        glPointSize(12);
-        glBegin(GL_POINTS);
-        glColor3ub(255,255,255);
-        glVertex2fv(outputBlob->cpu_data() + 2*hoveredPointIndex);
-        glEnd();
-        glPointSize(9);
-        glBegin(GL_POINTS);
-        glColor(testColors[hoveredPointIndex]);
-        glVertex2fv(outputBlob->cpu_data() + 2*hoveredPointIndex);
-        glEnd();
-        glPointSize(1);
-
         if (hoveredPointIndex >= 0 && hoveredPointIndex < nTestImages) {
+            glPointSize(12);
+            glBegin(GL_POINTS);
+            glColor3ub(255,255,255);
+            glVertex2fv(outputBlob->cpu_data() + 2*hoveredPointIndex);
+            glEnd();
+            glPointSize(9);
+            glBegin(GL_POINTS);
+            glColor(testColors[hoveredPointIndex]);
+            glVertex2fv(outputBlob->cpu_data() + 2*hoveredPointIndex);
+            glEnd();
+            glPointSize(1);
+
             imageTex.Upload(testImages + hoveredPointIndex*imageWidth*imageHeight,GL_LUMINANCE,GL_FLOAT);
             const float2 hoveredPoint = make_float2(outputBlob->cpu_data()[2*hoveredPointIndex], outputBlob->cpu_data()[2*hoveredPointIndex+1]);
             const float2 textureLocation = hoveredPoint + make_float2(0.075,0.075);
             const float2 textureSize = make_float2(0.5,0.5);
 
-            glLineWidth(2);
+            glLineWidth(3);
             glColor3ub(196,196,196);
             float linePts[] = { textureLocation.x,                 textureLocation.y,
                                 textureLocation.x + textureSize.x, textureLocation.y,
@@ -212,6 +212,10 @@ int main(int argc, char * * argv) {
                           textureLocation,
                           textureSize);
             glLineWidth(1);
+        }
+
+        if (handler.hasClicked()) {
+            std::cout << "drilling down on " << hoveredPointIndex << std::endl;
         }
 
         glPopMatrix();
