@@ -21,6 +21,14 @@ static const int guiHeight = 1080;
 static const int panelWidth = 200;
 static const float aspectRatio = guiWidth/(float)guiHeight;
 
+static const int embeddingViewWidth = 1200; //guiHeight;
+static const int embeddingViewHeight = guiHeight;
+static const float embeddingViewAspectRatio = embeddingViewWidth/(float)embeddingViewHeight;
+
+static const int filterViewWidth = guiWidth-embeddingViewWidth;
+static const int filterViewHeight = guiHeight;
+static const float filterViewAspectRatio = filterViewWidth/(float)filterViewHeight;
+
 static const std::string weightFile = "/home/tws10/Development/caffe/examples/siamese/mnist_siamese_iter_50000.caffemodel";
 static const std::string netFile = "/home/tws10/Development/caffe/examples/siamese/mnist_siamese.prototxt";
 
@@ -118,12 +126,12 @@ int main(int argc, char * * argv) {
     float2 paddedEmbeddingSize = embeddingSize + make_float2(0.1,0.1);
 
     float2 viewportSize;
-    if (paddedEmbeddingSize.x / aspectRatio < paddedEmbeddingSize.y) {
+    if (paddedEmbeddingSize.x / embeddingViewAspectRatio < paddedEmbeddingSize.y) {
         //embedding height is limiting dimension
-        viewportSize = make_float2(paddedEmbeddingSize.y * aspectRatio, paddedEmbeddingSize.y);
+        viewportSize = make_float2(paddedEmbeddingSize.y * embeddingViewAspectRatio, paddedEmbeddingSize.y);
     } else {
         //embedding width is limiting dimension
-        viewportSize = make_float2(paddedEmbeddingSize.x, paddedEmbeddingSize.x / aspectRatio );
+        viewportSize = make_float2(paddedEmbeddingSize.x, paddedEmbeddingSize.x / embeddingViewAspectRatio );
     }
     float2 viewportCenter = minEmbedding + 0.5*embeddingSize;
 
@@ -133,36 +141,50 @@ int main(int argc, char * * argv) {
     std::cout << "viewport size: " << viewportSize.x << ", " << viewportSize.y << std::endl;
 
     // -=-=-=-=- set up pangolin -=-=-=-=-
-    pangolin::CreateGlutWindowAndBind("Seein' In", guiWidth+panelWidth, guiHeight,GLUT_MULTISAMPLE | GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+    pangolin::CreateGlutWindowAndBind("Seein' In", guiWidth, guiHeight,GLUT_MULTISAMPLE | GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 
     glewInit();
 
     SeeinInMouseHandler handler(viewportSize,viewportCenter,
                                (const float2 *)outputBlob->cpu_data(),nTestImages);
 
-    pangolin::View & imgDisp = pangolin::Display("img").SetAspect(aspectRatio).SetHandler(&handler);
+    pangolin::View embeddingView(embeddingViewAspectRatio);
+    embeddingView.SetHandler(&handler);
+    pangolin::View filterView(filterViewAspectRatio);
 
-    pangolin::CreatePanel("panel").SetBounds(0.0, 1.0, 0.0, pangolin::Attach::Pix(panelWidth));
+//    pangolin::CreatePanel("panel").SetBounds(0.0, 1.0, 0.0, pangolin::Attach::Pix(panelWidth));
 
     pangolin::Display("display")
-            .SetBounds(1.0,0.0,1.0,pangolin::Attach::Pix(panelWidth))
-            .SetLayout(pangolin::LayoutEqual)
-            .AddDisplay(imgDisp);
+            .SetBounds(0.0,1.0,0.0,1.0)
+//            .SetBounds(1.0,0.0,1.0,pangolin::Attach::Pix(panelWidth))
+            .AddDisplay(embeddingView)
+            .AddDisplay(filterView)
+            .SetLayout(pangolin::LayoutEqualHorizontal);
+
+    std::cout << embeddingViewAspectRatio << std::endl;
+    std::cout << filterViewAspectRatio << std::endl;
+    std::cout << embeddingView.GetBounds().w << " x " << embeddingView.GetBounds().h << std::endl;
+    std::cout << filterView.GetBounds().w << " x " << filterView.GetBounds().h << std::endl;
 
     pangolin::GlTexture imageTex(imageWidth,imageHeight);
     imageTex.SetNearestNeighbour();
+
+    int selectedImage = -1;
 
     for (long frame=1; !pangolin::ShouldQuit(); ++frame) {
 
         if (pangolin::HasResized()) {
             pangolin::DisplayBase().ActivateScissorAndClear();
+            pangolin::DisplayBase().ResizeChildren();
         }
 
         glClearColor(1,1,1,1);
-        imgDisp.ActivateScissorAndClear();
-        imgDisp.ActivatePixelOrthographic();
+
+        // -=-=-=-=-=-=- embedding view -=-=-=-=-=-=-
+        embeddingView.ActivateScissorAndClear();
+        embeddingView.ActivatePixelOrthographic();
         glPushMatrix();
-        setUpViewport(imgDisp,viewportSize,viewportCenter);
+        setUpViewport(embeddingView,viewportSize,viewportCenter);
 
         glPointSize(3);
         glColor3ub(0,0,0);
@@ -217,11 +239,22 @@ int main(int argc, char * * argv) {
             glLineWidth(1);
         }
 
-        if (handler.hasClicked()) {
-            std::cout << "drilling down on " << hoveredPointIndex << std::endl;
+        glPopMatrix();
+
+        // -=-=-=-=-=-=- filter view -=-=-=-=-=-=-
+        filterView.ActivateScissorAndClear();
+        if (selectedImage >= 0) {
+            imageTex.Upload(testImages + selectedImage*imageWidth*imageHeight,GL_LUMINANCE,GL_FLOAT);
+            glColor3f(1,1,1);
+            imageTex.RenderToViewportFlipY();
         }
 
-        glPopMatrix();
+
+        // -=-=-=-=-=-=- input handling -=-=-=-=-=-=-
+        if (handler.hasClicked()) {
+            selectedImage = hoveredPointIndex;
+        }
+
 
         glClearColor(0,0,0,1);
         pangolin::FinishGlutFrame();
