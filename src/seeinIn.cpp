@@ -78,8 +78,11 @@ int main(int argc, char * * argv) {
 
     // -=-=-=-=- set up caffe -=-=-=-=-
     caffe::GlobalInit(&argc,&argv);
+
+#ifndef CPU_ONLY
     caffe::Caffe::SetDevice(0);
     caffe::Caffe::set_mode(caffe::Caffe::GPU);
+#endif // CPU_ONLY
 
     // -=-=-=-=- load learned network -=-=-=-=-
     caffe::Net<float> net(netFile,caffe::TEST);

@@ -10,11 +10,7 @@ endif()
 add_definitions(-std=c++11)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/CMakeModules/")
 
-find_package(CUDA REQUIRED)
-message(STATUS "Found CUDA ${CUDA_VERSION_STRING}")
-message(STATUS "CUDA Toolkit Root dir: ${CUDA_TOOLKIT_ROOT_DIR}")
-message(STATUS "CUDA SDK Root dir: ${CUDA_SDK_ROOT_DIR}")
-include_directories(${CUDA_TOOLKIT_ROOT_DIR}/samples/common/inc)
+find_package(CUDA QUIET)
 
 find_package(Gflags REQUIRED)
 find_package(Protobuf REQUIRED)
@@ -55,6 +51,12 @@ set(sources
     src/seein_in_mouse_handler.cpp
 )
 
+if (CUDA_FOUND)
+message(STATUS "Found CUDA ${CUDA_VERSION_STRING}")
+message(STATUS "CUDA Toolkit Root dir: ${CUDA_TOOLKIT_ROOT_DIR}")
+message(STATUS "CUDA SDK Root dir: ${CUDA_SDK_ROOT_DIR}")
+include_directories(${CUDA_TOOLKIT_ROOT_DIR}/samples/common/inc)
+
 cuda_add_executable(
         # executable
         seeinIn
@@ -63,5 +65,18 @@ cuda_add_executable(
         # support sources
         ${sources}
 )
+else ()
+add_definitions(-DCPU_ONLY)
+include_directories(${PROJECT_SOURCE_DIR}/tmp_inc)
+
+add_executable(
+        # executable
+        seeinIn
+        # main
+        src/seeinIn.cpp
+        # support sources
+        ${sources}
+)
+endif()
 
 
