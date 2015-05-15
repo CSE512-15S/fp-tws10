@@ -4,15 +4,18 @@
 #include <pangolin/pangolin.h>
 #include <vector_types.h>
 
-class SeeinInMouseHander : public pangolin::Handler {
+class SeeinInMouseHandler : public pangolin::Handler {
 public:
-    SeeinInMouseHander(const float2 viewportSize, const float2 viewportCenter,
+    SeeinInMouseHandler(const float2 viewportSize, const float2 viewportCenter,
                        const float2 * embeddedPoints, const int nEmbeddedPoints);
+
+    void Mouse(pangolin::View & v, pangolin::MouseButton button, int x, int y, bool pressed, int button_state);
 
     void PassiveMouseMotion(pangolin::View & v, int x, int y, int button_state);
 
     inline int getHoveredOverPoint() { return hoveredOverPoint_; }
 
+    inline bool hasClicked() { bool retVal = hasClicked_; hasClicked_ = false; return retVal;  }
 
 private:
 
@@ -24,6 +27,7 @@ private:
     int nEmbeddedPoints_;
 
     int hoveredOverPoint_;
+    bool hasClicked_;
 };
 
 #endif // SEEIN_IN_MOUSE_HANDLER_H
