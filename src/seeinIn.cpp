@@ -169,6 +169,10 @@ int main(int argc, char * * argv) {
     pangolin::GlTexture imageTex(imageWidth,imageHeight);
     imageTex.SetNearestNeighbour();
 
+    const boost::shared_ptr<caffe::Blob<float> > conv1ResponseBlob = net.blob_by_name("conv1");
+    pangolin::GlTexture conv1ResponseTex(conv1ResponseBlob->width(),conv1ResponseBlob->height());
+    conv1ResponseTex.SetNearestNeighbour();
+
     int selectedImage = -1;
 
     for (long frame=1; !pangolin::ShouldQuit(); ++frame) {
@@ -243,12 +247,14 @@ int main(int argc, char * * argv) {
 
         // -=-=-=-=-=-=- filter view -=-=-=-=-=-=-
         filterView.ActivateScissorAndClear();
+        filterView.ActivatePixelOrthographic();
         if (selectedImage >= 0) {
-            imageTex.Upload(testImages + selectedImage*imageWidth*imageHeight,GL_LUMINANCE,GL_FLOAT);
             glColor3f(1,1,1);
-            imageTex.RenderToViewportFlipY();
+            for (int c=0; c<conv1ResponseBlob->channels(); ++c) {
+                conv1ResponseTex.Upload(conv1ResponseBlob->cpu_data() + (selectedImage*conv1ResponseBlob->channels() + c)*conv1ResponseBlob->width()*conv1ResponseBlob->height(),GL_LUMINANCE,GL_FLOAT);
+                renderTexture(conv1ResponseTex,make_float2(60*c,500),make_float2(60,60));
+            }
         }
-
 
         // -=-=-=-=-=-=- input handling -=-=-=-=-=-=-
         if (handler.hasClicked()) {
