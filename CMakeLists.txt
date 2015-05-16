@@ -49,7 +49,12 @@ set(sources
 
     src/seein_in_mouse_handler.h
     src/seein_in_mouse_handler.cpp
+
+    src/visualizations/filter_response_viz.h
+    src/visualizations/filter_response_viz.cpp
 )
+
+include_directories(${PROJECT_SOURCE_DIR}/src)
 
 if (CUDA_FOUND)
 message(STATUS "Found CUDA ${CUDA_VERSION_STRING}")

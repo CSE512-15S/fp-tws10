@@ -15,6 +15,7 @@
 #include "gl_helpers.h"
 #include "mnist_io.h"
 #include "seein_in_mouse_handler.h"
+#include "visualizations/filter_response_viz.h"
 
 static const int guiWidth = 1920;
 static const int guiHeight = 1080;
@@ -180,11 +181,13 @@ int main(int argc, char * * argv) {
     layerResponsesToVisualize.push_back("conv2");
     layerResponsesToVisualize.push_back("pool2");
 
-    std::map<std::string,pangolin::GlTexture*> layerResponseTextures;
+//    std::map<std::string,pangolin::GlTexture*> layerResponseTextures;
+    std::vector<FilterResponseViz*> filterResponseVizs;
     for (std::string layerResponse : layerResponsesToVisualize) {
         const boost::shared_ptr<caffe::Blob<float> > responseBlob = net.blob_by_name(layerResponse);
-        layerResponseTextures[layerResponse] = new pangolin::GlTexture(responseBlob->width(),responseBlob->height());
-        layerResponseTextures[layerResponse]->SetNearestNeighbour();
+//        layerResponseTextures[layerResponse] = new pangolin::GlTexture(responseBlob->width(),responseBlob->height());
+//        layerResponseTextures[layerResponse]->SetNearestNeighbour();
+        filterResponseVizs.push_back(new FilterResponseViz(responseBlob,400));
     }
 
     int selectedImage = -1;
@@ -264,16 +267,13 @@ int main(int argc, char * * argv) {
         filterView.ActivatePixelOrthographic();
         if (selectedImage >= 0) {
             glColor3f(1,1,1);
-            int y = 500;
-            for (std::string layerResponse : layerResponsesToVisualize) {
-                const boost::shared_ptr<caffe::Blob<float> > responseBlob = net.blob_by_name(layerResponse);
-                for (int c=0; c<responseBlob->channels(); ++c) {
-                    layerResponseTextures[layerResponse]->Upload(responseBlob->cpu_data() + (selectedImage*responseBlob->channels() + c)*responseBlob->width()*responseBlob->height(),GL_LUMINANCE,GL_FLOAT);
-                    renderTexture(*layerResponseTextures[layerResponse],make_float2(45*c,y),make_float2(40,40));
-                }
-                y -= 100;
+            glPushMatrix();
+            glTranslatef(0,600,0);
+            for (FilterResponseViz * viz : filterResponseVizs) {
+                viz->renderResponse(selectedImage);
+                glTranslatef(0,-viz->getVizHeight(),0);
             }
-
+            glPopMatrix();
         }
 
         // -=-=-=-=-=-=- input handling -=-=-=-=-=-=-
@@ -287,8 +287,8 @@ int main(int argc, char * * argv) {
 
     }
 
-    for (auto it : layerResponseTextures) {
-        delete it.second;
+    for (FilterResponseViz * viz : filterResponseVizs) {
+        delete viz;
     }
 
     return 0;
