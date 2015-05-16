@@ -180,6 +180,11 @@ int main(int argc, char * * argv) {
     layerResponsesToVisualize.push_back("pool1");
     layerResponsesToVisualize.push_back("conv2");
     layerResponsesToVisualize.push_back("pool2");
+    std::map<std::string,int> layerRelativeScales;
+    layerRelativeScales["conv1"] = 1;
+    layerRelativeScales["pool1"] = 2;
+    layerRelativeScales["conv2"] = 2;
+    layerRelativeScales["pool2"] = 4;
 
 //    std::map<std::string,pangolin::GlTexture*> layerResponseTextures;
     std::vector<FilterResponseViz*> filterResponseVizs;
@@ -187,7 +192,7 @@ int main(int argc, char * * argv) {
         const boost::shared_ptr<caffe::Blob<float> > responseBlob = net.blob_by_name(layerResponse);
 //        layerResponseTextures[layerResponse] = new pangolin::GlTexture(responseBlob->width(),responseBlob->height());
 //        layerResponseTextures[layerResponse]->SetNearestNeighbour();
-        filterResponseVizs.push_back(new FilterResponseViz(responseBlob,400));
+        filterResponseVizs.push_back(new FilterResponseViz(responseBlob,400,2*layerRelativeScales[layerResponse]));
     }
 
     int selectedImage = -1;
@@ -197,6 +202,10 @@ int main(int argc, char * * argv) {
         if (pangolin::HasResized()) {
             pangolin::DisplayBase().ActivateScissorAndClear();
             pangolin::DisplayBase().ResizeChildren();
+
+            for (FilterResponseViz * viz : filterResponseVizs) {
+                viz->resize(filterView.GetBounds().w,viz->getVizZoom());
+            }
         }
 
         glClearColor(1,1,1,1);
@@ -268,10 +277,10 @@ int main(int argc, char * * argv) {
         if (selectedImage >= 0) {
             glColor3f(1,1,1);
             glPushMatrix();
-            glTranslatef(0,600,0);
+            glTranslatef(0,filterView.GetBounds().h,0);
             for (FilterResponseViz * viz : filterResponseVizs) {
-                viz->renderResponse(selectedImage);
                 glTranslatef(0,-viz->getVizHeight(),0);
+                viz->renderResponse(selectedImage);
             }
             glPopMatrix();
         }
