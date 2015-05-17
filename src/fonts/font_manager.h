@@ -4,15 +4,21 @@
 #include <string>
 #include "font_face.h"
 
+enum FontStyle {
+    FontStyleRegular,
+    FontStyleBold,
+    FontStyleItalic
+};
+
 class FontManager {
 public:
-    FontManager(const std::string regularFile,
-                const std::string boldFile,
-                const std::string italicFile);
+    FontManager(const std::string fontName);
     ~FontManager();
 
     void printString(const std::string & text, const float x, const float y);
 private:
+    std::string getFontFile(const std::string fontName, const FontStyle style);
+
     FontFace * regular_;
     FontFace * bold_;
     FontFace * italic_;

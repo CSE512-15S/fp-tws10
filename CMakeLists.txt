@@ -23,6 +23,10 @@ link_libraries(${Pangolin_LIBRARIES})
 
 include_directories(/usr/include/eigen3)
 
+#fontconfig
+include_directories(/usr/include/fontconfig)
+link_libraries(fontconfig)
+
 #freetype
 find_package(Freetype REQUIRED)
 include_directories(${FREETYPE_INCLUDE_DIRS})

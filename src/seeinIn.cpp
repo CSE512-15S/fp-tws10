@@ -176,10 +176,7 @@ int main(int argc, char * * argv) {
 //    }
 
     // -=-=-=-=- load fonts -=-=-=-=-
-    // TODO
-    FontManager fontManager("../src/fonts/GaramondNo8-Regular.ttf",
-                            "../src/fonts/GaramondNo8-Bold.ttf",
-                            "../src/fonts/GaramondNo8-Italic.ttf");
+    FontManager fontManager("Ubuntu");
 
     // -=-=-=-=- set up layer visualizations -=-=-=-=-
     std::vector<std::string> layerResponsesToVisualize;
