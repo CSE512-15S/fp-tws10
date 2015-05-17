@@ -280,20 +280,28 @@ int main(int argc, char * * argv) {
         filterView.ActivateScissorAndClear();
         filterView.ActivatePixelOrthographic();
 
-        glColor3ub(0,0,0);
-        glEnable(GL_TEXTURE_2D);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-        fontManager.printString("test",100,100);
-        glDisable(GL_BLEND);
-        glDisable(GL_TEXTURE_2D);
+//        glColor3ub(0,0,0);
+//        glEnable(GL_TEXTURE_2D);
+//        glEnable(GL_BLEND);
+//        glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+//        fontManager.printString("test",100,100);
 
         if (selectedImage >= 0) {
             glColor3f(1,1,1);
             glPushMatrix();
             glTranslatef(0,filterView.GetBounds().h,0);
-            for (FilterResponseViz * viz : filterResponseVizs) {
-                glTranslatef(0,-viz->getVizHeight(),0);
+            for (int i=0; i<filterResponseVizs.size(); ++i) {
+                glColor3ub(0,0,0);
+                glEnable(GL_TEXTURE_2D);
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+                fontManager.printString(layerResponsesToVisualize[i],10,-18);
+                glDisable(GL_BLEND);
+                glDisable(GL_TEXTURE_2D);
+                glColor3ub(255,255,255);
+
+                FilterResponseViz * viz = filterResponseVizs[i];
+                glTranslatef(0,-(viz->getVizHeight()+18),0);
                 viz->renderResponse(selectedImage);
             }
             glPopMatrix();

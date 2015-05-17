@@ -21,7 +21,7 @@ FontManager::FontManager(const std::string fontName) {
     }
 
     // TODO
-    const int fontSize = 42;
+    const int fontSize = 18;
 
     regular_ = new FontFace(ftLibrary,regularFontFile,fontSize);
     bold_ = new FontFace(ftLibrary,boldFontFile,fontSize);
