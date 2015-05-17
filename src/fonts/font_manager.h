@@ -1,6 +1,7 @@
 #ifndef FONT_MANAGER_H
 #define FONT_MANAGER_H
 
+#include <map>
 #include <string>
 #include "font_face.h"
 
@@ -15,13 +16,17 @@ public:
     FontManager(const std::string fontName);
     ~FontManager();
 
-    void printString(const std::string & text, const float x, const float y);
+    void printString(const std::string & text, const float x, const float y, const int size);
 private:
     std::string getFontFile(const std::string fontName, const FontStyle style);
+    void loadFontSize(const int size);
 
-    FontFace * regular_;
-    FontFace * bold_;
-    FontFace * italic_;
+    std::string regularFontFile_;
+    std::string boldFontFile_;
+    std::string italicFontFile_;
+    std::map<int,FontFace *> regular_;
+    std::map<int,FontFace *> bold_;
+    std::map<int,FontFace *> italic_;
 };
 
 #endif // FONT_MANAGER_H

@@ -10,35 +10,22 @@
 
 FontManager::FontManager(const std::string fontName) {
 
-    std::string regularFontFile = getFontFile(fontName,FontStyleRegular);
-    std::string boldFontFile = getFontFile(fontName,FontStyleBold);
-    std::string italicFontFile = getFontFile(fontName,FontStyleItalic);
-
-    FT_Library ftLibrary;
-    if (FT_Init_FreeType(&ftLibrary)) {
-        std::cerr << "could not initialize freetype library" << std::endl;
-        return;
-    }
-
-    // TODO
-    const int fontSize = 18;
-
-    regular_ = new FontFace(ftLibrary,regularFontFile,fontSize);
-    bold_ = new FontFace(ftLibrary,boldFontFile,fontSize);
-    italic_ = new FontFace(ftLibrary,italicFontFile,fontSize);
-
-    FT_Done_FreeType(ftLibrary);
-
+    regularFontFile_ = getFontFile(fontName,FontStyleRegular);
+    boldFontFile_ = getFontFile(fontName,FontStyleBold);
+    italicFontFile_ = getFontFile(fontName,FontStyleItalic);
 }
 
 FontManager::~FontManager() {
-    delete regular_;
-    delete bold_;
-    delete italic_;
+    for (std::pair<int,FontFace *> ff : regular_) { delete ff.second; }
+    for (std::pair<int,FontFace *> ff : bold_) { delete ff.second; }
+    for (std::pair<int,FontFace *> ff : italic_) { delete ff.second; }
 }
 
-void FontManager::printString(const std::string & text, const float x, const float y) {
-    regular_->printString(text,x,y);
+void FontManager::printString(const std::string & text, const float x, const float y, const int size) {
+    if (regular_.find(size) == regular_.end()) {
+        loadFontSize(size);
+    }
+    regular_[size]->printString(text,x,y);
 }
 
 std::string FontManager::getFontFile(const std::string fontName, const FontStyle style) {
@@ -83,4 +70,18 @@ std::string FontManager::getFontFile(const std::string fontName, const FontStyle
     FcConfigDestroy(config);
 
     return fontFile;
+}
+
+void FontManager::loadFontSize(const int size) {
+    FT_Library ftLibrary;
+    if (FT_Init_FreeType(&ftLibrary)) {
+        std::cerr << "could not initialize freetype library" << std::endl;
+        return;
+    }
+
+    regular_[size] = new FontFace(ftLibrary,regularFontFile_,size);
+    bold_[size] = new FontFace(ftLibrary,boldFontFile_,size);
+    italic_[size] = new FontFace(ftLibrary,italicFontFile_,size);
+
+    FT_Done_FreeType(ftLibrary);
 }

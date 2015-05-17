@@ -287,6 +287,7 @@ int main(int argc, char * * argv) {
 //        fontManager.printString("test",100,100);
 
         if (selectedImage >= 0) {
+            static const int fontSize = 16;
             glColor3f(1,1,1);
             glPushMatrix();
             glTranslatef(0,filterView.GetBounds().h,0);
@@ -295,13 +296,13 @@ int main(int argc, char * * argv) {
                 glEnable(GL_TEXTURE_2D);
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-                fontManager.printString(layerResponsesToVisualize[i],10,-18);
+                fontManager.printString(layerResponsesToVisualize[i],10,-fontSize,fontSize);
                 glDisable(GL_BLEND);
                 glDisable(GL_TEXTURE_2D);
                 glColor3ub(255,255,255);
 
                 FilterResponseViz * viz = filterResponseVizs[i];
-                glTranslatef(0,-(viz->getVizHeight()+18),0);
+                glTranslatef(0,-(viz->getVizHeight()+fontSize),0);
                 viz->renderResponse(selectedImage);
             }
             glPopMatrix();
