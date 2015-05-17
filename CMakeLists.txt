@@ -23,6 +23,11 @@ link_libraries(${Pangolin_LIBRARIES})
 
 include_directories(/usr/include/eigen3)
 
+#freetype
+find_package(Freetype REQUIRED)
+include_directories(${FREETYPE_INCLUDE_DIRS})
+link_libraries(${FREETYPE_LIBRARIES})
+
 #gflags
 include_directories(${gflags_INCLUDE_DIR})
 link_libraries(gflags)
@@ -49,6 +54,11 @@ set(sources
 
     src/seein_in_mouse_handler.h
     src/seein_in_mouse_handler.cpp
+
+    src/fonts/font_face.h
+    src/fonts/font_face.cpp
+    src/fonts/font_manager.h
+    src/fonts/font_manager.cpp
 
     src/visualizations/filter_response_viz.h
     src/visualizations/filter_response_viz.cpp

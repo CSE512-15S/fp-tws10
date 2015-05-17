@@ -15,6 +15,7 @@
 #include "gl_helpers.h"
 #include "mnist_io.h"
 #include "seein_in_mouse_handler.h"
+#include "fonts/font_manager.h"
 #include "visualizations/filter_response_viz.h"
 
 static const int guiWidth = 1920;
@@ -174,12 +175,19 @@ int main(int argc, char * * argv) {
 
 //    }
 
+    // -=-=-=-=- load fonts -=-=-=-=-
+    // TODO
+    FontManager fontManager("../src/fonts/GaramondNo8-Regular.ttf",
+                            "../src/fonts/GaramondNo8-Bold.ttf",
+                            "../src/fonts/GaramondNo8-Italic.ttf");
+
     // -=-=-=-=- set up layer visualizations -=-=-=-=-
     std::vector<std::string> layerResponsesToVisualize;
     layerResponsesToVisualize.push_back("conv1");
     layerResponsesToVisualize.push_back("pool1");
     layerResponsesToVisualize.push_back("conv2");
     layerResponsesToVisualize.push_back("pool2");
+
     std::map<std::string,int> layerRelativeScales;
     layerRelativeScales["conv1"] = 1;
     layerRelativeScales["pool1"] = 2;
@@ -274,6 +282,15 @@ int main(int argc, char * * argv) {
         // -=-=-=-=-=-=- filter view -=-=-=-=-=-=-
         filterView.ActivateScissorAndClear();
         filterView.ActivatePixelOrthographic();
+
+        glColor3ub(0,0,0);
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+        fontManager.printString("test",100,100);
+        glDisable(GL_BLEND);
+        glDisable(GL_TEXTURE_2D);
+
         if (selectedImage >= 0) {
             glColor3f(1,1,1);
             glPushMatrix();
