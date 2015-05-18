@@ -2,6 +2,7 @@
 
 #include "gl_helpers.h"
 #include <helper_math.h>
+#include <limits>
 
 inline int ceilDivide(const int num, const int denom) {
     const div_t result = std::div(num,denom);
@@ -21,6 +22,14 @@ FilterResponseViz::FilterResponseViz(const boost::shared_ptr<caffe::Blob<float> 
     border_(1) {
 
     resize(vizWidth, zoom);
+
+    minDataVal_ = std::numeric_limits<float>::infinity();
+    maxDataVal_ = -std::numeric_limits<float>::infinity();
+    for (int i=0; i<responseBlob->count(); ++i) {
+        minDataVal_ = std::min(minDataVal_,responseBlob->cpu_data()[i]);
+        maxDataVal_ = std::max(maxDataVal_,responseBlob->cpu_data()[i]);
+    }
+    std::cout << minDataVal_ << " -> " << maxDataVal_ << std::endl;
 }
 
 void FilterResponseViz::resize(const int vizWidth, const float zoom) {
@@ -33,7 +42,6 @@ void FilterResponseViz::resize(const int vizWidth, const float zoom) {
 }
 
 void FilterResponseViz::renderResponse(const int image) {
-
     for (int c=0; c<channels_; ++c) {
         const int row = c / responseCols_;
         const int col = c % responseCols_;

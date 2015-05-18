@@ -30,6 +30,8 @@ private:
     int responseCols_;
     int border_;
     float zoom_;
+    float maxDataVal_;
+    float minDataVal_;
 };
 
 
