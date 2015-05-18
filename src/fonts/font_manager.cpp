@@ -21,11 +21,37 @@ FontManager::~FontManager() {
     for (std::pair<int,FontFace *> ff : italic_) { delete ff.second; }
 }
 
-void FontManager::printString(const std::string & text, const float x, const float y, const int size) {
+void FontManager::printString(const std::string & text, const float x, const float y, const int size, const FontStyle style) {
     if (regular_.find(size) == regular_.end()) {
         loadFontSize(size);
     }
-    regular_[size]->printString(text,x,y);
+    switch (style) {
+    case FontStyleRegular:
+        regular_[size]->printString(text,x,y);
+        break;
+    case FontStyleBold:
+        bold_[size]->printString(text,x,y);
+        break;
+    case FontStyleItalic:
+        italic_[size]->printString(text,x,y);
+        break;
+    }
+
+}
+
+int FontManager::getStringLength(const std::string & text, const int size, const FontStyle style) {
+    if (regular_.find(size) == regular_.end()) {
+        loadFontSize(size);
+    }
+    switch (style) {
+    case FontStyleRegular:
+        return regular_[size]->getStringLength(text);
+    case FontStyleBold:
+        return bold_[size]->getStringLength(text);
+    case FontStyleItalic:
+        return italic_[size]->getStringLength(text);
+    }
+
 }
 
 std::string FontManager::getFontFile(const std::string fontName, const FontStyle style) {

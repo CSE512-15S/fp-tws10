@@ -12,9 +12,10 @@ class FontFace {
 public:
     FontFace(FT_Library & ftLibrary, const std::string fontFile, const int fontSize);
 
+    int getStringLength(const std::string & text);
     void printString(const std::string & text, float x, float y);
-
 private:
+    int getLetterLength(const char letter);
     void printLetter(const char letter);
 
     struct GlyphInfo {

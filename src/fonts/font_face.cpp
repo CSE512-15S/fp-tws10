@@ -73,6 +73,18 @@ FontFace::FontFace(FT_Library & ftLibrary, const std::string fontFile, const int
     FT_Done_Face(ftFace);
 }
 
+int FontFace::getStringLength(const std::string &text) {
+    int length = 0;
+    for (int i=0; i<text.size(); ++i) {
+        length += getLetterLength(text.c_str()[i]);
+    }
+    return length;
+}
+
+int FontFace::getLetterLength(const char letter) {
+    return glyphInfo_[letter].left + glyphInfo_[letter].advance;
+}
+
 void FontFace::printString(const std::string & text, float x, float y) {
 
     glPushMatrix();

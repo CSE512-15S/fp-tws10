@@ -287,7 +287,7 @@ int main(int argc, char * * argv) {
 //        fontManager.printString("test",100,100);
 
         if (selectedImage >= 0) {
-            static const int fontSize = 16;
+            static const int fontSize = 12;
             glColor3f(1,1,1);
             glPushMatrix();
             glTranslatef(0,filterView.GetBounds().h,0);
@@ -299,8 +299,18 @@ int main(int argc, char * * argv) {
                 fontManager.printString(layerResponsesToVisualize[i],10,-fontSize,fontSize);
                 glDisable(GL_BLEND);
                 glDisable(GL_TEXTURE_2D);
-                glColor3ub(255,255,255);
 
+                glColor3ub(128,128,128);
+                glBegin(GL_LINES);
+                glVertex2f(0,-fontSize/2);
+                glVertex2f(5,-fontSize/2);
+                glVertex2f(fontManager.getStringLength(layerResponsesToVisualize[i],fontSize) + 15,
+                           -fontSize/2);
+                glVertex2f(filterView.GetBounds().w,
+                           -fontSize/2);
+                glEnd();
+
+                glColor3ub(255,255,255);
                 FilterResponseViz * viz = filterResponseVizs[i];
                 glTranslatef(0,-(viz->getVizHeight()+fontSize),0);
                 viz->renderResponse(selectedImage);

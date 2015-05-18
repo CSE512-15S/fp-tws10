@@ -16,7 +16,8 @@ public:
     FontManager(const std::string fontName);
     ~FontManager();
 
-    void printString(const std::string & text, const float x, const float y, const int size);
+    void printString(const std::string & text, const float x, const float y, const int size, const FontStyle style = FontStyleRegular);
+    int getStringLength(const std::string & text, const int size, const FontStyle style = FontStyleRegular);
 private:
     std::string getFontFile(const std::string fontName, const FontStyle style);
     void loadFontSize(const int size);
