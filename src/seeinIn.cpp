@@ -184,12 +184,16 @@ int main(int argc, char * * argv) {
     layerResponsesToVisualize.push_back("pool1");
     layerResponsesToVisualize.push_back("conv2");
     layerResponsesToVisualize.push_back("pool2");
+    layerResponsesToVisualize.push_back("ip1");
+    layerResponsesToVisualize.push_back("ip2");
 
     std::map<std::string,int> layerRelativeScales;
     layerRelativeScales["conv1"] = 1;
     layerRelativeScales["pool1"] = 2;
     layerRelativeScales["conv2"] = 2;
     layerRelativeScales["pool2"] = 4;
+    layerRelativeScales["ip1"] = 4;
+    layerRelativeScales["ip2"] = 4;
 
 //    std::map<std::string,pangolin::GlTexture*> layerResponseTextures;
     std::vector<FilterResponseViz*> filterResponseVizs;
@@ -197,7 +201,7 @@ int main(int argc, char * * argv) {
         const boost::shared_ptr<caffe::Blob<float> > responseBlob = net.blob_by_name(layerResponse);
 //        layerResponseTextures[layerResponse] = new pangolin::GlTexture(responseBlob->width(),responseBlob->height());
 //        layerResponseTextures[layerResponse]->SetNearestNeighbour();
-        filterResponseVizs.push_back(new FilterResponseViz(responseBlob,400,2*layerRelativeScales[layerResponse]));
+        filterResponseVizs.push_back(new FilterResponseViz(responseBlob,400,1.75*layerRelativeScales[layerResponse]));
     }
 
     int selectedImage = -1;
