@@ -84,6 +84,10 @@ static const uchar3 digitColors[10] = {
 
 //}
 
+inline void printBlobSize(boost::shared_ptr<caffe::Blob<float> > blob) {
+    std::cout << blob->num() << " x " << blob->channels() << " x " << blob->height() << " x " << blob->width() << std::endl;
+}
+
 int main(int argc, char * * argv) {
 
     // -=-=-=-=- set up caffe -=-=-=-=-
@@ -278,6 +282,36 @@ int main(int argc, char * * argv) {
             glLineWidth(1);
         }
 
+        if (selectedImage >= 0) {
+            boost::shared_ptr<caffe::Layer<float> > featLayer = net.layer_by_name("feat");
+
+            boost::shared_ptr<caffe::Blob<float> > weightBlob = featLayer->blobs()[0];
+            boost::shared_ptr<caffe::Blob<float> > biasBlob = featLayer->blobs()[1];
+
+            boost::shared_ptr<caffe::Blob<float> > featInputBlob = net.blob_by_name("ip2");
+
+            printBlobSize(weightBlob);
+            printBlobSize(biasBlob);
+            printBlobSize(featInputBlob);
+
+            glLineWidth(2);
+            glColor3ub(0,0,0);
+            float2 end = make_float2(biasBlob->cpu_data()[0],biasBlob->cpu_data()[1]);
+            std::cout << "bias: " << end.x << ", " << end.y << std::endl;
+            glBegin(GL_LINES);
+            for (int i=0; i<weightBlob->channels(); ++i) {
+                float2 W = make_float2(weightBlob->cpu_data()[i],weightBlob->cpu_data()[weightBlob->channels() + i]);
+                std::cout << "W" << i << ": " << W.x << ", " << W.y << std::endl;
+                float x = featInputBlob->cpu_data()[selectedImage*featInputBlob->channels() + i];
+                float2 nextEnd = end + x*W;
+                glVertex(end);
+                glVertex(nextEnd);
+                end = nextEnd;
+            }
+            glEnd();
+            glLineWidth(1);
+        }
+
         glPopMatrix();
 
         // -=-=-=-=-=-=- filter view -=-=-=-=-=-=-
@@ -326,7 +360,6 @@ int main(int argc, char * * argv) {
         if (handler.hasClicked()) {
             selectedImage = hoveredPointIndex;
         }
-
 
         glClearColor(0,0,0,1);
         pangolin::FinishGlutFrame();
