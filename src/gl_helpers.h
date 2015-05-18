@@ -3,6 +3,7 @@
 
 #include <pangolin/pangolin.h>
 #include <GL/gl.h>
+#include <helper_math.h>
 #include <vector_types.h>
 #include <vector_functions.h>
 
@@ -13,5 +14,14 @@ inline void glVertex(const float2 vertex) { glVertex2fv(&vertex.x); }
 void setUpViewport(const pangolin::View & v, const float2 viewportSize, const float2 viewportCenter);
 
 void renderTexture(const pangolin::GlTexture & texture, const float2 location = make_float2(0,0), const float2 size = make_float2(1,1));
+
+inline static void glScalePixels(const float3 scale = make_float3(1.f), const float3 bias = make_float3(0.f)){
+    glPixelTransferf(GL_RED_SCALE, scale.x);
+    glPixelTransferf(GL_GREEN_SCALE, scale.y);
+    glPixelTransferf(GL_BLUE_SCALE, scale.z);
+    glPixelTransferf(GL_RED_BIAS, bias.x);
+    glPixelTransferf(GL_GREEN_BIAS, bias.y);
+    glPixelTransferf(GL_BLUE_BIAS, bias.z);
+}
 
 #endif // GL_HELPERS_H

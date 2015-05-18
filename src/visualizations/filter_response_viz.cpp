@@ -42,11 +42,15 @@ void FilterResponseViz::resize(const int vizWidth, const float zoom) {
 }
 
 void FilterResponseViz::renderResponse(const int image) {
+    float scale = 1.f/(maxDataVal_-minDataVal_);
+    float bias = -minDataVal_*scale;
+    glScalePixels(make_float3(scale),make_float3(bias));
     for (int c=0; c<channels_; ++c) {
         const int row = c / responseCols_;
         const int col = c % responseCols_;
         tex_.Upload(data_ + (image*channels_ + c)*height_*width_,GL_LUMINANCE,GL_FLOAT);
         renderTexture(tex_,make_float2(zoom_*(width_+border_)*col,vizHeight_-zoom_*(height_+border_)*(row+1)),zoom_*make_float2(width_,height_));
     }
+    glScalePixels();
 }
 
