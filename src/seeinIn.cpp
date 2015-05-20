@@ -205,7 +205,7 @@ int main(int argc, char * * argv) {
         const boost::shared_ptr<caffe::Blob<float> > responseBlob = net.blob_by_name(layerResponse);
 //        layerResponseTextures[layerResponse] = new pangolin::GlTexture(responseBlob->width(),responseBlob->height());
 //        layerResponseTextures[layerResponse]->SetNearestNeighbour();
-        filterResponseVizs.push_back(new FilterResponseViz(responseBlob,400,1.75*layerRelativeScales[layerResponse]));
+        filterResponseVizs.push_back(new FilterResponseViz(responseBlob,400,2*layerRelativeScales[layerResponse]));
     }
 
     int selectedImage = -1;
@@ -297,11 +297,9 @@ int main(int argc, char * * argv) {
             glLineWidth(2);
             glColor3ub(0,0,0);
             float2 end = make_float2(biasBlob->cpu_data()[0],biasBlob->cpu_data()[1]);
-            std::cout << "bias: " << end.x << ", " << end.y << std::endl;
             glBegin(GL_LINES);
             for (int i=0; i<weightBlob->channels(); ++i) {
                 float2 W = make_float2(weightBlob->cpu_data()[i],weightBlob->cpu_data()[weightBlob->channels() + i]);
-                std::cout << "W" << i << ": " << W.x << ", " << W.y << std::endl;
                 float x = featInputBlob->cpu_data()[selectedImage*featInputBlob->channels() + i];
                 float2 nextEnd = end + x*W;
                 glVertex(end);
@@ -334,23 +332,23 @@ int main(int argc, char * * argv) {
                 glEnable(GL_TEXTURE_2D);
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-                fontManager.printString(layerResponsesToVisualize[i],10,-fontSize,fontSize);
+                fontManager.printString(layerResponsesToVisualize[i],10,-fontSize-4,fontSize);
                 glDisable(GL_BLEND);
                 glDisable(GL_TEXTURE_2D);
 
                 glColor3ub(128,128,128);
                 glBegin(GL_LINES);
-                glVertex2f(0,-fontSize/2);
-                glVertex2f(5,-fontSize/2);
+                glVertex2f(0,-fontSize/2-4);
+                glVertex2f(5,-fontSize/2-4);
                 glVertex2f(fontManager.getStringLength(layerResponsesToVisualize[i],fontSize) + 15,
-                           -fontSize/2);
+                           -fontSize/2-4);
                 glVertex2f(filterView.GetBounds().w,
-                           -fontSize/2);
+                           -fontSize/2-4);
                 glEnd();
 
                 glColor3ub(255,255,255);
                 FilterResponseViz * viz = filterResponseVizs[i];
-                glTranslatef(0,-(viz->getVizHeight()+fontSize),0);
+                glTranslatef(0,-(viz->getVizHeight()+fontSize+8),0);
                 viz->renderResponse(selectedImage);
             }
             glPopMatrix();

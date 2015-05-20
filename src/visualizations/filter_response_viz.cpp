@@ -35,10 +35,10 @@ FilterResponseViz::FilterResponseViz(const boost::shared_ptr<caffe::Blob<float> 
 void FilterResponseViz::resize(const int vizWidth, const float zoom) {
     zoom_ = zoom;
     vizWidth_ = vizWidth;
-    responseCols_ = std::floor((vizWidth_/zoom_ - border_)/(width_ + border_));
+    responseCols_ = std::floor((vizWidth_ - border_)/(width_*zoom_ + border_));
     responseRows_ = ceilDivide(channels_,responseCols_);
 
-    vizHeight_ = zoom_*responseRows_*(height_+border_)+border_;
+    vizHeight_ = responseRows_*(zoom_*height_+border_)+border_;
 }
 
 void FilterResponseViz::renderResponse(const int image) {
@@ -49,7 +49,7 @@ void FilterResponseViz::renderResponse(const int image) {
         const int row = c / responseCols_;
         const int col = c % responseCols_;
         tex_.Upload(data_ + (image*channels_ + c)*height_*width_,GL_LUMINANCE,GL_FLOAT);
-        renderTexture(tex_,make_float2(zoom_*(width_+border_)*col,vizHeight_-zoom_*(height_+border_)*(row+1)),zoom_*make_float2(width_,height_));
+        renderTexture(tex_,make_float2((zoom_*width_+border_)*col,vizHeight_-(zoom_*height_+border_)*(row+1)),zoom_*make_float2(width_,height_));
     }
     glScalePixels();
 }
