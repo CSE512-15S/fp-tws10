@@ -10,13 +10,17 @@ public:
 
     void resize(const int vizWidth, const float zoom);
 
-    void renderResponse(const int image);
+    void renderResponse();
 
     inline int getVizWidth() const { return vizWidth_; }
 
     inline int getVizHeight() const { return vizHeight_; }
 
     inline float getVizZoom() const { return zoom_; }
+
+    void setSelection(const int selectedImage);
+
+    void setSelection(std::vector<bool> selection);
 
 private:
     const float * data_;
@@ -32,6 +36,8 @@ private:
     float zoom_;
     float maxDataVal_;
     float minDataVal_;
+
+    std::vector<float> response_;
 };
 
 

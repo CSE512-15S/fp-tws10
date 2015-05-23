@@ -282,33 +282,33 @@ int main(int argc, char * * argv) {
             glLineWidth(1);
         }
 
-        if (selectedImage >= 0) {
-            boost::shared_ptr<caffe::Layer<float> > featLayer = net.layer_by_name("feat");
+//        if (selectedImage >= 0) {
+//            boost::shared_ptr<caffe::Layer<float> > featLayer = net.layer_by_name("feat");
 
-            boost::shared_ptr<caffe::Blob<float> > weightBlob = featLayer->blobs()[0];
-            boost::shared_ptr<caffe::Blob<float> > biasBlob = featLayer->blobs()[1];
+//            boost::shared_ptr<caffe::Blob<float> > weightBlob = featLayer->blobs()[0];
+//            boost::shared_ptr<caffe::Blob<float> > biasBlob = featLayer->blobs()[1];
 
-            boost::shared_ptr<caffe::Blob<float> > featInputBlob = net.blob_by_name("ip2");
+//            boost::shared_ptr<caffe::Blob<float> > featInputBlob = net.blob_by_name("ip2");
 
-            printBlobSize(weightBlob);
-            printBlobSize(biasBlob);
-            printBlobSize(featInputBlob);
+//            printBlobSize(weightBlob);
+//            printBlobSize(biasBlob);
+//            printBlobSize(featInputBlob);
 
-            glLineWidth(2);
-            glColor3ub(0,0,0);
-            float2 end = make_float2(biasBlob->cpu_data()[0],biasBlob->cpu_data()[1]);
-            glBegin(GL_LINES);
-            for (int i=0; i<weightBlob->channels(); ++i) {
-                float2 W = make_float2(weightBlob->cpu_data()[i],weightBlob->cpu_data()[weightBlob->channels() + i]);
-                float x = featInputBlob->cpu_data()[selectedImage*featInputBlob->channels() + i];
-                float2 nextEnd = end + x*W;
-                glVertex(end);
-                glVertex(nextEnd);
-                end = nextEnd;
-            }
-            glEnd();
-            glLineWidth(1);
-        }
+//            glLineWidth(2);
+//            glColor3ub(0,0,0);
+//            float2 end = make_float2(biasBlob->cpu_data()[0],biasBlob->cpu_data()[1]);
+//            glBegin(GL_LINES);
+//            for (int i=0; i<weightBlob->channels(); ++i) {
+//                float2 W = make_float2(weightBlob->cpu_data()[i],weightBlob->cpu_data()[weightBlob->channels() + i]);
+//                float x = featInputBlob->cpu_data()[selectedImage*featInputBlob->channels() + i];
+//                float2 nextEnd = end + x*W;
+//                glVertex(end);
+//                glVertex(nextEnd);
+//                end = nextEnd;
+//            }
+//            glEnd();
+//            glLineWidth(1);
+//        }
 
         glPopMatrix();
 
@@ -349,7 +349,7 @@ int main(int argc, char * * argv) {
                 glColor3ub(255,255,255);
                 FilterResponseViz * viz = filterResponseVizs[i];
                 glTranslatef(0,-(viz->getVizHeight()+fontSize+8),0);
-                viz->renderResponse(selectedImage);
+                viz->renderResponse();
             }
             glPopMatrix();
         }
@@ -357,6 +357,14 @@ int main(int argc, char * * argv) {
         // -=-=-=-=-=-=- input handling -=-=-=-=-=-=-
         if (handler.hasClicked()) {
             selectedImage = hoveredPointIndex;
+            std::vector<bool> selection(nTestImages);
+            for (int i=0; i<nTestImages; ++i) {
+                selection[i] = (testLabels[i] == 8);
+            }
+            for (FilterResponseViz * viz : filterResponseVizs) {
+//                viz->setSelection(selectedImage);
+                viz->setSelection(selection);
+            }
         }
 
         glClearColor(0,0,0,1);
