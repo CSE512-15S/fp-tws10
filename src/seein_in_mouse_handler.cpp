@@ -14,7 +14,7 @@ SeeinInMouseHandler::SeeinInMouseHandler(const float2 viewportSize, const float2
 void SeeinInMouseHandler::Mouse(pangolin::View & v, pangolin::MouseButton button, int x, int y, bool pressed, int button_state) {
     pangolin::Handler::Mouse(v,button,x,y,pressed,button_state);
 
-    if (pressed && hoveredOverPoint_ >= 0) { hasClicked_ = true; }
+    if (!pressed && button == pangolin::MouseButtonLeft && hoveredOverPoint_ >= 0) { hasClicked_ = true; }
 }
 
 void SeeinInMouseHandler::PassiveMouseMotion(pangolin::View & v, int x, int y, int button_state) {

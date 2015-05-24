@@ -359,7 +359,7 @@ int main(int argc, char * * argv) {
             selectedImage = hoveredPointIndex;
             std::vector<bool> selection(nTestImages);
             for (int i=0; i<nTestImages; ++i) {
-                selection[i] = (testLabels[i] == 8);
+                selection[i] = (testLabels[i] == testLabels[selectedImage]);
             }
             for (FilterResponseViz * viz : filterResponseVizs) {
 //                viz->setSelection(selectedImage);
