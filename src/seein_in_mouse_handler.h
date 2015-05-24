@@ -4,6 +4,11 @@
 #include <pangolin/pangolin.h>
 #include <vector_types.h>
 
+enum SelectionMode {
+    SelectionModeSingle,
+    SelectionModeLasso
+};
+
 class SeeinInMouseHandler : public pangolin::Handler {
 public:
     SeeinInMouseHandler(const float2 viewportSize, const float2 viewportCenter,
@@ -15,7 +20,13 @@ public:
 
     inline int getHoveredOverPoint() { return hoveredOverPoint_; }
 
-    inline bool hasClicked() { bool retVal = hasClicked_; hasClicked_ = false; return retVal;  }
+    inline bool hasSelection() { bool retVal = hasSelection_; hasSelection_ = false; return retVal;  }
+
+    inline void setSelectionMode(SelectionMode mode) { selectionMode_ = mode; }
+
+    inline SelectionMode getSelectionMode() { return selectionMode_; }
+
+    inline std::vector<float2> & getLassoPoints() { return lassoPoints_; }
 
 private:
 
@@ -27,7 +38,10 @@ private:
     int nEmbeddedPoints_;
 
     int hoveredOverPoint_;
-    bool hasClicked_;
+    bool hasSelection_;
+
+    SelectionMode selectionMode_;
+    std::vector<float2> lassoPoints_;
 };
 
 #endif // SEEIN_IN_MOUSE_HANDLER_H

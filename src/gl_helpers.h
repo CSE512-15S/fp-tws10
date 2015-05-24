@@ -3,9 +3,9 @@
 
 #include <pangolin/pangolin.h>
 #include <GL/gl.h>
-#include <helper_math.h>
 #include <vector_types.h>
 #include <vector_functions.h>
+#include <helper_math.h>
 
 inline void glColor(const uchar3 color) { glColor3ubv(&color.x); }
 

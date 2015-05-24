@@ -9,20 +9,55 @@ SeeinInMouseHandler::SeeinInMouseHandler(const float2 viewportSize, const float2
                                        const float2 * embeddedPoints, const int nEmbeddedPoints) :
     vpSize_(viewportSize), vpCenter_(viewportCenter),
     embeddedPoints_(embeddedPoints), nEmbeddedPoints_(nEmbeddedPoints),
-    hasClicked_(false) { }
+    hasSelection_(false), selectionMode_(SelectionModeSingle) { }
 
 void SeeinInMouseHandler::Mouse(pangolin::View & v, pangolin::MouseButton button, int x, int y, bool pressed, int button_state) {
     pangolin::Handler::Mouse(v,button,x,y,pressed,button_state);
 
-    if (!pressed && button == pangolin::MouseButtonLeft && hoveredOverPoint_ >= 0) { hasClicked_ = true; }
+    switch (selectionMode_) {
+    case SelectionModeSingle:
+        if (!pressed && button == pangolin::MouseButtonLeft && hoveredOverPoint_ >= 0) { hasSelection_ = true; }
+        break;
+    case SelectionModeLasso:
+        if (!pressed && button == pangolin::MouseButtonLeft) {
+            std::cout << "lasso click" << std::endl;
+            float2 vpPoint = make_float2((x - v.GetBounds().l)/(float)v.GetBounds().w - 0.5,
+                                         (y - v.GetBounds().b)/(float)v.GetBounds().h - 0.5)*vpSize_ + vpCenter_;
+            if (lassoPoints_.size() == 0) {
+                lassoPoints_.push_back(vpPoint);
+                lassoPoints_.push_back(vpPoint);
+            } else if (length(vpPoint - lassoPoints_.front()) < 0.1) {
+                lassoPoints_.clear();
+            } else {
+                lassoPoints_.push_back(vpPoint);
+            }
+        }
+        break;
+    }
 }
 
 void SeeinInMouseHandler::PassiveMouseMotion(pangolin::View & v, int x, int y, int button_state) {
     pangolin::Handler::PassiveMouseMotion(v,x,y,button_state);
 
-    float2 vpPoint = make_float2((x - v.GetBounds().l)/(float)v.GetBounds().w - 0.5,
-                                 (y - v.GetBounds().b)/(float)v.GetBounds().h - 0.5)*vpSize_ + vpCenter_;
-    hoveredOverPoint_ = computeClosestEmbeddedPoint(vpPoint);
+    switch (selectionMode_) {
+    case SelectionModeSingle:
+    {
+        float2 vpPoint = make_float2((x - v.GetBounds().l)/(float)v.GetBounds().w - 0.5,
+                                     (y - v.GetBounds().b)/(float)v.GetBounds().h - 0.5)*vpSize_ + vpCenter_;
+        hoveredOverPoint_ = computeClosestEmbeddedPoint(vpPoint);
+    } break;
+    case SelectionModeLasso:
+    {
+        if (lassoPoints_.size() > 0) {
+            float2 vpPoint = make_float2((x - v.GetBounds().l)/(float)v.GetBounds().w - 0.5,
+                                         (y - v.GetBounds().b)/(float)v.GetBounds().h - 0.5)*vpSize_ + vpCenter_;
+            if (length(vpPoint - lassoPoints_.front()) < 0.1) {
+                vpPoint = lassoPoints_.front();
+            }
+            lassoPoints_.back() = vpPoint;
+        }
+    } break;
+    }
 }
 
 int SeeinInMouseHandler::computeClosestEmbeddedPoint(const float2 queryPt) {
