@@ -28,10 +28,16 @@ public:
 
     inline std::vector<float2> & getLassoPoints() { return lassoPoints_; }
 
+    inline std::vector<bool> & getSelection() { return selection_; }
+
 private:
-
+    // -=-=-=-=-=- methods -=-=-=-=-=-
     int computeClosestEmbeddedPoint(const float2 queryPt);
+    void computeEnclosedEmbeddedPoints();
+    bool isInPolygon(const float2 pt, const std::vector<float2> & polyPoints);
+    bool horizontalIntersection(float & intersectionX, const float intersectionY, const float2 start, const float2 end);
 
+    // -=-=-=-=-=- members -=-=-=-=-=-
     float2 vpSize_;
     float2 vpCenter_;
     const float2 * embeddedPoints_;
@@ -42,6 +48,7 @@ private:
 
     SelectionMode selectionMode_;
     std::vector<float2> lassoPoints_;
+    std::vector<bool> selection_;
 };
 
 #endif // SEEIN_IN_MOUSE_HANDLER_H

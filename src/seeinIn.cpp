@@ -175,7 +175,9 @@ int main(int argc, char * * argv) {
     pangolin::GlTexture imageTex(imageWidth,imageHeight);
     imageTex.SetNearestNeighbour();
 
-    pangolin::RegisterKeyPressCallback(' ',[&handler](){ handler.setSelectionMode(SelectionModeLasso);} );
+    bool hasSelection = false;
+
+    pangolin::RegisterKeyPressCallback(' ',[&handler, &hasSelection](){ handler.setSelectionMode(SelectionModeLasso); hasSelection = false;} );
 
     // -=-=-=-=- load fonts -=-=-=-=-
     FontManager fontManager("Ubuntu");
@@ -205,8 +207,6 @@ int main(int argc, char * * argv) {
 //        layerResponseTextures[layerResponse]->SetNearestNeighbour();
         filterResponseVizs.push_back(new FilterResponseViz(responseBlob,400,2*layerRelativeScales[layerResponse]));
     }
-
-    int selectedImage = -1;
 
     for (long frame=1; !pangolin::ShouldQuit(); ++frame) {
 
@@ -287,11 +287,13 @@ int main(int argc, char * * argv) {
         {
             std::vector<float2> lassoPoints = handler.getLassoPoints();
             glColor3ub(0,0,0);
+            glLineWidth(2);
             glBegin(GL_LINE_STRIP);
             for (float2 v : lassoPoints) {
                 glVertex(v);
             }
             glEnd();
+            glLineWidth(1);
         } break;
         }
 
@@ -335,7 +337,7 @@ int main(int argc, char * * argv) {
 //        glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 //        fontManager.printString("test",100,100);
 
-        if (selectedImage >= 0) {
+        if (hasSelection) {
             static const int fontSize = 12;
             glColor3f(1,1,1);
             glPushMatrix();
@@ -369,14 +371,29 @@ int main(int argc, char * * argv) {
 
         // -=-=-=-=-=-=- input handling -=-=-=-=-=-=-
         if (handler.hasSelection()) {
-            selectedImage = handler.getHoveredOverPoint();
-            std::vector<bool> selection(nTestImages);
-            for (int i=0; i<nTestImages; ++i) {
-                selection[i] = (testLabels[i] == testLabels[selectedImage]);
-            }
-            for (FilterResponseViz * viz : filterResponseVizs) {
-//                viz->setSelection(selectedImage);
-                viz->setSelection(selection);
+            switch (handler.getSelectionMode()) {
+            case SelectionModeSingle:
+            {
+                int selectedImage = handler.getHoveredOverPoint();
+                //                std::vector<bool> selection(nTestImages);
+                //                for (int i=0; i<nTestImages; ++i) {
+                //                    selection[i] = (testLabels[i] == testLabels[selectedImage]);
+                //                }
+                if (selectedImage >= 0) {
+                    for (FilterResponseViz * viz : filterResponseVizs) {
+                        viz->setSelection(selectedImage);
+                        //                    viz->setSelection(selection);
+                    }
+                    hasSelection = true;
+                }
+            } break;
+            case SelectionModeLasso:
+            {
+                for (FilterResponseViz * viz : filterResponseVizs) {
+                    viz->setSelection(handler.getSelection());
+                }
+                hasSelection = true;
+            } break;
             }
         }
 

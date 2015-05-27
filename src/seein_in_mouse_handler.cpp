@@ -9,7 +9,8 @@ SeeinInMouseHandler::SeeinInMouseHandler(const float2 viewportSize, const float2
                                        const float2 * embeddedPoints, const int nEmbeddedPoints) :
     vpSize_(viewportSize), vpCenter_(viewportCenter),
     embeddedPoints_(embeddedPoints), nEmbeddedPoints_(nEmbeddedPoints),
-    hasSelection_(false), selectionMode_(SelectionModeSingle) { }
+    hasSelection_(false), selectionMode_(SelectionModeSingle),
+    selection_(nEmbeddedPoints) { }
 
 void SeeinInMouseHandler::Mouse(pangolin::View & v, pangolin::MouseButton button, int x, int y, bool pressed, int button_state) {
     pangolin::Handler::Mouse(v,button,x,y,pressed,button_state);
@@ -27,7 +28,9 @@ void SeeinInMouseHandler::Mouse(pangolin::View & v, pangolin::MouseButton button
                 lassoPoints_.push_back(vpPoint);
                 lassoPoints_.push_back(vpPoint);
             } else if (length(vpPoint - lassoPoints_.front()) < 0.1) {
+                computeEnclosedEmbeddedPoints();
                 lassoPoints_.clear();
+                hasSelection_ = true;
             } else {
                 lassoPoints_.push_back(vpPoint);
             }
@@ -73,5 +76,57 @@ int SeeinInMouseHandler::computeClosestEmbeddedPoint(const float2 queryPt) {
     }
 
     return closestDist < 0.05 ? closestPoint : -1;
+
+}
+
+void SeeinInMouseHandler::computeEnclosedEmbeddedPoints() {
+
+//    std::memeset(selection_.data(),0,selection_.size()*sizeof(bool));
+
+    std::cout << "computing enclosure" << std::endl;
+    for (int i=0; i<nEmbeddedPoints_; ++i) {
+        selection_[i] = isInPolygon(embeddedPoints_[i],lassoPoints_);
+    }
+
+}
+
+bool SeeinInMouseHandler::isInPolygon(const float2 pt, const std::vector<float2> & polyPoints) {
+
+    int intersectionsLeft = 0;
+    int intersectionsRight = 0;
+
+    for (int i=0; i<polyPoints.size(); ++i) {
+        float intersectionX;
+        if (horizontalIntersection(intersectionX,pt.y,polyPoints[i],polyPoints[(i+1)%polyPoints.size()])) {
+            if (intersectionX < pt.x) { ++intersectionsLeft; }
+            else { ++intersectionsRight; }
+        }
+    }
+    bool oddLeft = (intersectionsLeft % 2) == 1;
+    bool oddRight = (intersectionsRight % 2) == 1;
+    if (oddLeft != oddRight) {
+        std::cerr << "oddLeft != oddRight" << std::endl;
+    }
+    return oddLeft;
+
+}
+
+bool SeeinInMouseHandler::horizontalIntersection(float & intersectionX, const float intersectionY, const float2 start, const float2 end) {
+
+    if ( (start.y > intersectionY && end.y >= intersectionY) || (start.y < intersectionY && end.y <= intersectionY) ) {
+        return false;
+    }
+    if (start.x == end.x) {
+        intersectionX = end.x;
+    } else if (start.x < end.x) {
+        double dx = end.x - start.x;
+        double dy = end.y - start.y;
+        intersectionX = start.x + dx*( (intersectionY - start.y)/dy );
+    } else {
+        double dx = start.x - end.x;
+        double dy = start.y - end.y;
+        intersectionX = end.x + dx*( (intersectionY - end.y)/dy );
+    }
+    return true;
 
 }
