@@ -88,6 +88,14 @@ inline void printBlobSize(boost::shared_ptr<caffe::Blob<float> > blob) {
     std::cout << blob->num() << " x " << blob->channels() << " x " << blob->height() << " x " << blob->width() << std::endl;
 }
 
+inline void resizeFilterResponseVizs(std::vector<FilterResponseViz*> & filterResponseVizs, const pangolin::View & filterView, const float filterVizZoom,
+                                     std::map<std::string,int> & layerRelativeScales, const std::vector<std::string> & layerResponsesToVisualize) {
+    for (int i=0; i<filterResponseVizs.size(); ++i) {
+        FilterResponseViz * viz = filterResponseVizs[i];
+        viz->resize(filterView.GetBounds().w,filterVizZoom*layerRelativeScales[layerResponsesToVisualize[i]]);
+    }
+}
+
 int main(int argc, char * * argv) {
 
     // -=-=-=-=- set up caffe -=-=-=-=-
@@ -177,9 +185,6 @@ int main(int argc, char * * argv) {
 
     bool hasSelection = false;
 
-    pangolin::RegisterKeyPressCallback(' ',[&handler, &hasSelection](){ handler.setSelectionMode(SelectionModeLasso); hasSelection = false;} );
-
-    // -=-=-=-=- load fonts -=-=-=-=-
     FontManager fontManager("Ubuntu");
 
     // -=-=-=-=- set up layer visualizations -=-=-=-=-
@@ -200,13 +205,29 @@ int main(int argc, char * * argv) {
     layerRelativeScales["ip2"] = 4;
 
 //    std::map<std::string,pangolin::GlTexture*> layerResponseTextures;
+    float filterVizZoom = 2.f;
     std::vector<FilterResponseViz*> filterResponseVizs;
     for (std::string layerResponse : layerResponsesToVisualize) {
         const boost::shared_ptr<caffe::Blob<float> > responseBlob = net.blob_by_name(layerResponse);
 //        layerResponseTextures[layerResponse] = new pangolin::GlTexture(responseBlob->width(),responseBlob->height());
 //        layerResponseTextures[layerResponse]->SetNearestNeighbour();
-        filterResponseVizs.push_back(new FilterResponseViz(responseBlob,400,2*layerRelativeScales[layerResponse]));
+        filterResponseVizs.push_back(new FilterResponseViz(responseBlob,400,filterVizZoom*layerRelativeScales[layerResponse]));
     }
+
+
+    pangolin::RegisterKeyPressCallback(' ',[&handler, &hasSelection](){ handler.setSelectionMode(handler.getSelectionMode() == SelectionModeSingle ? SelectionModeLasso : SelectionModeSingle); hasSelection = false;} );
+    pangolin::RegisterKeyPressCallback('+',[&filterResponseVizs, &filterVizZoom, &filterView, &layerRelativeScales, &layerResponsesToVisualize](){
+        filterVizZoom *= 1.25;
+        resizeFilterResponseVizs(filterResponseVizs,filterView,filterVizZoom,layerRelativeScales,layerResponsesToVisualize);
+
+    });
+    pangolin::RegisterKeyPressCallback('-',[&filterResponseVizs, &filterVizZoom, &filterView, &layerRelativeScales, &layerResponsesToVisualize](){
+        filterVizZoom /= 1.25;
+        resizeFilterResponseVizs(filterResponseVizs,filterView,filterVizZoom,layerRelativeScales,layerResponsesToVisualize);
+
+    });
+
+    // -=-=-=-=- load fonts -=-=-=-=-
 
     for (long frame=1; !pangolin::ShouldQuit(); ++frame) {
 
@@ -214,9 +235,10 @@ int main(int argc, char * * argv) {
             pangolin::DisplayBase().ActivateScissorAndClear();
             pangolin::DisplayBase().ResizeChildren();
 
-            for (FilterResponseViz * viz : filterResponseVizs) {
-                viz->resize(filterView.GetBounds().w,viz->getVizZoom());
-            }
+            resizeFilterResponseVizs(filterResponseVizs,filterView,filterVizZoom,layerRelativeScales,layerResponsesToVisualize);
+//            for (FilterResponseViz * viz : filterResponseVizs) {
+//                viz->resize(filterView.GetBounds().w,viz->getVizZoom());
+//            }
         }
 
         glClearColor(1,1,1,1);
