@@ -16,6 +16,7 @@
 #include "mnist_io.h"
 #include "seein_in_mouse_handler.h"
 #include "fonts/font_manager.h"
+#include "visualizations/feature_projection_viz.h"
 #include "visualizations/filter_response_viz.h"
 
 static const int guiWidth = 1920;
@@ -214,6 +215,7 @@ int main(int argc, char * * argv) {
         filterResponseVizs.push_back(new FilterResponseViz(responseBlob,400,filterVizZoom*layerRelativeScales[layerResponse]));
     }
 
+    FeatureProjectionViz(net,"conv2");
 
     pangolin::RegisterKeyPressCallback(' ',[&handler, &hasSelection](){ handler.setSelectionMode(handler.getSelectionMode() == SelectionModeSingle ? SelectionModeLasso : SelectionModeSingle); hasSelection = false;} );
     pangolin::RegisterKeyPressCallback('+',[&filterResponseVizs, &filterVizZoom, &filterView, &layerRelativeScales, &layerResponsesToVisualize](){

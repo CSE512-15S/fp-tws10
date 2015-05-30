@@ -64,6 +64,8 @@ set(sources
     src/fonts/font_manager.h
     src/fonts/font_manager.cpp
 
+    src/visualizations/feature_projection_viz.h
+    src/visualizations/feature_projection_viz.cpp
     src/visualizations/filter_response_viz.h
     src/visualizations/filter_response_viz.cpp
 )
