@@ -33,7 +33,7 @@ static const int filterViewHeight = guiHeight;
 static const float filterViewAspectRatio = filterViewWidth/(float)filterViewHeight;
 
 static const std::string weightFile = "/home/tws10/Development/caffe/examples/siamese/mnist_siamese_iter_50000.caffemodel";
-static const std::string netFile = "/home/tws10/Development/caffe/examples/siamese/mnist_siamese.prototxt";
+static const std::string netFile = "../networks/mnist_siamese.prototxt";
 
 static const uchar3 digitColors[10] = {
     make_uchar3(166,206,227 ),
@@ -165,7 +165,12 @@ int main(int argc, char * * argv) {
 
     pangolin::View embeddingView(embeddingViewAspectRatio);
     embeddingView.SetHandler(&handler);
-    pangolin::View filterView(filterViewAspectRatio);
+//    embeddingView.SetBounds(pangolin::Attach::Pixel(0),pangolin::Attach::ReversePix(0),pangolin::Attach::Pix(0),pangolin::Attach::Frac(embeddingViewWidth/(float)guiWidth),true);
+    embeddingView.SetLock(pangolin::LockLeft,pangolin::LockCenter);
+    pangolin::View filterView; //(filterViewAspectRatio);
+//    filterView.SetBounds(pangolin::Attach::Frac(0),pangolin::Attach::Frac(1),pangolin::Attach::Frac(embeddingViewWidth/(float)guiWidth),pangolin::Attach::Frac(1),true);
+
+    filterView.SetLock(pangolin::LockRight,pangolin::LockCenter);
 
 //    pangolin::CreatePanel("panel").SetBounds(0.0, 1.0, 0.0, pangolin::Attach::Pix(panelWidth));
 
@@ -174,7 +179,7 @@ int main(int argc, char * * argv) {
 //            .SetBounds(1.0,0.0,1.0,pangolin::Attach::Pix(panelWidth))
             .AddDisplay(embeddingView)
             .AddDisplay(filterView)
-            .SetLayout(pangolin::LayoutEqualHorizontal);
+            .SetLayout(pangolin::LayoutHorizontal);
 
     std::cout << embeddingViewAspectRatio << std::endl;
     std::cout << filterViewAspectRatio << std::endl;
@@ -215,7 +220,7 @@ int main(int argc, char * * argv) {
         filterResponseVizs.push_back(new FilterResponseViz(responseBlob,400,filterVizZoom*layerRelativeScales[layerResponse]));
     }
 
-    FeatureProjectionViz(net,"conv2");
+    FeatureProjectionViz projectionViz(net,"feat"); //"feat");
 
     pangolin::RegisterKeyPressCallback(' ',[&handler, &hasSelection](){ handler.setSelectionMode(handler.getSelectionMode() == SelectionModeSingle ? SelectionModeLasso : SelectionModeSingle); hasSelection = false;} );
     pangolin::RegisterKeyPressCallback('+',[&filterResponseVizs, &filterVizZoom, &filterView, &layerRelativeScales, &layerResponsesToVisualize](){
@@ -250,6 +255,18 @@ int main(int argc, char * * argv) {
         embeddingView.ActivatePixelOrthographic();
         glPushMatrix();
         setUpViewport(embeddingView,viewportSize,viewportCenter);
+
+        {
+            glColor3ub(0,0,0);
+            glLineWidth(3);
+            glBegin(GL_LINE_LOOP);
+            glVertex2f(viewportCenter.x - viewportSize.x/2 + 1e-4, viewportCenter.y - viewportSize.y/2 + 1e-4);
+            glVertex2f(viewportCenter.x - viewportSize.x/2 + 1e-4, viewportCenter.y + viewportSize.y/2 - 1e-4);
+            glVertex2f(viewportCenter.x + viewportSize.x/2 - 1e-4, viewportCenter.y + viewportSize.y/2 - 1e-4);
+            glVertex2f(viewportCenter.x + viewportSize.x/2 - 1e-4, viewportCenter.y - viewportSize.y/2 + 1e-4);
+            glEnd();
+            glLineWidth(1);
+        }
 
         glPointSize(3);
         glColor3ub(0,0,0);
@@ -355,6 +372,18 @@ int main(int argc, char * * argv) {
         filterView.ActivateScissorAndClear();
         filterView.ActivatePixelOrthographic();
 
+        {
+            glColor3ub(0,0,0);
+            glLineWidth(3);
+            glBegin(GL_LINE_LOOP);
+            glVertex2f(1e-4, 1e-4);
+            glVertex2f(1e-4, filterView.GetBounds().h - 1e-4);
+            glVertex2f(filterView.GetBounds().w - 1e-4, filterView.GetBounds().h - 1e-4);
+            glVertex2f(filterView.GetBounds().w - 1e-4, 1e-4);
+            glEnd();
+            glLineWidth(1);
+        }
+
 //        glColor3ub(0,0,0);
 //        glEnable(GL_TEXTURE_2D);
 //        glEnable(GL_BLEND);
@@ -388,9 +417,12 @@ int main(int argc, char * * argv) {
                 glColor3ub(255,255,255);
                 FilterResponseViz * viz = filterResponseVizs[i];
                 glTranslatef(0,-(viz->getVizHeight()+fontSize+8),0);
-                viz->renderResponse();
+                viz->render();
             }
             glPopMatrix();
+        } else {
+            glColor3ub(255,255,255);
+            projectionViz.render();
         }
 
         // -=-=-=-=-=-=- input handling -=-=-=-=-=-=-

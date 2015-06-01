@@ -10,7 +10,7 @@ public:
 
     void resize(const int vizWidth, const float zoom);
 
-    void renderResponse();
+    void render();
 
     inline int getVizWidth() const { return vizWidth_; }
 

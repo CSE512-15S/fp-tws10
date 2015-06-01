@@ -65,7 +65,7 @@ void FilterResponseViz::setSelection(std::vector<bool> selection) {
     }
 }
 
-void FilterResponseViz::renderResponse() {
+void FilterResponseViz::render() {
     float scale = 1.f/(maxDataVal_-minDataVal_);
     float bias = -minDataVal_*scale;
     glScalePixels(make_float3(scale),make_float3(bias));
