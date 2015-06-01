@@ -16,13 +16,17 @@ inline int floorDivide(const int num, const int denom) {
 FilterResponseViz::FilterResponseViz(const caffe::Net<float> & net,
                                      const std::vector<std::string> & layerResponsesToVisualize,
                                      const std::map<std::string,int> & layerRelativeScales,
-                                     const int vizWidth, FontManager & fontManager,
+                                     const int vizWidth,
+                                     const int vizHeight,
+                                     FontManager & fontManager,
                                      const float zoom,
                                      const int fontSize) :
     fontManager_(fontManager),
     responseNames_(layerResponsesToVisualize),
     vizWidth_(vizWidth),
-    zoom_(zoom) {
+    vizHeight_(vizHeight),
+    zoom_(zoom),
+    scroll_(0) {
 
     fontSize_ = fontSize;
 
@@ -44,13 +48,29 @@ FilterResponseViz::~FilterResponseViz() {
 
 }
 
-void FilterResponseViz::resize(const int vizWidth, const float zoom) {
+void FilterResponseViz::resize(const int vizWidth, const int vizHeight, const float zoom) {
 
     vizWidth_ = vizWidth;
+    vizHeight_ = vizHeight;
     for (int i=0; i<individualVizs_.size(); ++i) {
         IndividualFilterResponseViz * viz = individualVizs_[i];
         viz->resize(vizWidth,zoom*baseZooms_[i]);
     }
+
+    scrollMax_ = -vizHeight;
+    for (IndividualFilterResponseViz * viz : individualVizs_) {
+        scrollMax_ += (viz->getVizHeight()+fontSize_+8);
+    }
+    scrollMax_ = std::max(0,scrollMax_);
+    std::cout << "scroll max: " << scrollMax_ << std::endl;
+
+}
+
+void FilterResponseViz::incrementScroll(const int incrementValue) {
+
+    scroll_ += incrementValue;
+    scroll_ = std::max(std::min(scrollMax_,scroll_),0);
+    std::cout << "scroll: " << scroll_ << "(" << scrollMax_ << ")" << std::endl;
 
 }
 
@@ -72,6 +92,9 @@ void FilterResponseViz::setSelection(std::vector<bool> & selection) {
 
 void FilterResponseViz::render() {
 
+    glColor3ub(255,255,255);
+    glPushMatrix();
+    glTranslatef(0,vizHeight_+scroll_,0);
     for (int i=0; i<individualVizs_.size(); ++i) {
         glColor3ub(0,0,0);
         glEnable(GL_TEXTURE_2D);
@@ -96,6 +119,7 @@ void FilterResponseViz::render() {
         glTranslatef(0,-(viz->getVizHeight()+fontSize_+8),0);
         viz->render();
     }
+    glPopMatrix();
 
 }
 

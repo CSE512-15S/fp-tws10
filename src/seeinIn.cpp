@@ -209,9 +209,8 @@ int main(int argc, char * * argv) {
 //    std::map<std::string,pangolin::GlTexture*> layerResponseTextures;
     float filterVizZoom = 2.f;
     FilterResponseViz filterResponseViz(net,layerResponsesToVisualize,
-                                        layerRelativeScales,filterView.GetBounds().w,fontManager,
+                                        layerRelativeScales,filterView.GetBounds().w,filterView.GetBounds().h,fontManager,
                                         filterVizZoom);
-
 
     FilterViewMouseHandler filterViewHandler(&filterResponseViz);
     filterView.SetHandler(&filterViewHandler);
@@ -221,11 +220,11 @@ int main(int argc, char * * argv) {
     pangolin::RegisterKeyPressCallback(' ',[&embeddingViewHandler, &hasSelection](){ embeddingViewHandler.setSelectionMode(embeddingViewHandler.getSelectionMode() == SelectionModeSingle ? SelectionModeLasso : SelectionModeSingle); hasSelection = false;} );
     pangolin::RegisterKeyPressCallback('+',[&filterResponseViz, &filterVizZoom, &filterView](){
         filterVizZoom *= 1.25;
-        filterResponseViz.resize(filterView.GetBounds().w,filterVizZoom);
+        filterResponseViz.resize(filterView.GetBounds().w,filterView.GetBounds().h,filterVizZoom);
     });
     pangolin::RegisterKeyPressCallback('-',[&filterResponseViz, &filterVizZoom, &filterView](){
         filterVizZoom /= 1.25;
-        filterResponseViz.resize(filterView.GetBounds().w,filterVizZoom);
+        filterResponseViz.resize(filterView.GetBounds().w,filterView.GetBounds().h,filterVizZoom);
     });
 
     // -=-=-=-=- load fonts -=-=-=-=-
@@ -236,7 +235,7 @@ int main(int argc, char * * argv) {
             pangolin::DisplayBase().ActivateScissorAndClear();
             pangolin::DisplayBase().ResizeChildren();
 
-            filterResponseViz.resize(filterView.GetBounds().w,filterVizZoom);
+            filterResponseViz.resize(filterView.GetBounds().w,filterView.GetBounds().h,filterVizZoom);
         }
 
         glClearColor(1,1,1,1);
@@ -376,11 +375,7 @@ int main(int argc, char * * argv) {
         }
 
         if (hasSelection) {
-            glColor3f(1,1,1);
-            glPushMatrix();
-            glTranslatef(0,filterView.GetBounds().h,0);
             filterResponseViz.render();
-            glPopMatrix();
         } else {
             glColor3ub(255,255,255);
             projectionViz.render();

@@ -48,6 +48,7 @@ public:
                       const std::vector<std::string> & layerResponsesToVisualize,
                       const std::map<std::string,int> & layerRelativeScales,
                       const int vizWidth,
+                      const int vizHeight,
                       FontManager & fontManager,
                       const float zoom = 1.f,
                       const int fontSize = 12);
@@ -55,7 +56,10 @@ public:
     ~FilterResponseViz();
 
     void resize(const int vizWidth,
+                const int vizHeight,
                 const float zoom);
+
+    void incrementScroll(const int incrementValue);
 
     void setSelection(const int selectedImage);
 
@@ -69,6 +73,9 @@ private:
     std::vector<int> baseZooms_;
     int fontSize_;
     int vizWidth_;
+    int vizHeight_;
+    int scroll_;
+    int scrollMax_;
     float zoom_;
     FontManager & fontManager_;
 };
