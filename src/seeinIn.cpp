@@ -14,8 +14,9 @@
 
 #include "gl_helpers.h"
 #include "mnist_io.h"
-#include "seein_in_mouse_handler.h"
 #include "fonts/font_manager.h"
+#include "mouse_handlers/filter_view_mouse_handler.h"
+#include "mouse_handlers/seein_in_mouse_handler.h"
 #include "visualizations/feature_projection_viz.h"
 #include "visualizations/filter_response_viz.h"
 
@@ -89,14 +90,6 @@ inline void printBlobSize(boost::shared_ptr<caffe::Blob<float> > blob) {
     std::cout << blob->num() << " x " << blob->channels() << " x " << blob->height() << " x " << blob->width() << std::endl;
 }
 
-inline void resizeFilterResponseVizs(std::vector<FilterResponseViz*> & filterResponseVizs, const pangolin::View & filterView, const float filterVizZoom,
-                                     std::map<std::string,int> & layerRelativeScales, const std::vector<std::string> & layerResponsesToVisualize) {
-    for (int i=0; i<filterResponseVizs.size(); ++i) {
-        FilterResponseViz * viz = filterResponseVizs[i];
-        viz->resize(filterView.GetBounds().w,filterVizZoom*layerRelativeScales[layerResponsesToVisualize[i]]);
-    }
-}
-
 int main(int argc, char * * argv) {
 
     // -=-=-=-=- set up caffe -=-=-=-=-
@@ -160,14 +153,17 @@ int main(int argc, char * * argv) {
 
     glewInit();
 
-    SeeinInMouseHandler handler(viewportSize,viewportCenter,
-                               (const float2 *)outputBlob->cpu_data(),nTestImages);
+    SeeinInMouseHandler embeddingViewHandler(viewportSize,viewportCenter,
+                                         (const float2 *)outputBlob->cpu_data(),nTestImages);
 
     pangolin::View embeddingView(embeddingViewAspectRatio);
-    embeddingView.SetHandler(&handler);
+    embeddingView.SetHandler(&embeddingViewHandler);
 //    embeddingView.SetBounds(pangolin::Attach::Pixel(0),pangolin::Attach::ReversePix(0),pangolin::Attach::Pix(0),pangolin::Attach::Frac(embeddingViewWidth/(float)guiWidth),true);
     embeddingView.SetLock(pangolin::LockLeft,pangolin::LockCenter);
+
+
     pangolin::View filterView; //(filterViewAspectRatio);
+
 //    filterView.SetBounds(pangolin::Attach::Frac(0),pangolin::Attach::Frac(1),pangolin::Attach::Frac(embeddingViewWidth/(float)guiWidth),pangolin::Attach::Frac(1),true);
 
     filterView.SetLock(pangolin::LockRight,pangolin::LockCenter);
@@ -212,26 +208,24 @@ int main(int argc, char * * argv) {
 
 //    std::map<std::string,pangolin::GlTexture*> layerResponseTextures;
     float filterVizZoom = 2.f;
-    std::vector<FilterResponseViz*> filterResponseVizs;
-    for (std::string layerResponse : layerResponsesToVisualize) {
-        const boost::shared_ptr<caffe::Blob<float> > responseBlob = net.blob_by_name(layerResponse);
-//        layerResponseTextures[layerResponse] = new pangolin::GlTexture(responseBlob->width(),responseBlob->height());
-//        layerResponseTextures[layerResponse]->SetNearestNeighbour();
-        filterResponseVizs.push_back(new FilterResponseViz(responseBlob,400,filterVizZoom*layerRelativeScales[layerResponse]));
-    }
+    FilterResponseViz filterResponseViz(net,layerResponsesToVisualize,
+                                        layerRelativeScales,filterView.GetBounds().w,fontManager,
+                                        filterVizZoom);
+
+
+    FilterViewMouseHandler filterViewHandler(&filterResponseViz);
+    filterView.SetHandler(&filterViewHandler);
 
     FeatureProjectionViz projectionViz(net,"feat"); //"feat");
 
-    pangolin::RegisterKeyPressCallback(' ',[&handler, &hasSelection](){ handler.setSelectionMode(handler.getSelectionMode() == SelectionModeSingle ? SelectionModeLasso : SelectionModeSingle); hasSelection = false;} );
-    pangolin::RegisterKeyPressCallback('+',[&filterResponseVizs, &filterVizZoom, &filterView, &layerRelativeScales, &layerResponsesToVisualize](){
+    pangolin::RegisterKeyPressCallback(' ',[&embeddingViewHandler, &hasSelection](){ embeddingViewHandler.setSelectionMode(embeddingViewHandler.getSelectionMode() == SelectionModeSingle ? SelectionModeLasso : SelectionModeSingle); hasSelection = false;} );
+    pangolin::RegisterKeyPressCallback('+',[&filterResponseViz, &filterVizZoom, &filterView](){
         filterVizZoom *= 1.25;
-        resizeFilterResponseVizs(filterResponseVizs,filterView,filterVizZoom,layerRelativeScales,layerResponsesToVisualize);
-
+        filterResponseViz.resize(filterView.GetBounds().w,filterVizZoom);
     });
-    pangolin::RegisterKeyPressCallback('-',[&filterResponseVizs, &filterVizZoom, &filterView, &layerRelativeScales, &layerResponsesToVisualize](){
+    pangolin::RegisterKeyPressCallback('-',[&filterResponseViz, &filterVizZoom, &filterView](){
         filterVizZoom /= 1.25;
-        resizeFilterResponseVizs(filterResponseVizs,filterView,filterVizZoom,layerRelativeScales,layerResponsesToVisualize);
-
+        filterResponseViz.resize(filterView.GetBounds().w,filterVizZoom);
     });
 
     // -=-=-=-=- load fonts -=-=-=-=-
@@ -242,10 +236,7 @@ int main(int argc, char * * argv) {
             pangolin::DisplayBase().ActivateScissorAndClear();
             pangolin::DisplayBase().ResizeChildren();
 
-            resizeFilterResponseVizs(filterResponseVizs,filterView,filterVizZoom,layerRelativeScales,layerResponsesToVisualize);
-//            for (FilterResponseViz * viz : filterResponseVizs) {
-//                viz->resize(filterView.GetBounds().w,viz->getVizZoom());
-//            }
+            filterResponseViz.resize(filterView.GetBounds().w,filterVizZoom);
         }
 
         glClearColor(1,1,1,1);
@@ -280,10 +271,10 @@ int main(int argc, char * * argv) {
         glDisableClientState(GL_VERTEX_ARRAY);
         glDisableClientState(GL_COLOR_ARRAY);
 
-        switch (handler.getSelectionMode()) {
+        switch (embeddingViewHandler.getSelectionMode()) {
         case SelectionModeSingle:
         {
-            int hoveredPointIndex = handler.getHoveredOverPoint();
+            int hoveredPointIndex = embeddingViewHandler.getHoveredOverPoint();
             if (hoveredPointIndex >= 0 && hoveredPointIndex < nTestImages) {
                 glPointSize(12);
                 glBegin(GL_POINTS);
@@ -326,7 +317,7 @@ int main(int argc, char * * argv) {
         } break;
         case SelectionModeLasso:
         {
-            std::vector<float2> lassoPoints = handler.getLassoPoints();
+            std::vector<float2> lassoPoints = embeddingViewHandler.getLassoPoints();
             glColor3ub(0,0,0);
             glLineWidth(2);
             glBegin(GL_LINE_STRIP);
@@ -384,41 +375,11 @@ int main(int argc, char * * argv) {
             glLineWidth(1);
         }
 
-//        glColor3ub(0,0,0);
-//        glEnable(GL_TEXTURE_2D);
-//        glEnable(GL_BLEND);
-//        glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-//        fontManager.printString("test",100,100);
-
         if (hasSelection) {
-            static const int fontSize = 12;
             glColor3f(1,1,1);
             glPushMatrix();
             glTranslatef(0,filterView.GetBounds().h,0);
-            for (int i=0; i<filterResponseVizs.size(); ++i) {
-                glColor3ub(0,0,0);
-                glEnable(GL_TEXTURE_2D);
-                glEnable(GL_BLEND);
-                glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-                fontManager.printString(layerResponsesToVisualize[i],10,-fontSize-4,fontSize);
-                glDisable(GL_BLEND);
-                glDisable(GL_TEXTURE_2D);
-
-                glColor3ub(128,128,128);
-                glBegin(GL_LINES);
-                glVertex2f(0,-fontSize/2-4);
-                glVertex2f(5,-fontSize/2-4);
-                glVertex2f(fontManager.getStringLength(layerResponsesToVisualize[i],fontSize) + 15,
-                           -fontSize/2-4);
-                glVertex2f(filterView.GetBounds().w,
-                           -fontSize/2-4);
-                glEnd();
-
-                glColor3ub(255,255,255);
-                FilterResponseViz * viz = filterResponseVizs[i];
-                glTranslatef(0,-(viz->getVizHeight()+fontSize+8),0);
-                viz->render();
-            }
+            filterResponseViz.render();
             glPopMatrix();
         } else {
             glColor3ub(255,255,255);
@@ -426,28 +387,23 @@ int main(int argc, char * * argv) {
         }
 
         // -=-=-=-=-=-=- input handling -=-=-=-=-=-=-
-        if (handler.hasSelection()) {
-            switch (handler.getSelectionMode()) {
+        if (embeddingViewHandler.hasSelection()) {
+            switch (embeddingViewHandler.getSelectionMode()) {
             case SelectionModeSingle:
             {
-                int selectedImage = handler.getHoveredOverPoint();
+                int selectedImage = embeddingViewHandler.getHoveredOverPoint();
                 //                std::vector<bool> selection(nTestImages);
                 //                for (int i=0; i<nTestImages; ++i) {
                 //                    selection[i] = (testLabels[i] == testLabels[selectedImage]);
                 //                }
                 if (selectedImage >= 0) {
-                    for (FilterResponseViz * viz : filterResponseVizs) {
-                        viz->setSelection(selectedImage);
-                        //                    viz->setSelection(selection);
-                    }
+                    filterResponseViz.setSelection(selectedImage);
                     hasSelection = true;
                 }
             } break;
             case SelectionModeLasso:
             {
-                for (FilterResponseViz * viz : filterResponseVizs) {
-                    viz->setSelection(handler.getSelection());
-                }
+                filterResponseViz.setSelection(embeddingViewHandler.getSelection());
                 hasSelection = true;
             } break;
             }
@@ -456,10 +412,6 @@ int main(int argc, char * * argv) {
         glClearColor(0,0,0,1);
         pangolin::FinishGlutFrame();
 
-    }
-
-    for (FilterResponseViz * viz : filterResponseVizs) {
-        delete viz;
     }
 
     return 0;

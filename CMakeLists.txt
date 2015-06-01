@@ -56,13 +56,15 @@ set(sources
     src/mnist_io.h
     src/mnist_io.cpp
 
-    src/seein_in_mouse_handler.h
-    src/seein_in_mouse_handler.cpp
-
     src/fonts/font_face.h
     src/fonts/font_face.cpp
     src/fonts/font_manager.h
     src/fonts/font_manager.cpp
+
+    src/mouse_handlers/seein_in_mouse_handler.h
+    src/mouse_handlers/seein_in_mouse_handler.cpp
+    src/mouse_handlers/filter_view_mouse_handler.h
+    src/mouse_handlers/filter_view_mouse_handler.cpp
 
     src/visualizations/feature_projection_viz.h
     src/visualizations/feature_projection_viz.cpp

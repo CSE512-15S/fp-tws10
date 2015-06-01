@@ -27,9 +27,7 @@ FeatureProjectionViz::FeatureProjectionViz(caffe::Net<float> & net, const std::s
 
     int layerNum = getResponsibleLayerNum(net, activationBlobNum);
 
-
     std::cout << activationBlobName << " (" << activationBlobNum << ") produced by " << net.layer_names()[layerNum] << " (" << layerNum << ")" << std::endl;
-
 
     for (layerNum; layerNum >= 0; --layerNum) {
         std::cout << "-=- " << layerNum << " -=-=-=-=-=-=-=-" << std::endl;
@@ -83,25 +81,6 @@ FeatureProjectionViz::FeatureProjectionViz(caffe::Net<float> & net, const std::s
     for (std::map<const caffe::Blob<float>*,caffe::Blob<float>*>::iterator it = tmpBlobs.begin(); it != tmpBlobs.end(); ++it) {
         delete it->second;
     }
-
-//    do {
-//        int responsibleLayerNum = getResponsibleLayerNum(net, activationBlobNum);
-//        const boost::shared_ptr<caffe::Layer<float> > responsibleLayer = net.layers()[responsibleLayerNum];
-
-//        int nextBlobDownNum = getInputBlobNum(net,responsibleLayerNum);
-//        nextBlobDown->ReshapeLike(*net.blobs()[nextBlobDownNum]);
-
-//        std::cout << net.blob_names()[activationBlobNum] << " -> " << net.blob_names()[nextBlobDownNum] << std::endl;
-
-////        undoLayer(responsibleLayer,*activationBlob,*nextBlobDown);
-//        std::swap(activationBlob,nextBlobDown);
-
-//        activationBlobNum = nextBlobDownNum;
-//    } while (net.blobs()[activationBlobNum] != net.blob_by_name(inputBlobName));
-
-//    delete activationBlob;
-//    delete nextBlobDown;
-
 }
 
 int FeatureProjectionViz::getResponsibleLayerNum(caffe::Net<float> & net, const int blobNum) {
@@ -180,7 +159,6 @@ void FeatureProjectionViz::undoInnerProduct(const boost::shared_ptr<caffe::Inner
     assert(tmpTops.size() == 1);
     caffe::Blob<float> & bottom = *tmpBottoms[0];
     caffe::Blob<float> & top = *tmpTops[0];
-
 
     const boost::shared_ptr<caffe::Blob<float> > weights = layer->blobs()[0];
     std::cout << "bottom:  " << bottom.num() << " x " << bottom.channels() << " x " << bottom.height() << " x " << bottom.width() << std::endl;

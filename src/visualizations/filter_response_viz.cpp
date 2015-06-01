@@ -13,7 +13,93 @@ inline int floorDivide(const int num, const int denom) {
     return num / denom;
 }
 
-FilterResponseViz::FilterResponseViz(const boost::shared_ptr<caffe::Blob<float> > responseBlob, const int vizWidth, const float zoom) :
+FilterResponseViz::FilterResponseViz(const caffe::Net<float> & net,
+                                     const std::vector<std::string> & layerResponsesToVisualize,
+                                     const std::map<std::string,int> & layerRelativeScales,
+                                     const int vizWidth, FontManager & fontManager,
+                                     const float zoom,
+                                     const int fontSize) :
+    fontManager_(fontManager),
+    responseNames_(layerResponsesToVisualize),
+    vizWidth_(vizWidth),
+    zoom_(zoom) {
+
+    fontSize_ = fontSize;
+
+    for (std::string layerResponse : layerResponsesToVisualize) {
+        const boost::shared_ptr<caffe::Blob<float> > responseBlob = net.blob_by_name(layerResponse);
+        std::map<std::string,int>::const_iterator it = layerRelativeScales.find(layerResponse);
+        assert(it != layerRelativeScales.end());
+        individualVizs_.push_back(new IndividualFilterResponseViz(responseBlob,vizWidth,zoom*it->second));
+        baseZooms_.push_back(it->second);
+    }
+
+}
+
+FilterResponseViz::~FilterResponseViz() {
+
+    for (IndividualFilterResponseViz * viz : individualVizs_) {
+        delete viz;
+    }
+
+}
+
+void FilterResponseViz::resize(const int vizWidth, const float zoom) {
+
+    vizWidth_ = vizWidth;
+    for (int i=0; i<individualVizs_.size(); ++i) {
+        IndividualFilterResponseViz * viz = individualVizs_[i];
+        viz->resize(vizWidth,zoom*baseZooms_[i]);
+    }
+
+}
+
+void FilterResponseViz::setSelection(const int selectedImage) {
+
+    for (IndividualFilterResponseViz * viz : individualVizs_) {
+        viz->setSelection(selectedImage);
+    }
+
+}
+
+void FilterResponseViz::setSelection(std::vector<bool> & selection) {
+
+    for (IndividualFilterResponseViz * viz : individualVizs_) {
+        viz->setSelection(selection);
+    }
+
+}
+
+void FilterResponseViz::render() {
+
+    for (int i=0; i<individualVizs_.size(); ++i) {
+        glColor3ub(0,0,0);
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+        fontManager_.printString(responseNames_[i],10,-fontSize_-4,fontSize_);
+        glDisable(GL_BLEND);
+        glDisable(GL_TEXTURE_2D);
+
+        glColor3ub(128,128,128);
+        glBegin(GL_LINES);
+        glVertex2f(0,-fontSize_/2-4);
+        glVertex2f(5,-fontSize_/2-4);
+        glVertex2f(fontManager_.getStringLength(responseNames_[i],fontSize_) + 15,
+                   -fontSize_/2-4);
+        glVertex2f(vizWidth_,
+                   -fontSize_/2-4);
+        glEnd();
+
+        glColor3ub(255,255,255);
+        IndividualFilterResponseViz * viz = individualVizs_[i];
+        glTranslatef(0,-(viz->getVizHeight()+fontSize_+8),0);
+        viz->render();
+    }
+
+}
+
+FilterResponseViz::IndividualFilterResponseViz::IndividualFilterResponseViz(const boost::shared_ptr<caffe::Blob<float> > responseBlob, const int vizWidth, const float zoom) :
     tex_(responseBlob->width(),responseBlob->width()),
     channels_(responseBlob->channels()),
     height_(responseBlob->height()),
@@ -35,7 +121,7 @@ FilterResponseViz::FilterResponseViz(const boost::shared_ptr<caffe::Blob<float> 
     std::cout << minDataVal_ << " -> " << maxDataVal_ << std::endl;
 }
 
-void FilterResponseViz::resize(const int vizWidth, const float zoom) {
+void FilterResponseViz::IndividualFilterResponseViz::resize(const int vizWidth, const float zoom) {
     zoom_ = zoom;
     vizWidth_ = vizWidth;
     responseCols_ = std::floor((vizWidth_ - border_)/(width_*zoom_ + border_));
@@ -44,11 +130,11 @@ void FilterResponseViz::resize(const int vizWidth, const float zoom) {
     vizHeight_ = responseRows_*(zoom_*height_+border_)+border_;
 }
 
-void FilterResponseViz::setSelection(const int selectedImage) {
+void FilterResponseViz::IndividualFilterResponseViz::setSelection(const int selectedImage) {
     std::memcpy(response_.data(),data_ + selectedImage*channels_*height_*width_,response_.size()*sizeof(float));
 }
 
-void FilterResponseViz::setSelection(std::vector<bool> selection) {
+void FilterResponseViz::IndividualFilterResponseViz::setSelection(std::vector<bool> & selection) {
     std::memset(response_.data(),0,response_.size()*sizeof(float));
     int n = 0;
     for (int i=0; i<selection.size(); ++i) {
@@ -65,7 +151,7 @@ void FilterResponseViz::setSelection(std::vector<bool> selection) {
     }
 }
 
-void FilterResponseViz::render() {
+void FilterResponseViz::IndividualFilterResponseViz::render() {
     float scale = 1.f/(maxDataVal_-minDataVal_);
     float bias = -minDataVal_*scale;
     glScalePixels(make_float3(scale),make_float3(bias));
