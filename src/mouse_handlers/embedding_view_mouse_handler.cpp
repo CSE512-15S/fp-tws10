@@ -1,18 +1,14 @@
-#include "seein_in_mouse_handler.h"
+#include "embedding_view_mouse_handler.h"
 
 #include <iostream>
 #include <vector_functions.h>
 #include <helper_math.h>
 #include <limits>
 
-SeeinInMouseHandler::SeeinInMouseHandler(const float2 viewportSize, const float2 viewportCenter,
-                                       const float2 * embeddedPoints, const int nEmbeddedPoints) :
-    vpSize_(viewportSize), vpCenter_(viewportCenter),
-    embeddedPoints_(embeddedPoints), nEmbeddedPoints_(nEmbeddedPoints),
-    hasSelection_(false), selectionMode_(SelectionModeSingle),
-    selection_(nEmbeddedPoints) { }
+EmbeddingViewMouseHandler::EmbeddingViewMouseHandler(EmbeddingViz * viz) :
+    viz_(viz), hasSelection_(false), selectionMode_(SelectionModeSingle) { }
 
-void SeeinInMouseHandler::Mouse(pangolin::View & v, pangolin::MouseButton button, int x, int y, bool pressed, int button_state) {
+void EmbeddingViewMouseHandler::Mouse(pangolin::View & v, pangolin::MouseButton button, int x, int y, bool pressed, int button_state) {
     pangolin::Handler::Mouse(v,button,x,y,pressed,button_state);
 
     switch (selectionMode_) {
@@ -22,8 +18,7 @@ void SeeinInMouseHandler::Mouse(pangolin::View & v, pangolin::MouseButton button
     case SelectionModeLasso:
         if (!pressed && button == pangolin::MouseButtonLeft) {
             std::cout << "lasso click" << std::endl;
-            float2 vpPoint = make_float2((x - v.GetBounds().l)/(float)v.GetBounds().w - 0.5,
-                                         (y - v.GetBounds().b)/(float)v.GetBounds().h - 0.5)*vpSize_ + vpCenter_;
+            float2 vpPoint = getViewportPoint(v,make_float2(x,y));
             if (lassoPoints_.size() == 0) {
                 lassoPoints_.push_back(vpPoint);
                 lassoPoints_.push_back(vpPoint);
@@ -39,21 +34,19 @@ void SeeinInMouseHandler::Mouse(pangolin::View & v, pangolin::MouseButton button
     }
 }
 
-void SeeinInMouseHandler::PassiveMouseMotion(pangolin::View & v, int x, int y, int button_state) {
+void EmbeddingViewMouseHandler::PassiveMouseMotion(pangolin::View & v, int x, int y, int button_state) {
     pangolin::Handler::PassiveMouseMotion(v,x,y,button_state);
 
     switch (selectionMode_) {
     case SelectionModeSingle:
     {
-        float2 vpPoint = make_float2((x - v.GetBounds().l)/(float)v.GetBounds().w - 0.5,
-                                     (y - v.GetBounds().b)/(float)v.GetBounds().h - 0.5)*vpSize_ + vpCenter_;
+        float2 vpPoint = getViewportPoint(v,make_float2(x,y));
         hoveredOverPoint_ = computeClosestEmbeddedPoint(vpPoint);
     } break;
     case SelectionModeLasso:
     {
         if (lassoPoints_.size() > 0) {
-            float2 vpPoint = make_float2((x - v.GetBounds().l)/(float)v.GetBounds().w - 0.5,
-                                         (y - v.GetBounds().b)/(float)v.GetBounds().h - 0.5)*vpSize_ + vpCenter_;
+            float2 vpPoint = getViewportPoint(v,make_float2(x,y));
             if (length(vpPoint - lassoPoints_.front()) < 0.1) {
                 vpPoint = lassoPoints_.front();
             }
@@ -63,12 +56,12 @@ void SeeinInMouseHandler::PassiveMouseMotion(pangolin::View & v, int x, int y, i
     }
 }
 
-int SeeinInMouseHandler::computeClosestEmbeddedPoint(const float2 queryPt) {
+int EmbeddingViewMouseHandler::computeClosestEmbeddedPoint(const float2 queryPt) {
 
     int closestPoint = -1;
     float closestDist = std::numeric_limits<float>::infinity();
-    for (int i=0; i<nEmbeddedPoints_; ++i) {
-        float dist = length(queryPt - embeddedPoints_[i]);
+    for (int i=0; i<viz_->getNumEmbeddedPoints(); ++i) {
+        float dist = length(queryPt - viz_->getEmbedding()[i]);
         if (dist < closestDist) {
             closestDist = dist;
             closestPoint = i;
@@ -79,18 +72,18 @@ int SeeinInMouseHandler::computeClosestEmbeddedPoint(const float2 queryPt) {
 
 }
 
-void SeeinInMouseHandler::computeEnclosedEmbeddedPoints() {
+void EmbeddingViewMouseHandler::computeEnclosedEmbeddedPoints() {
 
 //    std::memeset(selection_.data(),0,selection_.size()*sizeof(bool));
 
     std::cout << "computing enclosure" << std::endl;
-    for (int i=0; i<nEmbeddedPoints_; ++i) {
-        selection_[i] = isInPolygon(embeddedPoints_[i],lassoPoints_);
+    for (int i=0; i<viz_->getNumEmbeddedPoints(); ++i) {
+        selection_[i] = isInPolygon(viz_->getEmbedding()[i],lassoPoints_);
     }
 
 }
 
-bool SeeinInMouseHandler::isInPolygon(const float2 pt, const std::vector<float2> & polyPoints) {
+bool EmbeddingViewMouseHandler::isInPolygon(const float2 pt, const std::vector<float2> & polyPoints) {
 
     int intersectionsLeft = 0;
     int intersectionsRight = 0;
@@ -111,7 +104,7 @@ bool SeeinInMouseHandler::isInPolygon(const float2 pt, const std::vector<float2>
 
 }
 
-bool SeeinInMouseHandler::horizontalIntersection(float & intersectionX, const float intersectionY, const float2 start, const float2 end) {
+bool EmbeddingViewMouseHandler::horizontalIntersection(float & intersectionX, const float intersectionY, const float2 start, const float2 end) {
 
     if ( (start.y > intersectionY && end.y >= intersectionY) || (start.y < intersectionY && end.y <= intersectionY) ) {
         return false;

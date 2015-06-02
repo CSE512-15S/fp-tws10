@@ -3,16 +3,18 @@
 
 #include <pangolin/pangolin.h>
 #include <vector_types.h>
+#include <vector_functions.h>
+#include <helper_math.h>
+#include "visualizations/embedding_viz.h"
 
 enum SelectionMode {
     SelectionModeSingle,
     SelectionModeLasso
 };
 
-class SeeinInMouseHandler : public pangolin::Handler {
+class EmbeddingViewMouseHandler : public pangolin::Handler {
 public:
-    SeeinInMouseHandler(const float2 viewportSize, const float2 viewportCenter,
-                       const float2 * embeddedPoints, const int nEmbeddedPoints);
+    EmbeddingViewMouseHandler(EmbeddingViz * viz);
 
     void Mouse(pangolin::View & v, pangolin::MouseButton button, int x, int y, bool pressed, int button_state);
 
@@ -37,11 +39,13 @@ private:
     bool isInPolygon(const float2 pt, const std::vector<float2> & polyPoints);
     bool horizontalIntersection(float & intersectionX, const float intersectionY, const float2 start, const float2 end);
 
+    inline float2 getViewportPoint(pangolin::View & v, float2 guiPoint) {
+        return make_float2((guiPoint.x - v.GetBounds().l)/(float)v.GetBounds().w - 0.5,
+                           (guiPoint.y - v.GetBounds().b)/(float)v.GetBounds().h - 0.5)*viz_->getViewportSize() + viz_->getViewportCenter();
+    }
+
     // -=-=-=-=-=- members -=-=-=-=-=-
-    float2 vpSize_;
-    float2 vpCenter_;
-    const float2 * embeddedPoints_;
-    int nEmbeddedPoints_;
+    EmbeddingViz * viz_;
 
     int hoveredOverPoint_;
     bool hasSelection_;

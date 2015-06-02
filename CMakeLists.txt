@@ -64,11 +64,13 @@ set(sources
     src/fonts/font_manager.h
     src/fonts/font_manager.cpp
 
-    src/mouse_handlers/seein_in_mouse_handler.h
-    src/mouse_handlers/seein_in_mouse_handler.cpp
+    src/mouse_handlers/embedding_view_mouse_handler.h
+    src/mouse_handlers/embedding_view_mouse_handler.cpp
     src/mouse_handlers/filter_view_mouse_handler.h
     src/mouse_handlers/filter_view_mouse_handler.cpp
 
+    src/visualizations/embedding_viz.h
+    src/visualizations/embedding_viz.cpp
     src/visualizations/filter_response_viz.h
     src/visualizations/filter_response_viz.cpp
 )

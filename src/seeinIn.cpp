@@ -16,8 +16,9 @@
 #include "gl_helpers.h"
 #include "mnist_io.h"
 #include "fonts/font_manager.h"
+#include "mouse_handlers/embedding_view_mouse_handler.h"
 #include "mouse_handlers/filter_view_mouse_handler.h"
-#include "mouse_handlers/seein_in_mouse_handler.h"
+#include "visualizations/embedding_viz.h"
 #include "visualizations/filter_response_viz.h"
 
 static const int guiWidth = 1920;
@@ -121,40 +122,42 @@ int main(int argc, char * * argv) {
 
     // -=-=-=-=- process embedding -=-=-=-=-
     boost::shared_ptr<caffe::Blob<float> > outputBlob = net.blobs()[net.output_blob_indices()[0]];
-    float2 minEmbedding = make_float2(std::numeric_limits<float>::infinity(),std::numeric_limits<float>::infinity());
-    float2 maxEmbedding = -1*minEmbedding;
-    for (int i=0; i<nTestImages; ++i) {
-        float2 embedding = make_float2(outputBlob->cpu_data()[2*i],outputBlob->cpu_data()[2*i + 1]);
-        minEmbedding = fminf(minEmbedding,embedding);
-        maxEmbedding = fmaxf(maxEmbedding,embedding);
-    }
+    EmbeddingViz embeddingViz(embeddingViewAspectRatio);
+    embeddingViz.setEmbedding((const float2 *)outputBlob->cpu_data(),testColors.data(),nTestImages);
 
-    float2 embeddingSize = maxEmbedding - minEmbedding;
+    //    float2 minEmbedding = make_float2(std::numeric_limits<float>::infinity(),std::numeric_limits<float>::infinity());
+//    float2 maxEmbedding = -1*minEmbedding;
+//    for (int i=0; i<nTestImages; ++i) {
+//        float2 embedding = make_float2(outputBlob->cpu_data()[2*i],outputBlob->cpu_data()[2*i + 1]);
+//        minEmbedding = fminf(minEmbedding,embedding);
+//        maxEmbedding = fmaxf(maxEmbedding,embedding);
+//    }
 
-    float2 paddedEmbeddingSize = embeddingSize + make_float2(0.1,0.1);
+//    float2 embeddingSize = maxEmbedding - minEmbedding;
 
-    float2 viewportSize;
-    if (paddedEmbeddingSize.x / embeddingViewAspectRatio < paddedEmbeddingSize.y) {
-        //embedding height is limiting dimension
-        viewportSize = make_float2(paddedEmbeddingSize.y * embeddingViewAspectRatio, paddedEmbeddingSize.y);
-    } else {
-        //embedding width is limiting dimension
-        viewportSize = make_float2(paddedEmbeddingSize.x, paddedEmbeddingSize.x / embeddingViewAspectRatio );
-    }
-    float2 viewportCenter = minEmbedding + 0.5*embeddingSize;
+//    float2 paddedEmbeddingSize = 1.02*embeddingSize;// + make_float2(0.1,0.1);
 
-    std::cout << "embedding spans " << minEmbedding.x << " -> " << maxEmbedding.x << ", " << minEmbedding.y << " -> " << maxEmbedding.y << std::endl;
-    std::cout << "embedding size: " << embeddingSize.x << ", " << embeddingSize.y << std::endl;
-    std::cout << "embedding center: " << viewportCenter.x << ", " << viewportCenter.y << std::endl;
-    std::cout << "viewport size: " << viewportSize.x << ", " << viewportSize.y << std::endl;
+//    float2 viewportSize;
+//    if (paddedEmbeddingSize.x / embeddingViewAspectRatio < paddedEmbeddingSize.y) {
+//        //embedding height is limiting dimension
+//        viewportSize = make_float2(paddedEmbeddingSize.y * embeddingViewAspectRatio, paddedEmbeddingSize.y);
+//    } else {
+//        //embedding width is limiting dimension
+//        viewportSize = make_float2(paddedEmbeddingSize.x, paddedEmbeddingSize.x / embeddingViewAspectRatio );
+//    }
+//    float2 viewportCenter = minEmbedding + 0.5*embeddingSize;
+
+//    std::cout << "embedding spans " << minEmbedding.x << " -> " << maxEmbedding.x << ", " << minEmbedding.y << " -> " << maxEmbedding.y << std::endl;
+//    std::cout << "embedding size: " << embeddingSize.x << ", " << embeddingSize.y << std::endl;
+//    std::cout << "embedding center: " << viewportCenter.x << ", " << viewportCenter.y << std::endl;
+//    std::cout << "viewport size: " << viewportSize.x << ", " << viewportSize.y << std::endl;
 
     // -=-=-=-=- set up pangolin -=-=-=-=-
     pangolin::CreateGlutWindowAndBind("Seein' In", guiWidth, guiHeight,GLUT_MULTISAMPLE | GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 
     glewInit();
 
-    SeeinInMouseHandler embeddingViewHandler(viewportSize,viewportCenter,
-                                         (const float2 *)outputBlob->cpu_data(),nTestImages);
+    EmbeddingViewMouseHandler embeddingViewHandler(&embeddingViz);
 
     pangolin::View embeddingView(embeddingViewAspectRatio);
     embeddingView.SetHandler(&embeddingViewHandler);
@@ -247,32 +250,34 @@ int main(int argc, char * * argv) {
         // -=-=-=-=-=-=- embedding view -=-=-=-=-=-=-
         embeddingView.ActivateScissorAndClear();
         embeddingView.ActivatePixelOrthographic();
+        embeddingViz.render(embeddingView);
+
         glPushMatrix();
-        setUpViewport(embeddingView,viewportSize,viewportCenter);
+        setUpViewport(embeddingView,embeddingViz.getViewportSize(),embeddingViz.getViewportCenter());
 
-        {
-            glColor3ub(0,0,0);
-            glLineWidth(3);
-            glBegin(GL_LINE_LOOP);
-            glVertex2f(viewportCenter.x - viewportSize.x/2 + 1e-4, viewportCenter.y - viewportSize.y/2 + 1e-4);
-            glVertex2f(viewportCenter.x - viewportSize.x/2 + 1e-4, viewportCenter.y + viewportSize.y/2 - 1e-4);
-            glVertex2f(viewportCenter.x + viewportSize.x/2 - 1e-4, viewportCenter.y + viewportSize.y/2 - 1e-4);
-            glVertex2f(viewportCenter.x + viewportSize.x/2 - 1e-4, viewportCenter.y - viewportSize.y/2 + 1e-4);
-            glEnd();
-            glLineWidth(1);
-        }
+//        {
+//            glColor3ub(0,0,0);
+//            glLineWidth(3);
+//            glBegin(GL_LINE_LOOP);
+//            glVertex2f(viewportCenter.x - viewportSize.x/2 + 1e-4, viewportCenter.y - viewportSize.y/2 + 1e-4);
+//            glVertex2f(viewportCenter.x - viewportSize.x/2 + 1e-4, viewportCenter.y + viewportSize.y/2 - 1e-4);
+//            glVertex2f(viewportCenter.x + viewportSize.x/2 - 1e-4, viewportCenter.y + viewportSize.y/2 - 1e-4);
+//            glVertex2f(viewportCenter.x + viewportSize.x/2 - 1e-4, viewportCenter.y - viewportSize.y/2 + 1e-4);
+//            glEnd();
+//            glLineWidth(1);
+//        }
 
-        glPointSize(3);
-        glColor3ub(0,0,0);
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glVertexPointer(2,GL_FLOAT,0,outputBlob->cpu_data());
+//        glPointSize(3);
+//        glColor3ub(0,0,0);
+//        glEnableClientState(GL_VERTEX_ARRAY);
+//        glVertexPointer(2,GL_FLOAT,0,outputBlob->cpu_data());
 
-        glEnableClientState(GL_COLOR_ARRAY);
-        glColorPointer(3,GL_UNSIGNED_BYTE,0,testColors.data());
+//        glEnableClientState(GL_COLOR_ARRAY);
+//        glColorPointer(3,GL_UNSIGNED_BYTE,0,testColors.data());
 
-        glDrawArrays(GL_POINTS, 0, nTestImages);
-        glDisableClientState(GL_VERTEX_ARRAY);
-        glDisableClientState(GL_COLOR_ARRAY);
+//        glDrawArrays(GL_POINTS, 0, nTestImages);
+//        glDisableClientState(GL_VERTEX_ARRAY);
+//        glDisableClientState(GL_COLOR_ARRAY);
 
         switch (embeddingViewHandler.getSelectionMode()) {
         case SelectionModeSingle:
@@ -332,33 +337,33 @@ int main(int argc, char * * argv) {
         } break;
         }
 
-//        if (selectedImage >= 0) {
-//            boost::shared_ptr<caffe::Layer<float> > featLayer = net.layer_by_name("feat");
+////        if (selectedImage >= 0) {
+////            boost::shared_ptr<caffe::Layer<float> > featLayer = net.layer_by_name("feat");
 
-//            boost::shared_ptr<caffe::Blob<float> > weightBlob = featLayer->blobs()[0];
-//            boost::shared_ptr<caffe::Blob<float> > biasBlob = featLayer->blobs()[1];
+////            boost::shared_ptr<caffe::Blob<float> > weightBlob = featLayer->blobs()[0];
+////            boost::shared_ptr<caffe::Blob<float> > biasBlob = featLayer->blobs()[1];
 
-//            boost::shared_ptr<caffe::Blob<float> > featInputBlob = net.blob_by_name("ip2");
+////            boost::shared_ptr<caffe::Blob<float> > featInputBlob = net.blob_by_name("ip2");
 
-//            printBlobSize(weightBlob);
-//            printBlobSize(biasBlob);
-//            printBlobSize(featInputBlob);
+////            printBlobSize(weightBlob);
+////            printBlobSize(biasBlob);
+////            printBlobSize(featInputBlob);
 
-//            glLineWidth(2);
-//            glColor3ub(0,0,0);
-//            float2 end = make_float2(biasBlob->cpu_data()[0],biasBlob->cpu_data()[1]);
-//            glBegin(GL_LINES);
-//            for (int i=0; i<weightBlob->channels(); ++i) {
-//                float2 W = make_float2(weightBlob->cpu_data()[i],weightBlob->cpu_data()[weightBlob->channels() + i]);
-//                float x = featInputBlob->cpu_data()[selectedImage*featInputBlob->channels() + i];
-//                float2 nextEnd = end + x*W;
-//                glVertex(end);
-//                glVertex(nextEnd);
-//                end = nextEnd;
-//            }
-//            glEnd();
-//            glLineWidth(1);
-//        }
+////            glLineWidth(2);
+////            glColor3ub(0,0,0);
+////            float2 end = make_float2(biasBlob->cpu_data()[0],biasBlob->cpu_data()[1]);
+////            glBegin(GL_LINES);
+////            for (int i=0; i<weightBlob->channels(); ++i) {
+////                float2 W = make_float2(weightBlob->cpu_data()[i],weightBlob->cpu_data()[weightBlob->channels() + i]);
+////                float x = featInputBlob->cpu_data()[selectedImage*featInputBlob->channels() + i];
+////                float2 nextEnd = end + x*W;
+////                glVertex(end);
+////                glVertex(nextEnd);
+////                end = nextEnd;
+////            }
+////            glEnd();
+////            glLineWidth(1);
+////        }
 
         glPopMatrix();
 
