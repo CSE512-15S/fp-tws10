@@ -3,6 +3,7 @@
 
 #include <caffe/caffe.hpp>
 #include <pangolin/pangolin.h>
+#include "feature_projector.h"
 #include "fonts/font_manager.h"
 
 class FilterResponseViz {
@@ -24,6 +25,8 @@ private:
         void setSelection(const int selectedImage);
 
         void setSelection(std::vector<bool> & selection);
+
+        void setResponse(const float * response);
 
         inline int getSelectedUnit(const int clickX, const int clickY) const;
 
@@ -67,10 +70,14 @@ public:
 
     void setSelection(std::vector<bool> & selection);
 
+    void setResponse(FeatureProjector & responseSource);
+
     void render();
 
     void getClickInfo(const int clickX, const int clickY,
                       int & layer, int & unit);
+
+    int getSelection() { return selection_; }
 
 private:
     std::vector<IndividualFilterResponseViz*> individualVizs_;
@@ -84,6 +91,7 @@ private:
     int scrollMax_;
     float zoom_;
     FontManager & fontManager_;
+    int selection_;
 };
 
 

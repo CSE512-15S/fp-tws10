@@ -27,7 +27,8 @@ FilterResponseViz::FilterResponseViz(const caffe::Net<float> & net,
     vizHeight_(vizHeight),
     zoom_(zoom),
     scroll_(0),
-    textMarginVert_(4) {
+    textMarginVert_(4),
+    selection_(-1) {
 
     fontSize_ = fontSize;
 
@@ -75,6 +76,7 @@ void FilterResponseViz::incrementScroll(const int incrementValue) {
 
 void FilterResponseViz::setSelection(const int selectedImage) {
 
+    selection_ = selectedImage;
     for (IndividualFilterResponseViz * viz : individualVizs_) {
         viz->setSelection(selectedImage);
     }
@@ -85,6 +87,17 @@ void FilterResponseViz::setSelection(std::vector<bool> & selection) {
 
     for (IndividualFilterResponseViz * viz : individualVizs_) {
         viz->setSelection(selection);
+    }
+
+}
+
+void FilterResponseViz::setResponse(FeatureProjector & responseSource) {
+
+    for (int i=0; i<individualVizs_.size(); ++i) {
+        std::string blobName = responseNames_[i];
+        IndividualFilterResponseViz * viz = individualVizs_[i];
+        const float * response = responseSource.getResponse(blobName);
+        viz->setResponse(response);
     }
 
 }
@@ -182,6 +195,10 @@ void FilterResponseViz::IndividualFilterResponseViz::setSelection(const int sele
     std::memcpy(response_.data(),data_ + selectedImage*channels_*height_*width_,response_.size()*sizeof(float));
 }
 
+void FilterResponseViz::IndividualFilterResponseViz::setResponse(const float * response) {
+    std::memcpy(response_.data(),response,response_.size()*sizeof(float));
+}
+
 void FilterResponseViz::IndividualFilterResponseViz::setSelection(std::vector<bool> & selection) {
     std::memset(response_.data(),0,response_.size()*sizeof(float));
     int n = 0;
@@ -210,9 +227,6 @@ int FilterResponseViz::IndividualFilterResponseViz::getSelectedUnit(const int cl
     const int h = ((clickY-border_) - row*(zoom_*height_+border_))/zoom_;
     std::cout << "h " << h << std::endl;
     if (h >= height_) { return -1; }
-
-    std::cout << "(clickX-border_) = " << (clickX-border_) << std::endl;
-    std::cout << "(col*zoom_*width_+border_) = " << (col*zoom_*width_+border_) << std::endl;
 
     const int w = ((clickX-border_) - col*(zoom_*width_+border_))/zoom_;
     std::cout << "w " << w << std::endl;

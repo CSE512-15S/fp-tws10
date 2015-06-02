@@ -12,12 +12,12 @@
 #include <vector_functions.h>
 #include <helper_math.h>
 
+#include "feature_projector.h"
 #include "gl_helpers.h"
 #include "mnist_io.h"
 #include "fonts/font_manager.h"
 #include "mouse_handlers/filter_view_mouse_handler.h"
 #include "mouse_handlers/seein_in_mouse_handler.h"
-#include "visualizations/feature_projection_viz.h"
 #include "visualizations/filter_response_viz.h"
 
 static const int guiWidth = 1920;
@@ -190,16 +190,18 @@ int main(int argc, char * * argv) {
     FontManager fontManager("Ubuntu");
 
     // -=-=-=-=- set up layer visualizations -=-=-=-=-
-    std::vector<std::string> layerResponsesToVisualize;
-    layerResponsesToVisualize.push_back("conv1");
-    layerResponsesToVisualize.push_back("pool1");
-    layerResponsesToVisualize.push_back("conv2");
-    layerResponsesToVisualize.push_back("pool2");
-    layerResponsesToVisualize.push_back("ip1");
-    layerResponsesToVisualize.push_back("ip2");
-    layerResponsesToVisualize.push_back("feat");
+    std::vector<std::string> filterResponsesToVisualize;
+    filterResponsesToVisualize.push_back("data");
+    filterResponsesToVisualize.push_back("conv1");
+    filterResponsesToVisualize.push_back("pool1");
+    filterResponsesToVisualize.push_back("conv2");
+    filterResponsesToVisualize.push_back("pool2");
+    filterResponsesToVisualize.push_back("ip1");
+    filterResponsesToVisualize.push_back("ip2");
+    filterResponsesToVisualize.push_back("feat");
 
     std::map<std::string,int> layerRelativeScales;
+    layerRelativeScales["data"] = 1;
     layerRelativeScales["conv1"] = 1;
     layerRelativeScales["pool1"] = 2;
     layerRelativeScales["conv2"] = 2;
@@ -210,14 +212,14 @@ int main(int argc, char * * argv) {
 
 //    std::map<std::string,pangolin::GlTexture*> layerResponseTextures;
     float filterVizZoom = 2.f;
-    FilterResponseViz filterResponseViz(net,layerResponsesToVisualize,
+    FilterResponseViz filterResponseViz(net,filterResponsesToVisualize,
                                         layerRelativeScales,filterView.GetBounds().w,filterView.GetBounds().h,fontManager,
                                         filterVizZoom);
 
     FilterViewMouseHandler filterViewHandler(&filterResponseViz);
     filterView.SetHandler(&filterViewHandler);
 
-    FeatureProjectionViz projectionViz(net,"feat"); //"feat");
+    FeatureProjector featProjector(net,filterResponsesToVisualize); //"feat");
 
     pangolin::RegisterKeyPressCallback(' ',[&embeddingViewHandler, &hasSelection](){ embeddingViewHandler.setSelectionMode(embeddingViewHandler.getSelectionMode() == SelectionModeSingle ? SelectionModeLasso : SelectionModeSingle); hasSelection = false;} );
     pangolin::RegisterKeyPressCallback('+',[&filterResponseViz, &filterVizZoom, &filterView](){
@@ -378,9 +380,6 @@ int main(int argc, char * * argv) {
 
         if (hasSelection) {
             filterResponseViz.render();
-        } else {
-            glColor3ub(255,255,255);
-            projectionViz.render();
         }
 
         // -=-=-=-=-=-=- input handling -=-=-=-=-=-=-
@@ -410,6 +409,13 @@ int main(int argc, char * * argv) {
             std::cout << "selected layer " << filterViewHandler.getSelectedLayer() << std::endl;
         } else if (filterViewHandler.hasUnitSelection()) {
             std::cout << "selected unit " << filterViewHandler.getSelectedUnit() << " in layer " << filterViewHandler.getSelectedLayer() << std::endl;
+            int selectedImage = filterResponseViz.getSelection();
+            if (selectedImage >= 0) {
+                int selectedLayerNum = filterViewHandler.getSelectedLayer();
+                int selectedUnit = filterViewHandler.getSelectedUnit();
+                featProjector.computeProjection(filterResponsesToVisualize[selectedLayerNum],selectedImage,selectedUnit);
+                filterResponseViz.setResponse(featProjector);
+            }
         }
 
         glClearColor(0,0,0,1);

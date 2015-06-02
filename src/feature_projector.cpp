@@ -1,58 +1,74 @@
-#include "feature_projection_viz.h"
+#include "feature_projector.h"
 
-FeatureProjectionViz::FeatureProjectionViz(caffe::Net<float> & net, const std::string activationBlobName) :
-    tex(28,28) {
+FeatureProjector::FeatureProjector(caffe::Net<float> & net, std::vector<std::string> & blobsToVisualize) :
+    net_(net),
+    blobNames_(blobsToVisualize) {
 
-    const int activationIndex = 0;
-    const int imgNum = 20;
+    for (std::string blobName : blobNames_) {
+        boost::shared_ptr<caffe::Blob<float> > netBlob = net.blob_by_name(blobName);
+        std::vector<int> blobShape = netBlob->shape();
+        blobShape[0] = 1;
+        caffe::Blob<float> * mirroredBlob = new caffe::Blob<float>(blobShape);
+        mirroredBlobs_[netBlob.get()] = mirroredBlob;
+    }
 
-    std::map<const caffe::Blob<float>*,caffe::Blob<float>*> tmpBlobs;
+}
+
+FeatureProjector::~FeatureProjector() {
+
+    for (std::pair<const caffe::Blob<float>*,caffe::Blob<float>*> keyVal : mirroredBlobs_) {
+        delete keyVal.second;
+    }
+
+}
+
+void FeatureProjector::computeProjection(const std::string activationBlobName, const int imgNum, const int activationIndex) {
 
     int activationBlobNum;
-    for (int i=0; i<net.blob_names().size(); ++i) {
-        if (net.blob_names()[i] == activationBlobName) {
+    for (int i=0; i<net_.blob_names().size(); ++i) {
+        if (net_.blob_names()[i] == activationBlobName) {
             activationBlobNum = i;
             break;
         }
     }
 
-    const boost::shared_ptr<caffe::Blob<float> > activationBlob = net.blob_by_name(activationBlobName);
+    const boost::shared_ptr<caffe::Blob<float> > activationBlob = net_.blob_by_name(activationBlobName);
     std::vector<int> activationBlobShape = activationBlob->shape();
     activationBlobShape[0] = 1;
     caffe::Blob<float> * activationTmpBlob = new caffe::Blob<float>(activationBlobShape);
-    tmpBlobs[activationBlob.get()] = activationTmpBlob;
+    mirroredBlobs_[activationBlob.get()] = activationTmpBlob;
 
     caffe::caffe_set(activationTmpBlob->count(),0.f,activationTmpBlob->mutable_cpu_data());
     activationTmpBlob->mutable_cpu_data()[activationIndex] = 1;
 
-    int layerNum = getResponsibleLayerNum(net, activationBlobNum);
+    int layerNum = getResponsibleLayerNum(net_, activationBlobNum);
 
-    std::cout << activationBlobName << " (" << activationBlobNum << ") produced by " << net.layer_names()[layerNum] << " (" << layerNum << ")" << std::endl;
+    std::cout << activationBlobName << " (" << activationBlobNum << ") produced by " << net_.layer_names()[layerNum] << " (" << layerNum << ")" << std::endl;
 
     for (layerNum; layerNum >= 0; --layerNum) {
         std::cout << "-=- " << layerNum << " -=-=-=-=-=-=-=-" << std::endl;
         std::vector<caffe::Blob<float>*> tmpTops, tmpBottoms;
-        for (caffe::Blob<float> * top : net.top_vecs()[layerNum]) {
-            if (tmpBlobs.find(top) == tmpBlobs.end()) {
-                tmpBlobs[top] = new caffe::Blob<float>(1,top->channels(),top->height(),top->width());
+        for (caffe::Blob<float> * top : net_.top_vecs()[layerNum]) {
+            if (mirroredBlobs_.find(top) == mirroredBlobs_.end()) {
+                mirroredBlobs_[top] = new caffe::Blob<float>(1,top->channels(),top->height(),top->width());
             }
-            tmpTops.push_back(tmpBlobs[top]);
+            tmpTops.push_back(mirroredBlobs_[top]);
         }
-        for (caffe::Blob<float> * bottom : net.bottom_vecs()[layerNum]) {
-            if (tmpBlobs.find(bottom) == tmpBlobs.end()) {
-                tmpBlobs[bottom] = new caffe::Blob<float>(1,bottom->channels(),bottom->height(),bottom->width());
+        for (caffe::Blob<float> * bottom : net_.bottom_vecs()[layerNum]) {
+            if (mirroredBlobs_.find(bottom) == mirroredBlobs_.end()) {
+                mirroredBlobs_[bottom] = new caffe::Blob<float>(1,bottom->channels(),bottom->height(),bottom->width());
             }
-            tmpBottoms.push_back(tmpBlobs[bottom]);
+            tmpBottoms.push_back(mirroredBlobs_[bottom]);
         }
 
-        const boost::shared_ptr<caffe::Layer<float> > layer = net.layers()[layerNum];
+        const boost::shared_ptr<caffe::Layer<float> > layer = net_.layers()[layerNum];
         std::string layerType(layer->type());
         if (layerType == "Convolution") {\
             undoConvolution(boost::static_pointer_cast<caffe::ConvolutionLayer<float> >(layer),tmpTops,tmpBottoms);
         } else if (layerType == "Pooling") {
             if (tmpTops.size() > 1) {
                 std::cout << "copying mask" << std::endl;
-                caffe::caffe_copy(tmpTops[1]->count(),net.top_vecs()[layerNum][1]->cpu_data() + imgNum*tmpTops[1]->count(),tmpTops[1]->mutable_cpu_data());
+                caffe::caffe_copy(tmpTops[1]->count(),net_.top_vecs()[layerNum][1]->cpu_data() + imgNum*tmpTops[1]->count(),tmpTops[1]->mutable_cpu_data());
             }
             undoPooling(boost::static_pointer_cast<caffe::PoolingLayer<float> >(layer),tmpTops,tmpBottoms);
         } else if (layerType == "ReLU") {
@@ -65,7 +81,7 @@ FeatureProjectionViz::FeatureProjectionViz(caffe::Net<float> & net, const std::s
 
     }
 
-    caffe::Blob<float> * dataBlob = tmpBlobs[net.blob_by_name("data").get()];
+    caffe::Blob<float> * dataBlob = mirroredBlobs_[net_.blob_by_name("data").get()];
     std::cout << "output " << dataBlob->num() << " x " << dataBlob->channels() << " x " << dataBlob->height() << " x " << dataBlob->width() << std::endl;
 
     float dataMin = 1e10;
@@ -76,14 +92,17 @@ FeatureProjectionViz::FeatureProjectionViz(caffe::Net<float> & net, const std::s
     }
     std::cout << "data range: " << dataMin << " -> " << dataMax << std::endl;
 
-    tex.Upload(dataBlob->cpu_data(),GL_LUMINANCE,GL_FLOAT);
-
-    for (std::map<const caffe::Blob<float>*,caffe::Blob<float>*>::iterator it = tmpBlobs.begin(); it != tmpBlobs.end(); ++it) {
-        delete it->second;
-    }
 }
 
-int FeatureProjectionViz::getResponsibleLayerNum(caffe::Net<float> & net, const int blobNum) {
+const float * FeatureProjector::getResponse(const std::string blobName) {
+
+    boost::shared_ptr<caffe::Blob<float> > blob = net_.blob_by_name(blobName);
+    caffe::Blob<float> * mirroredBlob = mirroredBlobs_[blob.get()];
+    return mirroredBlob->cpu_data();
+
+}
+
+int FeatureProjector::getResponsibleLayerNum(caffe::Net<float> & net, const int blobNum) {
 
     boost::shared_ptr<caffe::Blob<float> > targetBlob = net.blobs()[blobNum];
     for (int i=0; i<net.top_vecs().size(); ++i) {
@@ -97,7 +116,7 @@ int FeatureProjectionViz::getResponsibleLayerNum(caffe::Net<float> & net, const 
 
 }
 
-int FeatureProjectionViz::getInputBlobNum(caffe::Net<float> & net, const int layerNum) {
+int FeatureProjector::getInputBlobNum(caffe::Net<float> & net, const int layerNum) {
 
     const caffe::Blob<float> * targetBlob = net.bottom_vecs()[layerNum][0];
     for (int i=0; i<net.blobs().size(); ++i) {
@@ -108,7 +127,7 @@ int FeatureProjectionViz::getInputBlobNum(caffe::Net<float> & net, const int lay
 
 }
 
-void FeatureProjectionViz::undoConvolution(const boost::shared_ptr<caffe::ConvolutionLayer<float> > & layer, std::vector<caffe::Blob<float>*> & tmpTops, std::vector<caffe::Blob<float>*> & tmpBottoms ) {
+void FeatureProjector::undoConvolution(const boost::shared_ptr<caffe::ConvolutionLayer<float> > & layer, std::vector<caffe::Blob<float>*> & tmpTops, std::vector<caffe::Blob<float>*> & tmpBottoms ) {
 
     std::cout << "undoing convolution" << std::endl;
     const boost::shared_ptr<caffe::Blob<float> > weights = layer->blobs()[0];
@@ -152,7 +171,7 @@ void FeatureProjectionViz::undoConvolution(const boost::shared_ptr<caffe::Convol
     }
 }
 
-void FeatureProjectionViz::undoInnerProduct(const boost::shared_ptr<caffe::InnerProductLayer<float> > & layer, std::vector<caffe::Blob<float> *> & tmpTops, std::vector<caffe::Blob<float> *> & tmpBottoms) {
+void FeatureProjector::undoInnerProduct(const boost::shared_ptr<caffe::InnerProductLayer<float> > & layer, std::vector<caffe::Blob<float> *> & tmpTops, std::vector<caffe::Blob<float> *> & tmpBottoms) {
 
     std::cout << "undoing inner product" << std::endl;
     assert(tmpBottoms.size() == 1);
@@ -175,7 +194,7 @@ void FeatureProjectionViz::undoInnerProduct(const boost::shared_ptr<caffe::Inner
     }
 }
 
-void FeatureProjectionViz::undoPooling(const boost::shared_ptr<caffe::PoolingLayer<float> > & layer, std::vector<caffe::Blob<float>*> & tmpTops, std::vector<caffe::Blob<float>*> & tmpBottoms ) {
+void FeatureProjector::undoPooling(const boost::shared_ptr<caffe::PoolingLayer<float> > & layer, std::vector<caffe::Blob<float>*> & tmpTops, std::vector<caffe::Blob<float>*> & tmpBottoms ) {
 
     std::cout << "undoing pooling" << std::endl;
 
@@ -208,7 +227,7 @@ void FeatureProjectionViz::undoPooling(const boost::shared_ptr<caffe::PoolingLay
 
 }
 
-void FeatureProjectionViz::undoReLU(const boost::shared_ptr<caffe::ReLULayer<float> > &layer, std::vector<caffe::Blob<float> *> &tmpTops, std::vector<caffe::Blob<float> *> &tmpBottoms) {
+void FeatureProjector::undoReLU(const boost::shared_ptr<caffe::ReLULayer<float> > &layer, std::vector<caffe::Blob<float> *> &tmpTops, std::vector<caffe::Blob<float> *> &tmpBottoms) {
 
     std::cout << "undoing rectification" << std::endl;
 

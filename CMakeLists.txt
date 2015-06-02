@@ -50,6 +50,9 @@ link_directories(${CAFFE_ROOT}/build/lib)
 link_libraries(caffe)
 
 set(sources
+    src/feature_projector.h
+    src/feature_projector.cpp
+
     src/gl_helpers.h
     src/gl_helpers.cpp
 
@@ -66,8 +69,6 @@ set(sources
     src/mouse_handlers/filter_view_mouse_handler.h
     src/mouse_handlers/filter_view_mouse_handler.cpp
 
-    src/visualizations/feature_projection_viz.h
-    src/visualizations/feature_projection_viz.cpp
     src/visualizations/filter_response_viz.h
     src/visualizations/filter_response_viz.cpp
 )

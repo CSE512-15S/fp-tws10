@@ -1,22 +1,28 @@
-#ifndef FEATURE_PROJECTION_VIZ_H
-#define FEATURE_PROJECTION_VIZ_H
+#ifndef FEATURE_PROJECTOR_H
+#define FEATURE_PROJECTOR_H
 
 #include <caffe/caffe.hpp>
 #include <pangolin/pangolin.h>
 
-class FeatureProjectionViz {
+class FeatureProjector {
 public:
 
-    FeatureProjectionViz(caffe::Net<float> & net, const std::string activationBlobName);
+    FeatureProjector(caffe::Net<float> & net, std::vector<std::string> & blobsToVisualize);
 
-    void render() { tex.RenderToViewportFlipY(); }
+    ~FeatureProjector();
+
+    void computeProjection(const std::string activationBlobName, const int imgNum, const int activationIndex);
+
+    const float * getResponse(const std::string blobName);
+
+//    void render() { tex.RenderToViewportFlipY(); }
 
 private:
 
     // -=-=-=-=-=- methods -=-=-=-=-=-
-    int getResponsibleLayerNum(caffe::Net<float> & net, const int blobNum);
+    int getResponsibleLayerNum(caffe::Net<float> & net_, const int blobNum);
 
-    int getInputBlobNum(caffe::Net<float> & net, const int layerNum);
+    int getInputBlobNum(caffe::Net<float> & net_, const int layerNum);
 
     void undoConvolution(const boost::shared_ptr<caffe::ConvolutionLayer<float> > & layer, std::vector<caffe::Blob<float>*> & tmpTops, std::vector<caffe::Blob<float>*> & tmpBottoms);
 
@@ -27,7 +33,10 @@ private:
     void undoReLU(const boost::shared_ptr<caffe::ReLULayer<float> > & layer, std::vector<caffe::Blob<float>*> & tmpTops, std::vector<caffe::Blob<float>*> & tmpBottoms);
 
     // -=-=-=-=-=- members -=-=-=-=-=-
-    pangolin::GlTexture tex;
+//    pangolin::GlTexture tex;
+    caffe::Net<float> & net_;
+    std::vector<std::string> blobNames_;
+    std::map<const caffe::Blob<float>*,caffe::Blob<float>*> mirroredBlobs_;
 };
 
-#endif // FILTER_PROJECTION_VIZ_H
+#endif // FEATURE_PROJECTOR_H
