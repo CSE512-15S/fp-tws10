@@ -80,6 +80,10 @@ public:
     int getSelection() { return selection_; }
 
 private:
+    // -=-=-=-=-=- methods -=-=-=-=-=-
+    void clampScroll();
+
+    // -=-=-=-=-=- members -=-=-=-=-=-
     std::vector<IndividualFilterResponseViz*> individualVizs_;
     std::vector<std::string> responseNames_;
     std::vector<int> baseZooms_;

@@ -309,7 +309,6 @@ int main(int argc, char * * argv) {
                 if (quad1HoverExtent.y > embeddingViz.getViewportCenter().y + embeddingViz.getViewportSize().y/2) {
                     hoverDir |= 2;
                 }
-                std::cout << hoverDir << std::endl;
 
                 float2 textureLocation;
                 switch(hoverDir) {

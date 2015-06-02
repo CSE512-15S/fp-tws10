@@ -68,13 +68,19 @@ void FilterResponseViz::resize(const int vizWidth, const int vizHeight, const fl
     }
     scrollMax_ = std::max(0,scrollMax_);
 
+    clampScroll();
+
 }
 
 void FilterResponseViz::incrementScroll(const int incrementValue) {
 
     scroll_ += incrementValue;
-    scroll_ = std::max(std::min(scrollMax_,scroll_),0);
+    clampScroll();
 
+}
+
+void FilterResponseViz::clampScroll() {
+    scroll_ = std::max(std::min(scrollMax_,scroll_),0);
 }
 
 void FilterResponseViz::setSelection(const int selectedImage) {
