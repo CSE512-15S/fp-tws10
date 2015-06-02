@@ -411,9 +411,11 @@ int main(int argc, char * * argv) {
             std::cout << "selected unit " << filterViewHandler.getSelectedUnit() << " in layer " << filterViewHandler.getSelectedLayer() << std::endl;
             int selectedImage = filterResponseViz.getSelection();
             if (selectedImage >= 0) {
-                int selectedLayerNum = filterViewHandler.getSelectedLayer();
-                int selectedUnit = filterViewHandler.getSelectedUnit();
-                featProjector.computeProjection(filterResponsesToVisualize[selectedLayerNum],selectedImage,selectedUnit);
+                const int selectedLayerNum = filterViewHandler.getSelectedLayer();
+                const int selectedUnit = filterViewHandler.getSelectedUnit();
+                const std::string blobName = filterResponsesToVisualize[selectedLayerNum];
+                const float activationValue = net.blob_by_name(blobName)->cpu_data()[selectedUnit];
+                featProjector.computeProjection(blobName,selectedImage,selectedUnit,activationValue);
                 filterResponseViz.setResponse(featProjector);
             }
         }

@@ -11,7 +11,7 @@ public:
 
     ~FeatureProjector();
 
-    void computeProjection(const std::string activationBlobName, const int imgNum, const int activationIndex);
+    void computeProjection(const std::string activationBlobName, const int imgNum, const int activationIndex, const float activationValue);
 
     const float * getResponse(const std::string blobName);
 

@@ -22,7 +22,7 @@ FeatureProjector::~FeatureProjector() {
 
 }
 
-void FeatureProjector::computeProjection(const std::string activationBlobName, const int imgNum, const int activationIndex) {
+void FeatureProjector::computeProjection(const std::string activationBlobName, const int imgNum, const int activationIndex, const float activationValue) {
 
     int activationBlobNum;
     for (int i=0; i<net_.blob_names().size(); ++i) {
@@ -39,7 +39,7 @@ void FeatureProjector::computeProjection(const std::string activationBlobName, c
     mirroredBlobs_[activationBlob.get()] = activationTmpBlob;
 
     caffe::caffe_set(activationTmpBlob->count(),0.f,activationTmpBlob->mutable_cpu_data());
-    activationTmpBlob->mutable_cpu_data()[activationIndex] = 1;
+    activationTmpBlob->mutable_cpu_data()[activationIndex] = activationValue;
 
     int layerNum = getResponsibleLayerNum(net_, activationBlobNum);
 
@@ -130,7 +130,9 @@ int FeatureProjector::getInputBlobNum(caffe::Net<float> & net, const int layerNu
 void FeatureProjector::undoConvolution(const boost::shared_ptr<caffe::ConvolutionLayer<float> > & layer, std::vector<caffe::Blob<float>*> & tmpTops, std::vector<caffe::Blob<float>*> & tmpBottoms ) {
 
     std::cout << "undoing convolution" << std::endl;
+    assert(layer->blobs().size() == 2);
     const boost::shared_ptr<caffe::Blob<float> > weights = layer->blobs()[0];
+    const boost::shared_ptr<caffe::Blob<float> > biases = layer->blobs()[1];
     const int kernelW = weights->width();
     const int kernelH = weights->height();
     const int kernelCW = kernelW / 2;
@@ -138,6 +140,7 @@ void FeatureProjector::undoConvolution(const boost::shared_ptr<caffe::Convolutio
 //    const int kernelChannels =
 
     std::cout << weights->num() << " x " << weights->channels() << " x " << weights->height() << " x " << weights->width() << std::endl;
+    std::cout << biases->num() << " x " << biases->channels() << " x " << biases->height() << " x " << biases->width() << std::endl;
 
     assert(tmpBottoms.size() == 1);
     assert(tmpTops.size() == 1);
@@ -148,12 +151,13 @@ void FeatureProjector::undoConvolution(const boost::shared_ptr<caffe::Convolutio
 
     caffe::caffe_set(bottom.count(),0.f,bottom.mutable_cpu_data());
     for (int c=0; c<top.channels(); ++c) {
+        const float bias = biases->cpu_data()[biases->offset(c,0,0,0)];
         for (int h=0; h<top.height(); ++h) {
 //            const int minV = std::max(0,kernelCH - h);
 //            const int maxV = std::min(kernelH,top.height()-1+kernelCH - h);
             for (int w=0; w<top.width(); ++w) {
-                const float topValue = top.cpu_data()[top.offset(0,c,h,w)];
-                if (topValue == 0.f) { continue; }
+                if (top.cpu_data()[top.offset(0,c,h,w)] == 0.f) { continue; }
+                const float topValue = (top.cpu_data()[top.offset(0,c,h,w)] - bias);
 //                const int minU = std::max(0,kernelCW - w);
 //                const int maxU = std::min(kernelW,top.width()-1+kernelCW - w);
                 for (int v=0; v<kernelH; ++v) {
@@ -179,15 +183,18 @@ void FeatureProjector::undoInnerProduct(const boost::shared_ptr<caffe::InnerProd
     caffe::Blob<float> & bottom = *tmpBottoms[0];
     caffe::Blob<float> & top = *tmpTops[0];
 
+    assert(layer->blobs().size() == 2);
     const boost::shared_ptr<caffe::Blob<float> > weights = layer->blobs()[0];
+    const boost::shared_ptr<caffe::Blob<float> > biases = layer->blobs()[1];\
+
     std::cout << "bottom:  " << bottom.num() << " x " << bottom.channels() << " x " << bottom.height() << " x " << bottom.width() << std::endl;
     std::cout << "top:     " << top.num() << " x " << top.channels() << " x " << top.height() << " x " << top.width() << std::endl;
     std::cout << "weights: " << weights->num() << " x " << weights->channels() << " x " << weights->height() << " x " << weights->width() << std::endl;
 
     caffe::caffe_set(bottom.count(),0.f,bottom.mutable_cpu_data());
     for (int t=0; t<top.count(); ++t) {
-        const float topVal = top.cpu_data()[t];
-        if (topVal == 0.f) { continue; }
+        if (top.cpu_data()[t] == 0.f) { continue; }
+        const float topVal = top.cpu_data()[t] - biases->cpu_data()[t];
         for (int b=0; b<bottom.count(); ++b) {
             bottom.mutable_cpu_data()[b] += topVal*weights->cpu_data()[weights->offset(t,b,0,0)];
         }
