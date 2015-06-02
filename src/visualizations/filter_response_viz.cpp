@@ -26,7 +26,8 @@ FilterResponseViz::FilterResponseViz(const caffe::Net<float> & net,
     vizWidth_(vizWidth),
     vizHeight_(vizHeight),
     zoom_(zoom),
-    scroll_(0) {
+    scroll_(0),
+    textMarginVert_(4) {
 
     fontSize_ = fontSize;
 
@@ -59,10 +60,9 @@ void FilterResponseViz::resize(const int vizWidth, const int vizHeight, const fl
 
     scrollMax_ = -vizHeight;
     for (IndividualFilterResponseViz * viz : individualVizs_) {
-        scrollMax_ += (viz->getVizHeight()+fontSize_+8);
+        scrollMax_ += (viz->getVizHeight()+fontSize_+2*textMarginVert_);
     }
     scrollMax_ = std::max(0,scrollMax_);
-    std::cout << "scroll max: " << scrollMax_ << std::endl;
 
 }
 
@@ -70,7 +70,6 @@ void FilterResponseViz::incrementScroll(const int incrementValue) {
 
     scroll_ += incrementValue;
     scroll_ = std::max(std::min(scrollMax_,scroll_),0);
-    std::cout << "scroll: " << scroll_ << "(" << scrollMax_ << ")" << std::endl;
 
 }
 
@@ -90,6 +89,31 @@ void FilterResponseViz::setSelection(std::vector<bool> & selection) {
 
 }
 
+void FilterResponseViz::getClickInfo(const int clickX, const int clickY,
+                                     int & layer, int & unit) {
+
+    const int clickYviz = clickY + scroll_;
+
+    int runningY = 0;
+    for (int i=0; i<individualVizs_.size(); ++i) {
+        runningY += (fontSize_+2*textMarginVert_);
+        if (runningY > clickYviz) {
+            layer = i;
+            unit = -1;
+            return;
+        }
+        IndividualFilterResponseViz * viz = individualVizs_[i];
+        runningY += viz->getVizHeight();
+        if (runningY > clickYviz) {
+            layer = i;
+            unit = viz->getSelectedUnit(clickX,clickY-(runningY-viz->getVizHeight()));
+            return;
+        }
+    }
+    layer = -1;
+    unit = -1;
+}
+
 void FilterResponseViz::render() {
 
     glColor3ub(255,255,255);
@@ -100,23 +124,23 @@ void FilterResponseViz::render() {
         glEnable(GL_TEXTURE_2D);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-        fontManager_.printString(responseNames_[i],10,-fontSize_-4,fontSize_);
+        fontManager_.printString(responseNames_[i],10,-fontSize_-textMarginVert_,fontSize_);
         glDisable(GL_BLEND);
         glDisable(GL_TEXTURE_2D);
 
         glColor3ub(128,128,128);
         glBegin(GL_LINES);
-        glVertex2f(0,-fontSize_/2-4);
-        glVertex2f(5,-fontSize_/2-4);
+        glVertex2f(0,-fontSize_/2-textMarginVert_);
+        glVertex2f(5,-fontSize_/2-textMarginVert_);
         glVertex2f(fontManager_.getStringLength(responseNames_[i],fontSize_) + 15,
-                   -fontSize_/2-4);
+                   -fontSize_/2-textMarginVert_);
         glVertex2f(vizWidth_,
-                   -fontSize_/2-4);
+                   -fontSize_/2-textMarginVert_);
         glEnd();
 
         glColor3ub(255,255,255);
         IndividualFilterResponseViz * viz = individualVizs_[i];
-        glTranslatef(0,-(viz->getVizHeight()+fontSize_+8),0);
+        glTranslatef(0,-(viz->getVizHeight()+fontSize_+2*textMarginVert_),0);
         viz->render();
     }
     glPopMatrix();
@@ -174,6 +198,30 @@ void FilterResponseViz::IndividualFilterResponseViz::setSelection(std::vector<bo
         response_[j] *= oneOverN;
     }
 }
+
+int FilterResponseViz::IndividualFilterResponseViz::getSelectedUnit(const int clickX, const int clickY) const {
+
+    const int row = (clickY-border_) / (zoom_*height_+border_);
+    const int col = (clickX-border_) / (zoom_*width_+border_);
+    const int channel = col + row*responseCols_;
+    std::cout << "channel " << channel << std::endl;
+    if (channel >= channels_) { return -1; }
+
+    const int h = ((clickY-border_) - row*(zoom_*height_+border_))/zoom_;
+    std::cout << "h " << h << std::endl;
+    if (h >= height_) { return -1; }
+
+    std::cout << "(clickX-border_) = " << (clickX-border_) << std::endl;
+    std::cout << "(col*zoom_*width_+border_) = " << (col*zoom_*width_+border_) << std::endl;
+
+    const int w = ((clickX-border_) - col*(zoom_*width_+border_))/zoom_;
+    std::cout << "w " << w << std::endl;
+    if (w >= width_) { return -1; }
+
+    return w + width_*(h + height_*channel);
+
+}
+
 
 void FilterResponseViz::IndividualFilterResponseViz::render() {
     float scale = 1.f/(maxDataVal_-minDataVal_);

@@ -25,6 +25,8 @@ private:
 
         void setSelection(std::vector<bool> & selection);
 
+        inline int getSelectedUnit(const int clickX, const int clickY) const;
+
     private:
         const float * data_;
         int channels_;
@@ -67,11 +69,15 @@ public:
 
     void render();
 
+    void getClickInfo(const int clickX, const int clickY,
+                      int & layer, int & unit);
+
 private:
     std::vector<IndividualFilterResponseViz*> individualVizs_;
     std::vector<std::string> responseNames_;
     std::vector<int> baseZooms_;
     int fontSize_;
+    int textMarginVert_;
     int vizWidth_;
     int vizHeight_;
     int scroll_;

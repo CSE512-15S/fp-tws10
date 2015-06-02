@@ -197,6 +197,7 @@ int main(int argc, char * * argv) {
     layerResponsesToVisualize.push_back("pool2");
     layerResponsesToVisualize.push_back("ip1");
     layerResponsesToVisualize.push_back("ip2");
+    layerResponsesToVisualize.push_back("feat");
 
     std::map<std::string,int> layerRelativeScales;
     layerRelativeScales["conv1"] = 1;
@@ -205,6 +206,7 @@ int main(int argc, char * * argv) {
     layerRelativeScales["pool2"] = 4;
     layerRelativeScales["ip1"] = 4;
     layerRelativeScales["ip2"] = 4;
+    layerRelativeScales["feat"] = 4;
 
 //    std::map<std::string,pangolin::GlTexture*> layerResponseTextures;
     float filterVizZoom = 2.f;
@@ -402,6 +404,12 @@ int main(int argc, char * * argv) {
                 hasSelection = true;
             } break;
             }
+        }
+
+        if (filterViewHandler.hasLayerSelection()) {
+            std::cout << "selected layer " << filterViewHandler.getSelectedLayer() << std::endl;
+        } else if (filterViewHandler.hasUnitSelection()) {
+            std::cout << "selected unit " << filterViewHandler.getSelectedUnit() << " in layer " << filterViewHandler.getSelectedLayer() << std::endl;
         }
 
         glClearColor(0,0,0,1);
