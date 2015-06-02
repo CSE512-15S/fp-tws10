@@ -7,7 +7,7 @@
 class EmbeddingViz {
 public:
 
-    EmbeddingViz(const float aspectRatio) : aspectRatio_(aspectRatio) { }
+    EmbeddingViz(const float aspectRatio);
 
     void setEmbedding(const float2 * embedding, uchar3 * coloring, int nEmbedded);
 
@@ -29,6 +29,7 @@ private:
     int nEmbedded_;
     const float2 * embedding_;
     uchar3 * coloring_;
+
 };
 
 #endif // EMBEDDING_VIZ_H

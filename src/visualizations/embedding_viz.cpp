@@ -1,6 +1,11 @@
 #include "embedding_viz.h"
 #include "gl_helpers.h"
 
+EmbeddingViz::EmbeddingViz(const float aspectRatio) :
+   aspectRatio_(aspectRatio) {
+
+}
+
 void EmbeddingViz::setEmbedding(const float2 * embedding,
                                 uchar3 * coloring,
                                 int nEmbedded) {

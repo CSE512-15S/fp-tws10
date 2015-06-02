@@ -298,19 +298,67 @@ int main(int argc, char * * argv) {
 
                 imageTex.Upload(testImages + hoveredPointIndex*imageWidth*imageHeight,GL_LUMINANCE,GL_FLOAT);
                 const float2 hoveredPoint = make_float2(outputBlob->cpu_data()[2*hoveredPointIndex], outputBlob->cpu_data()[2*hoveredPointIndex+1]);
-                const float2 textureLocation = hoveredPoint + make_float2(0.075,0.075);
-                const float2 textureSize = make_float2(0.5,0.5);
+                static const float2 hoverOffset = make_float2(0.075,0.075);
+                static const float2 textureSize = make_float2(0.5,0.5);
+                const float2 quad1HoverExtent = hoveredPoint + hoverOffset + textureSize;
+
+                int hoverDir = 0;
+                if (quad1HoverExtent.x > embeddingViz.getViewportCenter().x + embeddingViz.getViewportSize().x/2) {
+                    hoverDir |= 1;
+                }
+                if (quad1HoverExtent.y > embeddingViz.getViewportCenter().y + embeddingViz.getViewportSize().y/2) {
+                    hoverDir |= 2;
+                }
+                std::cout << hoverDir << std::endl;
+
+                float2 textureLocation;
+                switch(hoverDir) {
+                    case 0:
+                        textureLocation = hoveredPoint + hoverOffset;
+                        break;
+                    case 1:
+                        textureLocation = make_float2(hoveredPoint.x - hoverOffset.x - textureSize.x, hoveredPoint.y + hoverOffset.y);
+                        break;
+                    case 2:
+                        textureLocation = make_float2(hoveredPoint.x + hoverOffset.x, hoveredPoint.y - hoverOffset.y - textureSize.y);
+                        break;
+                    case 3:
+                        textureLocation = hoveredPoint - hoverOffset - textureSize;
+                        break;
+                }
+
+                float linePoints[4][12] = {
+                    { textureLocation.x,                 textureLocation.y,
+                      textureLocation.x + textureSize.x, textureLocation.y,
+                      textureLocation.x + textureSize.x, textureLocation.y + textureSize.y,
+                      textureLocation.x,                 textureLocation.y + textureSize.y,
+                      textureLocation.x,                 textureLocation.y,
+                      hoveredPoint.x,                    hoveredPoint.y },
+                    { textureLocation.x + textureSize.x, textureLocation.y,
+                      textureLocation.x + textureSize.x, textureLocation.y + textureSize.y,
+                      textureLocation.x,                 textureLocation.y + textureSize.y,
+                      textureLocation.x,                 textureLocation.y,
+                      textureLocation.x + textureSize.x, textureLocation.y,
+                      hoveredPoint.x,                    hoveredPoint.y },
+                    { textureLocation.x,                 textureLocation.y + textureSize.y,
+                      textureLocation.x,                 textureLocation.y,
+                      textureLocation.x + textureSize.x, textureLocation.y,
+                      textureLocation.x + textureSize.x, textureLocation.y + textureSize.y,
+                      textureLocation.x,                 textureLocation.y + textureSize.y,
+                      hoveredPoint.x,                    hoveredPoint.y },
+                    { textureLocation.x + textureSize.x, textureLocation.y + textureSize.y,
+                      textureLocation.x,                 textureLocation.y + textureSize.y,
+                      textureLocation.x,                 textureLocation.y,
+                      textureLocation.x + textureSize.x, textureLocation.y,
+                      textureLocation.x + textureSize.x, textureLocation.y + textureSize.y,
+                      hoveredPoint.x,                    hoveredPoint.y }
+                };
+
 
                 glLineWidth(3);
                 glColor3ub(196,196,196);
-                float linePts[] = { textureLocation.x,                 textureLocation.y,
-                                    textureLocation.x + textureSize.x, textureLocation.y,
-                                    textureLocation.x + textureSize.x, textureLocation.y + textureSize.y,
-                                    textureLocation.x,                 textureLocation.y + textureSize.y,
-                                    textureLocation.x,                 textureLocation.y,
-                                    hoveredPoint.x,                    hoveredPoint.y };
                 glEnableClientState(GL_VERTEX_ARRAY);
-                glVertexPointer( 2, GL_FLOAT, 0, linePts);
+                glVertexPointer( 2, GL_FLOAT, 0, linePoints[hoverDir]);
 
                 glDrawArrays(GL_LINE_STRIP, 0, 6);
 
