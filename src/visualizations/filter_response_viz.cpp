@@ -52,8 +52,11 @@ FilterResponseViz::~FilterResponseViz() {
 
 void FilterResponseViz::resize(const int vizWidth, const int vizHeight, const float zoom) {
 
+    scroll_ = (scroll_ + vizHeight_/2)*zoom/zoom_ - vizHeight/2;
     vizWidth_ = vizWidth;
     vizHeight_ = vizHeight;
+    zoom_ = zoom;
+
     for (int i=0; i<individualVizs_.size(); ++i) {
         IndividualFilterResponseViz * viz = individualVizs_[i];
         viz->resize(vizWidth,zoom*baseZooms_[i]);
@@ -177,6 +180,8 @@ FilterResponseViz::IndividualFilterResponseViz::IndividualFilterResponseViz(cons
         minDataVal_ = std::min(minDataVal_,responseBlob->cpu_data()[i]);
         maxDataVal_ = std::max(maxDataVal_,responseBlob->cpu_data()[i]);
     }
+
+    tex_.SetNearestNeighbour();
 
     std::fill(response_.begin(),response_.end(),(maxDataVal_ - minDataVal_)/2);
     std::cout << minDataVal_ << " -> " << maxDataVal_ << std::endl;
