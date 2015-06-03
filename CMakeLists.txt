@@ -68,6 +68,8 @@ set(sources
     src/mouse_handlers/embedding_view_mouse_handler.cpp
     src/mouse_handlers/filter_view_mouse_handler.h
     src/mouse_handlers/filter_view_mouse_handler.cpp
+    src/mouse_handlers/multi_embedding_view_mouse_handler.h
+    src/mouse_handlers/multi_embedding_view_mouse_handler.cpp
 
     src/visualizations/embedding_viz.h
     src/visualizations/embedding_viz.cpp

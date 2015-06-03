@@ -14,13 +14,27 @@ public:
     ~MultiEmbeddingViz();
 
     void setEmbedding(const float * embedding, const int embeddingDimensions,
-                      uchar3 * coloring, int nEmbedded);
+                      uchar3 * coloring, const int nEmbedded);
 
     void render(pangolin::View & view);
+
+    inline float2 getViewportSize() { return make_float2(zoom_*dims_); }
+
+    inline float2 getViewportCenter() { return scroll_ + 0.5*getViewportSize(); }
+
+    inline float getZoom() { return zoom_; }
+
+    inline void setZoom(const float zoom) { zoom_ = zoom; clampZoom(); }
+
+    inline void incrementScroll(const float2 increment) { scroll_ += increment; clampScroll(); }
 
 private:
     // -=-=-=-=-=- methods -=-=-=-=-=-
     void clear();
+
+    void clampZoom();
+
+    void clampScroll();
 
     // -=-=-=-=-=- members -=-=-=-=-=-
     float aspectRatio_;
@@ -32,6 +46,9 @@ private:
     const int imageWidth_;
     const int imageHeight_;
     pangolin::GlTexture & imageTex_;
+
+    float zoom_;
+    float2 scroll_;
 
 };
 

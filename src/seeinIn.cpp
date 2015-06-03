@@ -18,6 +18,7 @@
 #include "fonts/font_manager.h"
 #include "mouse_handlers/embedding_view_mouse_handler.h"
 #include "mouse_handlers/filter_view_mouse_handler.h"
+#include "mouse_handlers/multi_embedding_view_mouse_handler.h"
 #include "visualizations/embedding_viz.h"
 #include "visualizations/filter_response_viz.h"
 #include "visualizations/multi_embedding_viz.h"
@@ -27,7 +28,7 @@ static const int guiHeight = 1080;
 static const int panelWidth = 200;
 static const float aspectRatio = guiWidth/(float)guiHeight;
 
-static const int embeddingViewWidth = 1200; //guiHeight;
+static const int embeddingViewWidth = guiHeight;
 static const int embeddingViewHeight = guiHeight;
 static const float embeddingViewAspectRatio = embeddingViewWidth/(float)embeddingViewHeight;
 
@@ -140,7 +141,9 @@ int main(int argc, char * * argv) {
 
     // -=-=-=-=- set up mouse handlers -=-=-=-=-
     EmbeddingViewMouseHandler embeddingViewHandler(&embeddingViz);
+    MultiEmbeddingViewMouseHandler multiEmbeddingViewHandler(&multiEmbeddingViz);
 
+    // -=-=-=-=- set up views -=-=-=-=-
     pangolin::View embeddingView(embeddingViewAspectRatio);
     embeddingView.SetHandler(&embeddingViewHandler);
 //    embeddingView.SetBounds(pangolin::Attach::Pixel(0),pangolin::Attach::ReversePix(0),pangolin::Attach::Pix(0),pangolin::Attach::Frac(embeddingViewWidth/(float)guiWidth),true);
@@ -351,9 +354,11 @@ int main(int argc, char * * argv) {
             switch (filterViewHandler.getSelectedLayer()) {
                 case 6:
                     multiembeddingVizActive = true;
+                    embeddingView.SetHandler(&multiEmbeddingViewHandler);
                     break;
                 case 7:
                     multiembeddingVizActive = false;
+                    embeddingView.SetHandler(&embeddingViewHandler);
                     break;
             }
         } else if (filterViewHandler.hasUnitSelection()) {

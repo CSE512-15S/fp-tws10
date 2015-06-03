@@ -51,7 +51,13 @@ void EmbeddingViewMouseHandler::Mouse(pangolin::View & v, pangolin::MouseButton 
             }
             break;
         case pangolin::MouseWheelDown:
-            viz_->setZoom(viz_->getZoom()*zoomSpeed_);
+            {
+                const float2 vpPoint = getViewportPoint(v,make_float2(x,y));
+                viz_->setZoom(viz_->getZoom()*zoomSpeed_);
+                const float2 viewPoint = getViewPoint(v,vpPoint);
+                const float2 diff = viewPoint - make_float2(x,y);
+                viz_->incrementScroll(diff*(viz_->getViewportSize().x/v.GetBounds().w));
+            }
             break;
     }
 
@@ -63,7 +69,7 @@ void EmbeddingViewMouseHandler::MouseMotion(pangolin::View & v, int x, int y, in
     const float2 thisMouse = make_float2(x,y);
     const float2 diff = lastMouse_ - thisMouse;
 //    std::cout << "pixel diff: " << diff.x << ", " << diff.y << std::endl;
-    const float relativeScale = viz_->getViewportSize().x/v.GetBounds().w;
+    const float2 relativeScale = make_float2(viz_->getViewportSize().x/v.GetBounds().w,viz_->getViewportSize().y/v.GetBounds().h);
     const float2 embeddingDiff = relativeScale*diff;
 //    std::cout << "embedding diff: " << embeddingDiff.x << ", " << embeddingDiff.y << std::endl;
 

@@ -1,5 +1,6 @@
 #include "multi_embedding_viz.h"
 
+#include "gl_helpers.h"
 #include <vector_functions.h>
 
 MultiEmbeddingViz::MultiEmbeddingViz(const float aspectRatio, const float * images,
@@ -8,14 +9,16 @@ MultiEmbeddingViz::MultiEmbeddingViz(const float aspectRatio, const float * imag
     aspectRatio_(aspectRatio),images_(images),
     imageWidth_(imageWidth),
     imageHeight_(imageHeight),
-    imageTex_(imageTex) { }
+    imageTex_(imageTex),
+    zoom_(1.f),
+    scroll_(make_float2(0.f,0.f)) { }
 
 MultiEmbeddingViz::~MultiEmbeddingViz() {
     clear();
 }
 
 void MultiEmbeddingViz::setEmbedding(const float * embedding, const int embeddingDimensions,
-                                     uchar3 * coloring, int nEmbedded) {
+                                     uchar3 * coloring, const int nEmbedded) {
     clear();
     dims_ = embeddingDimensions;
     for (int yDim = 0; yDim < dims_; ++yDim) {
@@ -38,19 +41,31 @@ void MultiEmbeddingViz::setEmbedding(const float * embedding, const int embeddin
 
 void MultiEmbeddingViz::render(pangolin::View & view) {
 
-    const float vizHeight = view.GetBounds().h / (float)dims_;
-    const float vizWidth = view.GetBounds().w / (float)dims_;
+//    std::cout << view.GetBounds().w << " x " << view.GetBounds().h << std::endl;
+
+    setUpViewport(view,make_float2(dims_),make_float2(0.5*dims_));
+
+//    const float vizHeight = view.GetBounds().h / (float)dims_;
+//    const float vizWidth = view.GetBounds().w / (float)dims_;
+
+    static const float padding = 0.05;
 
     glPushMatrix();
+    glScalef(1.f/zoom_,1.f/zoom_,1.f/zoom_);
+    glTranslatef(-scroll_.x,-scroll_.y+padding,0);
     for (int yDim = 0; yDim < dims_; ++yDim) {
         glPushMatrix();
+        glTranslatef(padding,0,0);
         for (int xDim = 0; xDim < dims_; ++xDim) {
             EmbeddingViz * viz = embeddingVizs_[xDim + yDim*dims_];
-            viz->render(make_float2(vizWidth,vizHeight));
-            glTranslatef(vizWidth,0,0);
+//            viz->render(make_float2(vizWidth,vizHeight));
+            viz->render(make_float2(1.f-2*padding));
+            //glTranslatef(vizWidth,0,0);
+            glTranslatef(1,0,0);
         }
         glPopMatrix();
-        glTranslatef(0,vizHeight,0);
+//        glTranslatef(0,vizHeight,0);
+        glTranslatef(0,1,0);
     }
     glPopMatrix();
 
@@ -65,4 +80,18 @@ void MultiEmbeddingViz::clear() {
     }
     embeddingVizs_.clear();
     partialEmbeddings_.clear();
+}
+
+void MultiEmbeddingViz::clampZoom() {
+
+    zoom_ = std::max(std::min(1.f,zoom_),0.005f);
+    clampScroll();
+
+}
+
+void MultiEmbeddingViz::clampScroll() {
+
+    scroll_ = fmaxf(make_float2(0.f),fminf(scroll_,make_float2(dims_) - getViewportSize()));
+    std::cout << scroll_.x << ", " << scroll_.y << std::endl;
+
 }
