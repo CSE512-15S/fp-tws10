@@ -42,7 +42,13 @@ void EmbeddingViewMouseHandler::Mouse(pangolin::View & v, pangolin::MouseButton 
             }
             break;
         case pangolin::MouseWheelUp:
-            viz_->setZoom(viz_->getZoom()/zoomSpeed_);
+            {
+                const float2 vpPoint = getViewportPoint(v,make_float2(x,y));
+                viz_->setZoom(viz_->getZoom()/zoomSpeed_);
+                const float2 viewPoint = getViewPoint(v,vpPoint);
+                const float2 diff = viewPoint - make_float2(x,y);
+                viz_->incrementScroll(diff*(viz_->getViewportSize().x/v.GetBounds().w));
+            }
             break;
         case pangolin::MouseWheelDown:
             viz_->setZoom(viz_->getZoom()*zoomSpeed_);
