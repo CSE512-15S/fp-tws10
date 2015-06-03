@@ -30,7 +30,11 @@ public:
 
     inline void incrementScroll(const float2 increment) { scroll_ += increment; clampScroll(); }
 
-    inline void setHoveredOverPoint(const int hoveredPointIndex) { hoveredPointIndex_ = hoveredPointIndex; }
+    inline int getHoveredOverPoint() { return hoveredPointIndex_; }
+
+    void setHoveredOverPoint(const float2 viewportPoint);
+
+    inline void clearHover() { hoveredPointIndex_ = -1; }
 
 private:
     // -=-=-=-=-=- methods -=-=-=-=-=-
@@ -53,7 +57,6 @@ private:
     const int imageWidth_;
     const int imageHeight_;
     pangolin::GlTexture & imageTex_;
-
 
 };
 

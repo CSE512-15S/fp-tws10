@@ -28,6 +28,8 @@ public:
 
     inline void incrementScroll(const float2 increment) { scroll_ += increment; clampScroll(); }
 
+    void setHoverPoint(const float2 viewportPoint);
+
 private:
     // -=-=-=-=-=- methods -=-=-=-=-=-
     void clear();
@@ -49,6 +51,8 @@ private:
 
     float zoom_;
     float2 scroll_;
+
+    static constexpr float subvizPaddingPercent_ = 0.05f;
 
 };
 

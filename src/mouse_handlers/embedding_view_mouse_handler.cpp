@@ -17,7 +17,7 @@ void EmbeddingViewMouseHandler::Mouse(pangolin::View & v, pangolin::MouseButton 
             if (!pressed && !scrolled_) {
                 switch (selectionMode_) {
                     case SelectionModeSingle:
-                        if (hoveredOverPoint_ >= 0) { hasSelection_ = true; }
+                        if (getHoveredOverPoint() >= 0) { hasSelection_ = true; }
                         break;
                     case SelectionModeLasso:
                         {
@@ -74,7 +74,7 @@ void EmbeddingViewMouseHandler::MouseMotion(pangolin::View & v, int x, int y, in
 //    std::cout << "embedding diff: " << embeddingDiff.x << ", " << embeddingDiff.y << std::endl;
 
     viz_->incrementScroll(embeddingDiff);
-    viz_->setHoveredOverPoint(-1);
+    viz_->clearHover();
 
     lastMouse_ = thisMouse;
     scrolled_ = true;
@@ -88,8 +88,7 @@ void EmbeddingViewMouseHandler::PassiveMouseMotion(pangolin::View & v, int x, in
     case SelectionModeSingle:
     {
         float2 vpPoint = getViewportPoint(v,make_float2(x,y));
-        hoveredOverPoint_ = computeClosestEmbeddedPoint(vpPoint);
-        viz_->setHoveredOverPoint(hoveredOverPoint_);
+        viz_->setHoveredOverPoint(vpPoint);
     } break;
     case SelectionModeLasso:
     {
@@ -102,22 +101,6 @@ void EmbeddingViewMouseHandler::PassiveMouseMotion(pangolin::View & v, int x, in
         }
     } break;
     }
-}
-
-int EmbeddingViewMouseHandler::computeClosestEmbeddedPoint(const float2 queryPt) {
-
-    int closestPoint = -1;
-    float closestDist = std::numeric_limits<float>::infinity();
-    for (int i=0; i<viz_->getNumEmbeddedPoints(); ++i) {
-        float dist = length(queryPt - viz_->getEmbedding()[i]);
-        if (dist < closestDist) {
-            closestDist = dist;
-            closestPoint = i;
-        }
-    }
-
-    return closestDist < 0.05 ? closestPoint : -1;
-
 }
 
 void EmbeddingViewMouseHandler::computeEnclosedEmbeddedPoints() {

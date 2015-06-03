@@ -174,6 +174,22 @@ void EmbeddingViz::render(const float2 window) {
     glPopMatrix();
 }
 
+void EmbeddingViz::setHoveredOverPoint(const float2 viewportPoint) {
+
+    int closestPoint = -1;
+    float closestDist = std::numeric_limits<float>::infinity();
+    for (int i=0; i<getNumEmbeddedPoints(); ++i) {
+        float dist = length(viewportPoint - getEmbedding()[i]);
+        if (dist < closestDist) {
+            closestDist = dist;
+            closestPoint = i;
+        }
+    }
+
+    hoveredPointIndex_ = closestDist < 0.05 ? closestPoint : -1;
+
+}
+
 void EmbeddingViz::clampZoom() {
     zoom_ = std::max(std::min(1.f,zoom_),0.1f);
     clampScroll();

@@ -22,7 +22,7 @@ public:
 
     void PassiveMouseMotion(pangolin::View & v, int x, int y, int button_state);
 
-    inline int getHoveredOverPoint() { return hoveredOverPoint_; }
+    inline int getHoveredOverPoint() { return viz_->getHoveredOverPoint(); }
 
     inline bool hasSelection() { bool retVal = hasSelection_; hasSelection_ = false; return retVal;  }
 
@@ -36,7 +36,6 @@ public:
 
 private:
     // -=-=-=-=-=- methods -=-=-=-=-=-
-    int computeClosestEmbeddedPoint(const float2 queryPt);
     void computeEnclosedEmbeddedPoints();
     bool isInPolygon(const float2 pt, const std::vector<float2> & polyPoints);
     bool horizontalIntersection(float & intersectionX, const float intersectionY, const float2 start, const float2 end);
@@ -54,7 +53,6 @@ private:
     // -=-=-=-=-=- members -=-=-=-=-=-
     EmbeddingViz * viz_;
 
-    int hoveredOverPoint_;
     bool hasSelection_;
 
     SelectionMode selectionMode_;
@@ -65,6 +63,7 @@ private:
     bool scrolled_;
 
     float zoomSpeed_;
+
 };
 
 #endif // SEEIN_IN_MOUSE_HANDLER_H
