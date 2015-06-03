@@ -7,7 +7,9 @@
 class EmbeddingViz {
 public:
 
-    EmbeddingViz(const float aspectRatio);
+    EmbeddingViz(const float aspectRatio, const float * images,
+                 const int imageWidth, const int imageHeight,
+                 pangolin::GlTexture & imageTex);
 
     void setEmbedding(const float2 * embedding, uchar3 * coloring, int nEmbedded);
 
@@ -21,14 +23,29 @@ public:
 
     inline const float2 * getEmbedding() { return embedding_; }
 
+    inline float getZoom() { return zoom_; }
+
+    inline void setZoom(const float zoom) { zoom_ = zoom; }
+
+    inline void setHoveredOverPoint(const int hoveredPointIndex) { hoveredPointIndex_ = hoveredPointIndex; }
+
 private:
     float aspectRatio_;
     float2 viewportSize_;
     float2 viewportCenter_;
+    float zoom_;
+    float2 scroll_;
 
     int nEmbedded_;
     const float2 * embedding_;
     uchar3 * coloring_;
+
+    int hoveredPointIndex_;
+    const float * images_;
+    const int imageWidth_;
+    const int imageHeight_;
+    pangolin::GlTexture & imageTex_;
+
 
 };
 

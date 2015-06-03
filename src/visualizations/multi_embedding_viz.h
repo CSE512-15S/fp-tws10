@@ -7,7 +7,9 @@
 
 class MultiEmbeddingViz {
 public:
-    MultiEmbeddingViz(const float aspectRatio);
+    MultiEmbeddingViz(const float aspectRatio, const float * images,
+                      const int imageWidth, const int imageHeight,
+                      pangolin::GlTexture & imageTex);
 
     ~MultiEmbeddingViz();
 
@@ -25,6 +27,12 @@ private:
     int dims_;
     std::vector<EmbeddingViz *> embeddingVizs_;
     std::vector<float2 *> partialEmbeddings_;
+
+    const float * images_;
+    const int imageWidth_;
+    const int imageHeight_;
+    pangolin::GlTexture & imageTex_;
+
 };
 
 #endif // MULTI_EMBEDDING_VIZ_H

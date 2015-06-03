@@ -11,27 +11,39 @@ EmbeddingViewMouseHandler::EmbeddingViewMouseHandler(EmbeddingViz * viz) :
 void EmbeddingViewMouseHandler::Mouse(pangolin::View & v, pangolin::MouseButton button, int x, int y, bool pressed, int button_state) {
     pangolin::Handler::Mouse(v,button,x,y,pressed,button_state);
 
-    switch (selectionMode_) {
-    case SelectionModeSingle:
-        if (!pressed && button == pangolin::MouseButtonLeft && hoveredOverPoint_ >= 0) { hasSelection_ = true; }
-        break;
-    case SelectionModeLasso:
-        if (!pressed && button == pangolin::MouseButtonLeft) {
-            std::cout << "lasso click" << std::endl;
-            float2 vpPoint = getViewportPoint(v,make_float2(x,y));
-            if (lassoPoints_.size() == 0) {
-                lassoPoints_.push_back(vpPoint);
-                lassoPoints_.push_back(vpPoint);
-            } else if (length(vpPoint - lassoPoints_.front()) < 0.1) {
-                computeEnclosedEmbeddedPoints();
-                lassoPoints_.clear();
-                hasSelection_ = true;
-            } else {
-                lassoPoints_.push_back(vpPoint);
+    switch (button) {
+        case pangolin::MouseButtonLeft:
+            switch (selectionMode_) {
+                case SelectionModeSingle:
+                    if (!pressed && button == pangolin::MouseButtonLeft && hoveredOverPoint_ >= 0) { hasSelection_ = true; }
+                    break;
+                case SelectionModeLasso:
+                    if (!pressed && button == pangolin::MouseButtonLeft) {
+                        std::cout << "lasso click" << std::endl;
+                        float2 vpPoint = getViewportPoint(v,make_float2(x,y));
+                        if (lassoPoints_.size() == 0) {
+                            lassoPoints_.push_back(vpPoint);
+                            lassoPoints_.push_back(vpPoint);
+                        } else if (length(vpPoint - lassoPoints_.front()) < 0.1) {
+                            computeEnclosedEmbeddedPoints();
+                            lassoPoints_.clear();
+                            hasSelection_ = true;
+                        } else {
+                            lassoPoints_.push_back(vpPoint);
+                        }
+                    }
+                    break;
             }
-        }
-        break;
+            break;
+        case pangolin::MouseWheelUp:
+//            viz_->setZoom(viz_->getZoom()*1.25);
+            break;
+        case pangolin::MouseWheelDown:
+//            viz_->setZoom(viz_->getZoom()/1.25);
+            break;
     }
+
+
 }
 
 void EmbeddingViewMouseHandler::PassiveMouseMotion(pangolin::View & v, int x, int y, int button_state) {
@@ -42,6 +54,7 @@ void EmbeddingViewMouseHandler::PassiveMouseMotion(pangolin::View & v, int x, in
     {
         float2 vpPoint = getViewportPoint(v,make_float2(x,y));
         hoveredOverPoint_ = computeClosestEmbeddedPoint(vpPoint);
+        viz_->setHoveredOverPoint(hoveredOverPoint_);
     } break;
     case SelectionModeLasso:
     {
@@ -73,8 +86,6 @@ int EmbeddingViewMouseHandler::computeClosestEmbeddedPoint(const float2 queryPt)
 }
 
 void EmbeddingViewMouseHandler::computeEnclosedEmbeddedPoints() {
-
-//    std::memeset(selection_.data(),0,selection_.size()*sizeof(bool));
 
     std::cout << "computing enclosure" << std::endl;
     for (int i=0; i<viz_->getNumEmbeddedPoints(); ++i) {

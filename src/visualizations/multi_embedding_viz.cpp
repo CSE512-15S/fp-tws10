@@ -2,7 +2,13 @@
 
 #include <vector_functions.h>
 
-MultiEmbeddingViz::MultiEmbeddingViz(const float aspectRatio) : aspectRatio_(aspectRatio) { }
+MultiEmbeddingViz::MultiEmbeddingViz(const float aspectRatio, const float * images,
+                                     const int imageWidth, const int imageHeight,
+                                     pangolin::GlTexture & imageTex) :
+    aspectRatio_(aspectRatio),images_(images),
+    imageWidth_(imageWidth),
+    imageHeight_(imageHeight),
+    imageTex_(imageTex) { }
 
 MultiEmbeddingViz::~MultiEmbeddingViz() {
     clear();
@@ -19,7 +25,9 @@ void MultiEmbeddingViz::setEmbedding(const float * embedding, const int embeddin
                 partialEmbedding[i] = make_float2(embedding[i*dims_ + xDim],
                                                   embedding[i*dims_ + yDim]);
             }
-            EmbeddingViz * viz = new EmbeddingViz(aspectRatio_);
+            EmbeddingViz * viz = new EmbeddingViz(aspectRatio_,images_,
+                                                  imageWidth_,imageHeight_,
+                                                  imageTex_);
             viz->setEmbedding(partialEmbedding,coloring,nEmbedded);
             partialEmbeddings_.push_back(partialEmbedding);
             embeddingVizs_.push_back(viz);

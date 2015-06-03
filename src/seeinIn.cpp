@@ -121,20 +121,24 @@ int main(int argc, char * * argv) {
     memcpy(inputBlob->mutable_cpu_data(),testImages,inputBlob->count()*sizeof(float));
     net.ForwardPrefilled();
 
-    // -=-=-=-=- process embedding -=-=-=-=-
-    boost::shared_ptr<caffe::Blob<float> > outputBlob = net.blobs()[net.output_blob_indices()[0]];
-    EmbeddingViz embeddingViz(embeddingViewAspectRatio);
-    embeddingViz.setEmbedding((const float2 *)outputBlob->cpu_data(),testColors.data(),nTestImages);
-
-    boost::shared_ptr<caffe::Blob<float> > ip2Blob = net.blob_by_name("ip2");
-    MultiEmbeddingViz multiEmbeddingViz(embeddingViewAspectRatio);
-    multiEmbeddingViz.setEmbedding(ip2Blob->cpu_data(),ip2Blob->channels(),testColors.data(),nTestImages);
-
     // -=-=-=-=- set up pangolin -=-=-=-=-
     pangolin::CreateGlutWindowAndBind("Seein' In", guiWidth, guiHeight,GLUT_MULTISAMPLE | GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 
     glewInit();
 
+    pangolin::GlTexture imageTex(imageWidth,imageHeight);
+    imageTex.SetNearestNeighbour();
+
+    // -=-=-=-=- set up visualizations -=-=-=-=-
+    boost::shared_ptr<caffe::Blob<float> > outputBlob = net.blobs()[net.output_blob_indices()[0]];
+    EmbeddingViz embeddingViz(embeddingViewAspectRatio,testImages,imageWidth,imageHeight,imageTex);
+    embeddingViz.setEmbedding((const float2 *)outputBlob->cpu_data(),testColors.data(),nTestImages);
+
+    boost::shared_ptr<caffe::Blob<float> > ip2Blob = net.blob_by_name("ip2");
+    MultiEmbeddingViz multiEmbeddingViz(embeddingViewAspectRatio,testImages,imageWidth,imageHeight,imageTex);
+    multiEmbeddingViz.setEmbedding(ip2Blob->cpu_data(),ip2Blob->channels(),testColors.data(),nTestImages);
+
+    // -=-=-=-=- set up mouse handlers -=-=-=-=-
     EmbeddingViewMouseHandler embeddingViewHandler(&embeddingViz);
 
     pangolin::View embeddingView(embeddingViewAspectRatio);
@@ -162,9 +166,6 @@ int main(int argc, char * * argv) {
     std::cout << filterViewAspectRatio << std::endl;
     std::cout << embeddingView.GetBounds().w << " x " << embeddingView.GetBounds().h << std::endl;
     std::cout << filterView.GetBounds().w << " x " << filterView.GetBounds().h << std::endl;
-
-    pangolin::GlTexture imageTex(imageWidth,imageHeight);
-    imageTex.SetNearestNeighbour();
 
     bool hasSelection = false;
 
@@ -228,9 +229,9 @@ int main(int argc, char * * argv) {
         // -=-=-=-=-=-=- embedding view -=-=-=-=-=-=-
         embeddingView.ActivateScissorAndClear();
         embeddingView.ActivatePixelOrthographic();
-//        embeddingViz.render(make_float2(embeddingView.GetBounds().w,embeddingView.GetBounds().h));
+        embeddingViz.render(make_float2(embeddingView.GetBounds().w,embeddingView.GetBounds().h));
 
-        multiEmbeddingViz.render(embeddingView);
+//        multiEmbeddingViz.render(embeddingView);
 
         glPushMatrix();
         setUpViewport(embeddingView,embeddingViz.getViewportSize(),embeddingViz.getViewportCenter());
@@ -247,108 +248,10 @@ int main(int argc, char * * argv) {
 //            glLineWidth(1);
 //        }
 
-//        glPointSize(3);
-//        glColor3ub(0,0,0);
-//        glEnableClientState(GL_VERTEX_ARRAY);
-//        glVertexPointer(2,GL_FLOAT,0,outputBlob->cpu_data());
-
-//        glEnableClientState(GL_COLOR_ARRAY);
-//        glColorPointer(3,GL_UNSIGNED_BYTE,0,testColors.data());
-
-//        glDrawArrays(GL_POINTS, 0, nTestImages);
-//        glDisableClientState(GL_VERTEX_ARRAY);
-//        glDisableClientState(GL_COLOR_ARRAY);
-
         switch (embeddingViewHandler.getSelectionMode()) {
         case SelectionModeSingle:
         {
-            int hoveredPointIndex = embeddingViewHandler.getHoveredOverPoint();
-            if (hoveredPointIndex >= 0 && hoveredPointIndex < nTestImages) {
-                glPointSize(12);
-                glBegin(GL_POINTS);
-                glColor3ub(255,255,255);
-                glVertex2fv(outputBlob->cpu_data() + 2*hoveredPointIndex);
-                glEnd();
-                glPointSize(9);
-                glBegin(GL_POINTS);
-                glColor(testColors[hoveredPointIndex]);
-                glVertex2fv(outputBlob->cpu_data() + 2*hoveredPointIndex);
-                glEnd();
-                glPointSize(1);
 
-                imageTex.Upload(testImages + hoveredPointIndex*imageWidth*imageHeight,GL_LUMINANCE,GL_FLOAT);
-                const float2 hoveredPoint = make_float2(outputBlob->cpu_data()[2*hoveredPointIndex], outputBlob->cpu_data()[2*hoveredPointIndex+1]);
-                static const float2 hoverOffset = make_float2(0.075,0.075);
-                static const float2 textureSize = make_float2(0.5,0.5);
-                const float2 quad1HoverExtent = hoveredPoint + hoverOffset + textureSize;
-
-                int hoverDir = 0;
-                if (quad1HoverExtent.x > embeddingViz.getViewportCenter().x + embeddingViz.getViewportSize().x/2) {
-                    hoverDir |= 1;
-                }
-                if (quad1HoverExtent.y > embeddingViz.getViewportCenter().y + embeddingViz.getViewportSize().y/2) {
-                    hoverDir |= 2;
-                }
-
-                float2 textureLocation;
-                switch(hoverDir) {
-                    case 0:
-                        textureLocation = hoveredPoint + hoverOffset;
-                        break;
-                    case 1:
-                        textureLocation = make_float2(hoveredPoint.x - hoverOffset.x - textureSize.x, hoveredPoint.y + hoverOffset.y);
-                        break;
-                    case 2:
-                        textureLocation = make_float2(hoveredPoint.x + hoverOffset.x, hoveredPoint.y - hoverOffset.y - textureSize.y);
-                        break;
-                    case 3:
-                        textureLocation = hoveredPoint - hoverOffset - textureSize;
-                        break;
-                }
-
-                float linePoints[4][12] = {
-                    { textureLocation.x,                 textureLocation.y,
-                      textureLocation.x + textureSize.x, textureLocation.y,
-                      textureLocation.x + textureSize.x, textureLocation.y + textureSize.y,
-                      textureLocation.x,                 textureLocation.y + textureSize.y,
-                      textureLocation.x,                 textureLocation.y,
-                      hoveredPoint.x,                    hoveredPoint.y },
-                    { textureLocation.x + textureSize.x, textureLocation.y,
-                      textureLocation.x + textureSize.x, textureLocation.y + textureSize.y,
-                      textureLocation.x,                 textureLocation.y + textureSize.y,
-                      textureLocation.x,                 textureLocation.y,
-                      textureLocation.x + textureSize.x, textureLocation.y,
-                      hoveredPoint.x,                    hoveredPoint.y },
-                    { textureLocation.x,                 textureLocation.y + textureSize.y,
-                      textureLocation.x,                 textureLocation.y,
-                      textureLocation.x + textureSize.x, textureLocation.y,
-                      textureLocation.x + textureSize.x, textureLocation.y + textureSize.y,
-                      textureLocation.x,                 textureLocation.y + textureSize.y,
-                      hoveredPoint.x,                    hoveredPoint.y },
-                    { textureLocation.x + textureSize.x, textureLocation.y + textureSize.y,
-                      textureLocation.x,                 textureLocation.y + textureSize.y,
-                      textureLocation.x,                 textureLocation.y,
-                      textureLocation.x + textureSize.x, textureLocation.y,
-                      textureLocation.x + textureSize.x, textureLocation.y + textureSize.y,
-                      hoveredPoint.x,                    hoveredPoint.y }
-                };
-
-
-                glLineWidth(3);
-                glColor3ub(196,196,196);
-                glEnableClientState(GL_VERTEX_ARRAY);
-                glVertexPointer( 2, GL_FLOAT, 0, linePoints[hoverDir]);
-
-                glDrawArrays(GL_LINE_STRIP, 0, 6);
-
-                glDisableClientState(GL_VERTEX_ARRAY);
-
-                glColor3ub(255,255,255);
-                renderTexture(imageTex,
-                              textureLocation,
-                              textureSize);
-                glLineWidth(1);
-            }
         } break;
         case SelectionModeLasso:
         {
@@ -398,17 +301,17 @@ int main(int argc, char * * argv) {
         filterView.ActivateScissorAndClear();
         filterView.ActivatePixelOrthographic();
 
-        {
-            glColor3ub(0,0,0);
-            glLineWidth(3);
-            glBegin(GL_LINE_LOOP);
-            glVertex2f(1e-4, 1e-4);
-            glVertex2f(1e-4, filterView.GetBounds().h - 1e-4);
-            glVertex2f(filterView.GetBounds().w - 1e-4, filterView.GetBounds().h - 1e-4);
-            glVertex2f(filterView.GetBounds().w - 1e-4, 1e-4);
-            glEnd();
-            glLineWidth(1);
-        }
+//        {
+//            glColor3ub(0,0,0);
+//            glLineWidth(3);
+//            glBegin(GL_LINE_LOOP);
+//            glVertex2f(1e-4, 1e-4);
+//            glVertex2f(1e-4, filterView.GetBounds().h - 1e-4);
+//            glVertex2f(filterView.GetBounds().w - 1e-4, filterView.GetBounds().h - 1e-4);
+//            glVertex2f(filterView.GetBounds().w - 1e-4, 1e-4);
+//            glEnd();
+//            glLineWidth(1);
+//        }
 
         if (hasSelection) {
             filterResponseViz.render();
