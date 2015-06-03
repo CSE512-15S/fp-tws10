@@ -49,7 +49,6 @@ void EmbeddingViewMouseHandler::Mouse(pangolin::View & v, pangolin::MouseButton 
             break;
     }
 
-
 }
 
 void EmbeddingViewMouseHandler::MouseMotion(pangolin::View & v, int x, int y, int button_state) {

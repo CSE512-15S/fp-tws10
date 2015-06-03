@@ -79,6 +79,8 @@ public:
 
     int getSelection() { return selection_; }
 
+    int setEmbeddingLayer(const int embeddingLayer) { embeddingLayer_ = embeddingLayer; }
+
 private:
     // -=-=-=-=-=- methods -=-=-=-=-=-
     void clampScroll();
@@ -96,6 +98,8 @@ private:
     float zoom_;
     FontManager & fontManager_;
     int selection_;
+
+    int embeddingLayer_;
 };
 
 

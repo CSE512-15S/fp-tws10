@@ -28,7 +28,8 @@ FilterResponseViz::FilterResponseViz(const caffe::Net<float> & net,
     zoom_(zoom),
     scroll_(0),
     textMarginVert_(4),
-    selection_(-1) {
+    selection_(-1),
+    embeddingLayer_(layerResponsesToVisualize.size()-1) {
 
     fontSize_ = fontSize;
 
@@ -146,7 +147,7 @@ void FilterResponseViz::render() {
         glEnable(GL_TEXTURE_2D);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-        fontManager_.printString(responseNames_[i],10,-fontSize_-textMarginVert_,fontSize_);
+        fontManager_.printString(responseNames_[i],10,-fontSize_-textMarginVert_,fontSize_,i == embeddingLayer_ ? FontStyleBold : FontStyleRegular);
         glDisable(GL_BLEND);
         glDisable(GL_TEXTURE_2D);
 
@@ -154,7 +155,7 @@ void FilterResponseViz::render() {
         glBegin(GL_LINES);
         glVertex2f(0,-fontSize_/2-textMarginVert_);
         glVertex2f(5,-fontSize_/2-textMarginVert_);
-        glVertex2f(fontManager_.getStringLength(responseNames_[i],fontSize_) + 15,
+        glVertex2f(fontManager_.getStringLength(responseNames_[i],fontSize_,i == embeddingLayer_ ? FontStyleBold : FontStyleRegular) + 15,
                    -fontSize_/2-textMarginVert_);
         glVertex2f(vizWidth_,
                    -fontSize_/2-textMarginVert_);

@@ -213,7 +213,7 @@ int main(int argc, char * * argv) {
         filterResponseViz.resize(filterView.GetBounds().w,filterView.GetBounds().h,filterVizZoom);
     });
 
-    // -=-=-=-=- load fonts -=-=-=-=-
+    bool multiembeddingVizActive = false;
 
     for (long frame=1; !pangolin::ShouldQuit(); ++frame) {
 
@@ -229,73 +229,78 @@ int main(int argc, char * * argv) {
         // -=-=-=-=-=-=- embedding view -=-=-=-=-=-=-
         embeddingView.ActivateScissorAndClear();
         embeddingView.ActivatePixelOrthographic();
-        embeddingViz.render(make_float2(embeddingView.GetBounds().w,embeddingView.GetBounds().h));
 
-//        multiEmbeddingViz.render(embeddingView);
+        if (multiembeddingVizActive) {
+            multiEmbeddingViz.render(embeddingView);
+        } else {
+            embeddingViz.render(make_float2(embeddingView.GetBounds().w,embeddingView.GetBounds().h));
 
-        glPushMatrix();
-        setUpViewport(embeddingView,embeddingViz.getViewportSize(),embeddingViz.getViewportCenter());
+    //        multiEmbeddingViz.render(embeddingView);
 
-//        {
-//            glColor3ub(0,0,0);
-//            glLineWidth(3);
-//            glBegin(GL_LINE_LOOP);
-//            glVertex2f(viewportCenter.x - viewportSize.x/2 + 1e-4, viewportCenter.y - viewportSize.y/2 + 1e-4);
-//            glVertex2f(viewportCenter.x - viewportSize.x/2 + 1e-4, viewportCenter.y + viewportSize.y/2 - 1e-4);
-//            glVertex2f(viewportCenter.x + viewportSize.x/2 - 1e-4, viewportCenter.y + viewportSize.y/2 - 1e-4);
-//            glVertex2f(viewportCenter.x + viewportSize.x/2 - 1e-4, viewportCenter.y - viewportSize.y/2 + 1e-4);
-//            glEnd();
-//            glLineWidth(1);
-//        }
+            glPushMatrix();
+            setUpViewport(embeddingView,embeddingViz.getViewportSize(),embeddingViz.getViewportCenter());
 
-        switch (embeddingViewHandler.getSelectionMode()) {
-        case SelectionModeSingle:
-        {
+    //        {
+    //            glColor3ub(0,0,0);
+    //            glLineWidth(3);
+    //            glBegin(GL_LINE_LOOP);
+    //            glVertex2f(viewportCenter.x - viewportSize.x/2 + 1e-4, viewportCenter.y - viewportSize.y/2 + 1e-4);
+    //            glVertex2f(viewportCenter.x - viewportSize.x/2 + 1e-4, viewportCenter.y + viewportSize.y/2 - 1e-4);
+    //            glVertex2f(viewportCenter.x + viewportSize.x/2 - 1e-4, viewportCenter.y + viewportSize.y/2 - 1e-4);
+    //            glVertex2f(viewportCenter.x + viewportSize.x/2 - 1e-4, viewportCenter.y - viewportSize.y/2 + 1e-4);
+    //            glEnd();
+    //            glLineWidth(1);
+    //        }
 
-        } break;
-        case SelectionModeLasso:
-        {
-            std::vector<float2> lassoPoints = embeddingViewHandler.getLassoPoints();
-            glColor3ub(0,0,0);
-            glLineWidth(2);
-            glBegin(GL_LINE_STRIP);
-            for (float2 v : lassoPoints) {
-                glVertex(v);
+            switch (embeddingViewHandler.getSelectionMode()) {
+            case SelectionModeSingle:
+            {
+
+            } break;
+            case SelectionModeLasso:
+            {
+                std::vector<float2> lassoPoints = embeddingViewHandler.getLassoPoints();
+                glColor3ub(0,0,0);
+                glLineWidth(2);
+                glBegin(GL_LINE_STRIP);
+                for (float2 v : lassoPoints) {
+                    glVertex(v);
+                }
+                glEnd();
+                glLineWidth(1);
+            } break;
             }
-            glEnd();
-            glLineWidth(1);
-        } break;
+
+    ////        if (selectedImage >= 0) {
+    ////            boost::shared_ptr<caffe::Layer<float> > featLayer = net.layer_by_name("feat");
+
+    ////            boost::shared_ptr<caffe::Blob<float> > weightBlob = featLayer->blobs()[0];
+    ////            boost::shared_ptr<caffe::Blob<float> > biasBlob = featLayer->blobs()[1];
+
+    ////            boost::shared_ptr<caffe::Blob<float> > featInputBlob = net.blob_by_name("ip2");
+
+    ////            printBlobSize(weightBlob);
+    ////            printBlobSize(biasBlob);
+    ////            printBlobSize(featInputBlob);
+
+    ////            glLineWidth(2);
+    ////            glColor3ub(0,0,0);
+    ////            float2 end = make_float2(biasBlob->cpu_data()[0],biasBlob->cpu_data()[1]);
+    ////            glBegin(GL_LINES);
+    ////            for (int i=0; i<weightBlob->channels(); ++i) {
+    ////                float2 W = make_float2(weightBlob->cpu_data()[i],weightBlob->cpu_data()[weightBlob->channels() + i]);
+    ////                float x = featInputBlob->cpu_data()[selectedImage*featInputBlob->channels() + i];
+    ////                float2 nextEnd = end + x*W;
+    ////                glVertex(end);
+    ////                glVertex(nextEnd);
+    ////                end = nextEnd;
+    ////            }
+    ////            glEnd();
+    ////            glLineWidth(1);
+    ////        }
+
+            glPopMatrix();
         }
-
-////        if (selectedImage >= 0) {
-////            boost::shared_ptr<caffe::Layer<float> > featLayer = net.layer_by_name("feat");
-
-////            boost::shared_ptr<caffe::Blob<float> > weightBlob = featLayer->blobs()[0];
-////            boost::shared_ptr<caffe::Blob<float> > biasBlob = featLayer->blobs()[1];
-
-////            boost::shared_ptr<caffe::Blob<float> > featInputBlob = net.blob_by_name("ip2");
-
-////            printBlobSize(weightBlob);
-////            printBlobSize(biasBlob);
-////            printBlobSize(featInputBlob);
-
-////            glLineWidth(2);
-////            glColor3ub(0,0,0);
-////            float2 end = make_float2(biasBlob->cpu_data()[0],biasBlob->cpu_data()[1]);
-////            glBegin(GL_LINES);
-////            for (int i=0; i<weightBlob->channels(); ++i) {
-////                float2 W = make_float2(weightBlob->cpu_data()[i],weightBlob->cpu_data()[weightBlob->channels() + i]);
-////                float x = featInputBlob->cpu_data()[selectedImage*featInputBlob->channels() + i];
-////                float2 nextEnd = end + x*W;
-////                glVertex(end);
-////                glVertex(nextEnd);
-////                end = nextEnd;
-////            }
-////            glEnd();
-////            glLineWidth(1);
-////        }
-
-        glPopMatrix();
 
         // -=-=-=-=-=-=- filter view -=-=-=-=-=-=-
         filterView.ActivateScissorAndClear();
@@ -342,6 +347,15 @@ int main(int argc, char * * argv) {
 
         if (filterViewHandler.hasLayerSelection()) {
             std::cout << "selected layer " << filterViewHandler.getSelectedLayer() << std::endl;
+            filterResponseViz.setEmbeddingLayer(filterViewHandler.getSelectedLayer());
+            switch (filterViewHandler.getSelectedLayer()) {
+                case 6:
+                    multiembeddingVizActive = true;
+                    break;
+                case 7:
+                    multiembeddingVizActive = false;
+                    break;
+            }
         } else if (filterViewHandler.hasUnitSelection()) {
             std::cout << "selected unit " << filterViewHandler.getSelectedUnit() << " in layer " << filterViewHandler.getSelectedLayer() << std::endl;
             int selectedImage = filterResponseViz.getSelection();
