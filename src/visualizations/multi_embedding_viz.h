@@ -1,0 +1,30 @@
+#ifndef MULTI_EMBEDDING_VIZ_H
+#define MULTI_EMBEDDING_VIZ_H
+
+#include <vector>
+#include <vector_types.h>
+#include "embedding_viz.h"
+
+class MultiEmbeddingViz {
+public:
+    MultiEmbeddingViz(const float aspectRatio);
+
+    ~MultiEmbeddingViz();
+
+    void setEmbedding(const float * embedding, const int embeddingDimensions,
+                      uchar3 * coloring, int nEmbedded);
+
+    void render(pangolin::View & view);
+
+private:
+    // -=-=-=-=-=- methods -=-=-=-=-=-
+    void clear();
+
+    // -=-=-=-=-=- members -=-=-=-=-=-
+    float aspectRatio_;
+    int dims_;
+    std::vector<EmbeddingViz *> embeddingVizs_;
+    std::vector<float2 *> partialEmbeddings_;
+};
+
+#endif // MULTI_EMBEDDING_VIZ_H
