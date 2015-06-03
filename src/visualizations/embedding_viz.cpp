@@ -41,10 +41,10 @@ void EmbeddingViz::setEmbedding(const float2 * embedding,
 
 }
 
-void EmbeddingViz::render(pangolin::View & view) {
+void EmbeddingViz::render(const float2 window) {
 
     glPushMatrix();
-    setUpViewport(view,viewportSize_,viewportCenter_);
+    setUpViewport(window,viewportSize_,viewportCenter_);
 
     glPointSize(3);
     glColor3ub(0,0,0);

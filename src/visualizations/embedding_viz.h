@@ -11,7 +11,7 @@ public:
 
     void setEmbedding(const float2 * embedding, uchar3 * coloring, int nEmbedded);
 
-    void render(pangolin::View & view);
+    void render(const float2 window);
 
     inline float2 getViewportSize() { return viewportSize_; }
 

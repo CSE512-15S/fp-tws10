@@ -20,6 +20,7 @@
 #include "mouse_handlers/filter_view_mouse_handler.h"
 #include "visualizations/embedding_viz.h"
 #include "visualizations/filter_response_viz.h"
+#include "visualizations/multi_embedding_viz.h"
 
 static const int guiWidth = 1920;
 static const int guiHeight = 1080;
@@ -125,32 +126,9 @@ int main(int argc, char * * argv) {
     EmbeddingViz embeddingViz(embeddingViewAspectRatio);
     embeddingViz.setEmbedding((const float2 *)outputBlob->cpu_data(),testColors.data(),nTestImages);
 
-    //    float2 minEmbedding = make_float2(std::numeric_limits<float>::infinity(),std::numeric_limits<float>::infinity());
-//    float2 maxEmbedding = -1*minEmbedding;
-//    for (int i=0; i<nTestImages; ++i) {
-//        float2 embedding = make_float2(outputBlob->cpu_data()[2*i],outputBlob->cpu_data()[2*i + 1]);
-//        minEmbedding = fminf(minEmbedding,embedding);
-//        maxEmbedding = fmaxf(maxEmbedding,embedding);
-//    }
-
-//    float2 embeddingSize = maxEmbedding - minEmbedding;
-
-//    float2 paddedEmbeddingSize = 1.02*embeddingSize;// + make_float2(0.1,0.1);
-
-//    float2 viewportSize;
-//    if (paddedEmbeddingSize.x / embeddingViewAspectRatio < paddedEmbeddingSize.y) {
-//        //embedding height is limiting dimension
-//        viewportSize = make_float2(paddedEmbeddingSize.y * embeddingViewAspectRatio, paddedEmbeddingSize.y);
-//    } else {
-//        //embedding width is limiting dimension
-//        viewportSize = make_float2(paddedEmbeddingSize.x, paddedEmbeddingSize.x / embeddingViewAspectRatio );
-//    }
-//    float2 viewportCenter = minEmbedding + 0.5*embeddingSize;
-
-//    std::cout << "embedding spans " << minEmbedding.x << " -> " << maxEmbedding.x << ", " << minEmbedding.y << " -> " << maxEmbedding.y << std::endl;
-//    std::cout << "embedding size: " << embeddingSize.x << ", " << embeddingSize.y << std::endl;
-//    std::cout << "embedding center: " << viewportCenter.x << ", " << viewportCenter.y << std::endl;
-//    std::cout << "viewport size: " << viewportSize.x << ", " << viewportSize.y << std::endl;
+    boost::shared_ptr<caffe::Blob<float> > ip2Blob = net.blob_by_name("ip2");
+    MultiEmbeddingViz multiEmbeddingViz(embeddingViewAspectRatio);
+    multiEmbeddingViz.setEmbedding(ip2Blob->cpu_data(),ip2Blob->channels(),testColors.data(),nTestImages);
 
     // -=-=-=-=- set up pangolin -=-=-=-=-
     pangolin::CreateGlutWindowAndBind("Seein' In", guiWidth, guiHeight,GLUT_MULTISAMPLE | GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
@@ -250,7 +228,9 @@ int main(int argc, char * * argv) {
         // -=-=-=-=-=-=- embedding view -=-=-=-=-=-=-
         embeddingView.ActivateScissorAndClear();
         embeddingView.ActivatePixelOrthographic();
-        embeddingViz.render(embeddingView);
+//        embeddingViz.render(make_float2(embeddingView.GetBounds().w,embeddingView.GetBounds().h));
+
+        multiEmbeddingViz.render(embeddingView);
 
         glPushMatrix();
         setUpViewport(embeddingView,embeddingViz.getViewportSize(),embeddingViz.getViewportCenter());
