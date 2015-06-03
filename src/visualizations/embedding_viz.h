@@ -3,6 +3,7 @@
 
 #include <pangolin/pangolin.h>
 #include <vector_types.h>
+#include <helper_math.h>
 
 class EmbeddingViz {
 public:
@@ -15,9 +16,9 @@ public:
 
     void render(const float2 window);
 
-    inline float2 getViewportSize() { return viewportSize_; }
+    inline float2 getViewportSize() { return zoom_*maxViewportSize_; }
 
-    inline float2 getViewportCenter() { return viewportCenter_; }
+    inline float2 getViewportCenter() { return maxViewportCenter_ + scroll_; }
 
     inline int getNumEmbeddedPoints() { return nEmbedded_; }
 
@@ -25,14 +26,18 @@ public:
 
     inline float getZoom() { return zoom_; }
 
-    inline void setZoom(const float zoom) { zoom_ = zoom; }
+    inline void setZoom(const float zoom) { zoom_ = zoom; clampZoom(); }
 
     inline void setHoveredOverPoint(const int hoveredPointIndex) { hoveredPointIndex_ = hoveredPointIndex; }
 
 private:
+    // -=-=-=-=-=- methods -=-=-=-=-=-
+    void clampZoom();
+
+    // -=-=-=-=-=- members -=-=-=-=-=-
     float aspectRatio_;
-    float2 viewportSize_;
-    float2 viewportCenter_;
+    float2 maxViewportSize_;
+    float2 maxViewportCenter_;
     float zoom_;
     float2 scroll_;
 

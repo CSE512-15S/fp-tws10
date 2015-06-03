@@ -31,12 +31,12 @@ void EmbeddingViz::setEmbedding(const float2 * embedding,
 
     if (paddedEmbeddingSize.x / aspectRatio_ < paddedEmbeddingSize.y) {
         //embedding height is limiting dimension
-        viewportSize_ = make_float2(paddedEmbeddingSize.y * aspectRatio_, paddedEmbeddingSize.y);
+        maxViewportSize_ = make_float2(paddedEmbeddingSize.y * aspectRatio_, paddedEmbeddingSize.y);
     } else {
         //embedding width is limiting dimension
-        viewportSize_ = make_float2(paddedEmbeddingSize.x, paddedEmbeddingSize.x / aspectRatio_ );
+        maxViewportSize_ = make_float2(paddedEmbeddingSize.x, paddedEmbeddingSize.x / aspectRatio_ );
     }
-    viewportCenter_ = minEmbedding + 0.5*embeddingSize;
+    maxViewportCenter_ = minEmbedding + 0.5*embeddingSize;
 
     embedding_ = embedding;
     coloring_ = coloring;
@@ -46,16 +46,16 @@ void EmbeddingViz::setEmbedding(const float2 * embedding,
 
     std::cout << "embedding spans " << minEmbedding.x << " -> " << maxEmbedding.x << ", " << minEmbedding.y << " -> " << maxEmbedding.y << std::endl;
     std::cout << "embedding size: " << embeddingSize.x << ", " << embeddingSize.y << std::endl;
-    std::cout << "embedding center: " << viewportCenter_.x << ", " << viewportCenter_.y << std::endl;
-    std::cout << "viewport size: " << viewportSize_.x << ", " << viewportSize_.y << std::endl;
+    std::cout << "embedding center: " << maxViewportCenter_.x << ", " << maxViewportCenter_.y << std::endl;
+    std::cout << "viewport size: " << maxViewportSize_.x << ", " << maxViewportSize_.y << std::endl;
 
 }
 
 void EmbeddingViz::render(const float2 window) {
 
     glPushMatrix();
-    float2 zoomedSize = zoom_*viewportSize_;
-    float2 scrolledCenter = viewportCenter_ + scroll_;
+    const float2 zoomedSize = getViewportSize(); //zoom_*maxViewportSize_;
+    const float2 scrolledCenter = getViewportCenter(); //maxViewportCenter_ + scroll_;
 
     setUpViewport(window,zoomedSize,scrolledCenter);
 
@@ -91,64 +91,74 @@ void EmbeddingViz::render(const float2 window) {
 
         static const float2 hoverOffset = make_float2(0.075,0.075);
         static const float2 textureSize = make_float2(0.5,0.5);
+        const float2 zoomedHoverOffset = zoom_*hoverOffset;
+        const float2 zoomedTextureSize = zoom_*textureSize;
 
-        const float2 quad1HoverExtent = hoveredPoint + hoverOffset + textureSize;
+        const float2 quad1HoverExtent = hoveredPoint + zoomedHoverOffset + zoomedTextureSize;
 
         int hoverDir = 0;
-        if (quad1HoverExtent.x > viewportCenter_.x + viewportSize_.x/2) {
+        if (quad1HoverExtent.x > maxViewportCenter_.x + maxViewportSize_.x/2) {
             hoverDir |= 1;
         }
-        if (quad1HoverExtent.y > viewportCenter_.y + viewportSize_.y/2) {
+        if (quad1HoverExtent.y > maxViewportCenter_.y + maxViewportSize_.y/2) {
             hoverDir |= 2;
         }
 
         float2 textureLocation;
         switch(hoverDir) {
             case 0:
-                textureLocation = hoveredPoint + hoverOffset;
+                textureLocation = hoveredPoint + zoomedHoverOffset;
                 break;
             case 1:
-                textureLocation = make_float2(hoveredPoint.x - hoverOffset.x - textureSize.x, hoveredPoint.y + hoverOffset.y);
+                textureLocation = make_float2(hoveredPoint.x - zoomedHoverOffset.x - zoomedTextureSize.x, hoveredPoint.y + zoomedHoverOffset.y);
                 break;
             case 2:
-                textureLocation = make_float2(hoveredPoint.x + hoverOffset.x, hoveredPoint.y - hoverOffset.y - textureSize.y);
+                textureLocation = make_float2(hoveredPoint.x + zoomedHoverOffset.x, hoveredPoint.y - zoomedHoverOffset.y - zoomedTextureSize.y);
                 break;
             case 3:
-                textureLocation = hoveredPoint - hoverOffset - textureSize;
+                textureLocation = hoveredPoint - zoomedHoverOffset - zoomedTextureSize;
                 break;
         }
 
-        float linePoints[4][12] = {
-            { textureLocation.x,                 textureLocation.y,
-              textureLocation.x + textureSize.x, textureLocation.y,
-              textureLocation.x + textureSize.x, textureLocation.y + textureSize.y,
-              textureLocation.x,                 textureLocation.y + textureSize.y,
-              textureLocation.x,                 textureLocation.y,
-              hoveredPoint.x,                    hoveredPoint.y },
-            { textureLocation.x + textureSize.x, textureLocation.y,
-              textureLocation.x + textureSize.x, textureLocation.y + textureSize.y,
-              textureLocation.x,                 textureLocation.y + textureSize.y,
-              textureLocation.x,                 textureLocation.y,
-              textureLocation.x + textureSize.x, textureLocation.y,
-              hoveredPoint.x,                    hoveredPoint.y },
-            { textureLocation.x,                 textureLocation.y + textureSize.y,
-              textureLocation.x,                 textureLocation.y,
-              textureLocation.x + textureSize.x, textureLocation.y,
-              textureLocation.x + textureSize.x, textureLocation.y + textureSize.y,
-              textureLocation.x,                 textureLocation.y + textureSize.y,
-              hoveredPoint.x,                    hoveredPoint.y },
-            { textureLocation.x + textureSize.x, textureLocation.y + textureSize.y,
-              textureLocation.x,                 textureLocation.y + textureSize.y,
-              textureLocation.x,                 textureLocation.y,
-              textureLocation.x + textureSize.x, textureLocation.y,
-              textureLocation.x + textureSize.x, textureLocation.y + textureSize.y,
-              hoveredPoint.x,                    hoveredPoint.y }
+        static float staticLinePoints[4][10] = {
+            { 0,                 0,
+              0 + textureSize.x, 0,
+              0 + textureSize.x, 0 + textureSize.y,
+              0,                 0 + textureSize.y,
+              0,                 0
+            },
+            { 0 + textureSize.x, 0,
+              0 + textureSize.x, 0 + textureSize.y,
+              0,                 0 + textureSize.y,
+              0,                 0,
+              0 + textureSize.x, 0
+            },
+            { 0,                 0 + textureSize.y,
+              0,                 0,
+              0 + textureSize.x, 0,
+              0 + textureSize.x, 0 + textureSize.y,
+              0,                 0 + textureSize.y
+            },
+            { 0 + textureSize.x, 0 + textureSize.y,
+              0,                 0 + textureSize.y,
+              0,                 0,
+              0 + textureSize.x, 0,
+              0 + textureSize.x, 0 + textureSize.y
+            }
         };
+
+        float linePoints[12];
+        for (int i=0; i<5; ++i) {
+            linePoints[2*i]     = textureLocation.x + zoom_*staticLinePoints[hoverDir][2*i];
+            linePoints[2*i + 1] = textureLocation.y + zoom_*staticLinePoints[hoverDir][2*i + 1];
+        }
+        linePoints[10] = hoveredPoint.x;
+        linePoints[11] = hoveredPoint.y;
 
         glLineWidth(3);
         glColor3ub(196,196,196);
         glEnableClientState(GL_VERTEX_ARRAY);
-        glVertexPointer( 2, GL_FLOAT, 0, linePoints[hoverDir]);
+        glVertexPointer( 2, GL_FLOAT, 0, linePoints);
 
         glDrawArrays(GL_LINE_STRIP, 0, 6);
 
@@ -157,9 +167,13 @@ void EmbeddingViz::render(const float2 window) {
         glColor3ub(255,255,255);
         renderTexture(imageTex_,
                       textureLocation,
-                      textureSize);
+                      zoomedTextureSize);
         glLineWidth(1);
     }
 
     glPopMatrix();
+}
+
+void EmbeddingViz::clampZoom() {
+    zoom_ = std::max(std::min(1.f,zoom_),0.1f);
 }

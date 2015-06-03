@@ -53,6 +53,8 @@ private:
     SelectionMode selectionMode_;
     std::vector<float2> lassoPoints_;
     std::vector<bool> selection_;
+
+    float zoomSpeed_;
 };
 
 #endif // SEEIN_IN_MOUSE_HANDLER_H

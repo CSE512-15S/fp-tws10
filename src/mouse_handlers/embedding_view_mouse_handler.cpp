@@ -6,7 +6,8 @@
 #include <limits>
 
 EmbeddingViewMouseHandler::EmbeddingViewMouseHandler(EmbeddingViz * viz) :
-    viz_(viz), hasSelection_(false), selectionMode_(SelectionModeSingle) { }
+    viz_(viz), hasSelection_(false), selectionMode_(SelectionModeSingle),
+    zoomSpeed_(1.1f) { }
 
 void EmbeddingViewMouseHandler::Mouse(pangolin::View & v, pangolin::MouseButton button, int x, int y, bool pressed, int button_state) {
     pangolin::Handler::Mouse(v,button,x,y,pressed,button_state);
@@ -36,10 +37,10 @@ void EmbeddingViewMouseHandler::Mouse(pangolin::View & v, pangolin::MouseButton 
             }
             break;
         case pangolin::MouseWheelUp:
-//            viz_->setZoom(viz_->getZoom()*1.25);
+            viz_->setZoom(viz_->getZoom()/zoomSpeed_);
             break;
         case pangolin::MouseWheelDown:
-//            viz_->setZoom(viz_->getZoom()/1.25);
+            viz_->setZoom(viz_->getZoom()*zoomSpeed_);
             break;
     }
 
