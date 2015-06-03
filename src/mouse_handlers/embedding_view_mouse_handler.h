@@ -18,6 +18,8 @@ public:
 
     void Mouse(pangolin::View & v, pangolin::MouseButton button, int x, int y, bool pressed, int button_state);
 
+    void MouseMotion(pangolin::View & v, int x, int y, int button_state);
+
     void PassiveMouseMotion(pangolin::View & v, int x, int y, int button_state);
 
     inline int getHoveredOverPoint() { return hoveredOverPoint_; }
@@ -53,6 +55,9 @@ private:
     SelectionMode selectionMode_;
     std::vector<float2> lassoPoints_;
     std::vector<bool> selection_;
+
+    float2 lastMouse_;
+    bool scrolled_;
 
     float zoomSpeed_;
 };

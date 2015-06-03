@@ -28,11 +28,14 @@ public:
 
     inline void setZoom(const float zoom) { zoom_ = zoom; clampZoom(); }
 
+    inline void incrementScroll(const float2 increment) { scroll_ += increment; clampScroll(); }
+
     inline void setHoveredOverPoint(const int hoveredPointIndex) { hoveredPointIndex_ = hoveredPointIndex; }
 
 private:
     // -=-=-=-=-=- methods -=-=-=-=-=-
     void clampZoom();
+    void clampScroll();
 
     // -=-=-=-=-=- members -=-=-=-=-=-
     float aspectRatio_;

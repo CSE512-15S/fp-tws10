@@ -97,10 +97,10 @@ void EmbeddingViz::render(const float2 window) {
         const float2 quad1HoverExtent = hoveredPoint + zoomedHoverOffset + zoomedTextureSize;
 
         int hoverDir = 0;
-        if (quad1HoverExtent.x > maxViewportCenter_.x + maxViewportSize_.x/2) {
+        if (quad1HoverExtent.x > scrolledCenter.x + zoomedSize.x/2) {
             hoverDir |= 1;
         }
-        if (quad1HoverExtent.y > maxViewportCenter_.y + maxViewportSize_.y/2) {
+        if (quad1HoverExtent.y > scrolledCenter.y + zoomedSize.y/2) {
             hoverDir |= 2;
         }
 
@@ -176,4 +176,11 @@ void EmbeddingViz::render(const float2 window) {
 
 void EmbeddingViz::clampZoom() {
     zoom_ = std::max(std::min(1.f,zoom_),0.1f);
+    clampScroll();
+}
+
+void EmbeddingViz::clampScroll() {
+
+    const float2 maxScroll = maxViewportSize_ - getViewportSize();
+    scroll_ = fmaxf(-0.5f*maxScroll,fminf(scroll_,0.5f*maxScroll));
 }
