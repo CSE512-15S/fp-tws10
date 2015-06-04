@@ -326,19 +326,12 @@ int main(int argc, char * * argv) {
         }
 
         // -=-=-=-=-=-=- input handling -=-=-=-=-=-=-
+        int selectedImage = -1;
         if (embeddingViewHandler.hasSelection()) {
             switch (embeddingViewHandler.getSelectionMode()) {
             case SelectionModeSingle:
             {
-                int selectedImage = embeddingViewHandler.getHoveredOverPoint();
-                //                std::vector<bool> selection(nTestImages);
-                //                for (int i=0; i<nTestImages; ++i) {
-                //                    selection[i] = (testLabels[i] == testLabels[selectedImage]);
-                //                }
-                if (selectedImage >= 0) {
-                    filterResponseViz.setSelection(selectedImage);
-                    hasSelection = true;
-                }
+                selectedImage = embeddingViewHandler.getHoveredOverPoint();
             } break;
             case SelectionModeLasso:
             {
@@ -346,6 +339,12 @@ int main(int argc, char * * argv) {
                 hasSelection = true;
             } break;
             }
+        } else if (multiEmbeddingViewHandler.hasSelection()) {
+            selectedImage = multiEmbeddingViewHandler.getHoveredOverPoint();
+        }
+        if (selectedImage >= 0) {
+            filterResponseViz.setSelection(selectedImage);
+            hasSelection = true;
         }
 
         if (filterViewHandler.hasLayerSelection()) {

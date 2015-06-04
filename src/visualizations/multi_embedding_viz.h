@@ -30,6 +30,10 @@ public:
 
     void setHoverPoint(const float2 viewportPoint);
 
+    int getHoveredOverPoint();
+
+    void clearHover();
+
 private:
     // -=-=-=-=-=- methods -=-=-=-=-=-
     void clear();
@@ -51,6 +55,8 @@ private:
 
     float zoom_;
     float2 scroll_;
+
+    int hoveredSubvizIndex_;
 
     static constexpr float subvizPaddingPercent_ = 0.05f;
 

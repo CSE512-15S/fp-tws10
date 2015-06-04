@@ -11,7 +11,8 @@ MultiEmbeddingViz::MultiEmbeddingViz(const float aspectRatio, const float * imag
     imageHeight_(imageHeight),
     imageTex_(imageTex),
     zoom_(1.f),
-    scroll_(make_float2(0.f,0.f)) { }
+    scroll_(make_float2(0.f,0.f)),
+    hoveredSubvizIndex_(0) { }
 
 MultiEmbeddingViz::~MultiEmbeddingViz() {
     clear();
@@ -74,9 +75,8 @@ void MultiEmbeddingViz::setHoverPoint(const float2 viewportPoint) {
     const int xAxis = viewportPoint.x;
     const int yAxis = viewportPoint.y;
 
-    static int lastSubvizNum = xAxis + dims_*yAxis;
     const int thisSubvizNum = xAxis + dims_*yAxis;
-    embeddingVizs_[lastSubvizNum]->clearHover();
+    embeddingVizs_[hoveredSubvizIndex_]->clearHover();
 
     std::cout << xAxis << ", " << yAxis << std::endl;
 
@@ -85,7 +85,7 @@ void MultiEmbeddingViz::setHoverPoint(const float2 viewportPoint) {
                                     subviz->getViewportSize() + subviz->getViewportCenter();
     subviz->setHoveredOverPoint(subviewportPoint);
 
-    lastSubvizNum = thisSubvizNum;
+    hoveredSubvizIndex_ = thisSubvizNum;
 }
 
 void MultiEmbeddingViz::clear() {
@@ -103,6 +103,18 @@ void MultiEmbeddingViz::clampZoom() {
 
     zoom_ = std::max(std::min(1.f,zoom_),0.005f);
     clampScroll();
+
+}
+
+void MultiEmbeddingViz::clearHover() {
+
+    return embeddingVizs_[hoveredSubvizIndex_]->clearHover();
+
+}
+
+int MultiEmbeddingViz::getHoveredOverPoint() {
+
+    return embeddingVizs_[hoveredSubvizIndex_]->getHoveredOverPoint();
 
 }
 
