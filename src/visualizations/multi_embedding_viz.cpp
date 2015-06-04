@@ -42,12 +42,12 @@ void MultiEmbeddingViz::render(pangolin::View & view) {
 
 //    std::cout << view.GetBounds().w << " x " << view.GetBounds().h << std::endl;
 
+    glPushMatrix();
     setUpViewport(view,make_float2(dims_),make_float2(0.5*dims_));
 
 //    const float vizHeight = view.GetBounds().h / (float)dims_;
 //    const float vizWidth = view.GetBounds().w / (float)dims_;
 
-    glPushMatrix();
     glScalef(1.f/zoom_,1.f/zoom_,1.f/zoom_);
     glTranslatef(-scroll_.x,-scroll_.y+subvizPaddingPercent_,0);
     for (int yDim = 0; yDim < dims_; ++yDim) {
@@ -65,6 +65,102 @@ void MultiEmbeddingViz::render(pangolin::View & view) {
         glTranslatef(0,1,0);
     }
     glPopMatrix();
+
+    EmbeddingSubViz * hoverViz = embeddingVizs_[hoveredSubvizIndex_];
+    const int hoveredPointIndex = hoverViz->getHoveredOverPoint();
+    if (hoveredPointIndex >= 0 && hoveredPointIndex < hoverViz->getNumEmbeddedPoints()) {
+
+        const int hoveredSubvizCol = hoveredSubvizIndex_ % dims_;
+        const int hoveredSubvizRow = hoveredSubvizIndex_ / dims_;
+
+        const float2 windowSize = make_float2(view.GetBounds().w,view.GetBounds().h);
+
+        imageTex_.Upload(images_ + hoveredPointIndex*imageWidth_*imageHeight_,GL_LUMINANCE,GL_FLOAT);
+        const float2 hoveredViewportPoint = hoverViz->getEmbedding()[hoveredPointIndex];
+        const float2 hoveredWindowPoint = getNormalizedPoint(hoverViz->getNormalizedPoint(hoveredViewportPoint),hoveredSubvizRow,hoveredSubvizCol)*windowSize;
+        std::cout << hoveredViewportPoint.x << ", " << hoveredViewportPoint.y << " -> " <<  hoveredWindowPoint.x << ", " << hoveredWindowPoint.y << std::endl;
+
+        static const float2 hoverOffset = make_float2(imageWidth_/4,imageHeight_/4);
+        static const float2 textureSize = make_float2(2*imageWidth_,2*imageHeight_);
+
+        const float2 quad1HoverExtent = hoveredWindowPoint + hoverOffset + textureSize;
+
+        int hoverDir = 0;
+        if (quad1HoverExtent.x > windowSize.x) {
+            hoverDir |= 1;
+        }
+        if (quad1HoverExtent.y > windowSize.y) {
+            hoverDir |= 2;
+        }
+
+        float2 textureLocation;
+        switch(hoverDir) {
+            case 0:
+                textureLocation = hoveredWindowPoint + hoverOffset;
+                break;
+            case 1:
+                textureLocation = make_float2(hoveredWindowPoint.x - hoverOffset.x - textureSize.x, hoveredWindowPoint.y + hoverOffset.y);
+                break;
+            case 2:
+                textureLocation = make_float2(hoveredWindowPoint.x + hoverOffset.x, hoveredWindowPoint.y - hoverOffset.y - textureSize.y);
+                break;
+            case 3:
+                textureLocation = hoveredWindowPoint - hoverOffset - textureSize;
+                break;
+        }
+
+        static float staticLinePoints[4][10] = {
+            { 0,                 0,
+              0 + textureSize.x, 0,
+              0 + textureSize.x, 0 + textureSize.y,
+              0,                 0 + textureSize.y,
+              0,                 0
+            },
+            { 0 + textureSize.x, 0,
+              0 + textureSize.x, 0 + textureSize.y,
+              0,                 0 + textureSize.y,
+              0,                 0,
+              0 + textureSize.x, 0
+            },
+            { 0,                 0 + textureSize.y,
+              0,                 0,
+              0 + textureSize.x, 0,
+              0 + textureSize.x, 0 + textureSize.y,
+              0,                 0 + textureSize.y
+            },
+            { 0 + textureSize.x, 0 + textureSize.y,
+              0,                 0 + textureSize.y,
+              0,                 0,
+              0 + textureSize.x, 0,
+              0 + textureSize.x, 0 + textureSize.y
+            }
+        };
+
+        float linePoints[12];
+        for (int i=0; i<5; ++i) {
+            linePoints[2*i]     = textureLocation.x + staticLinePoints[hoverDir][2*i];
+            linePoints[2*i + 1] = textureLocation.y + staticLinePoints[hoverDir][2*i + 1];
+        }
+        linePoints[10] = hoveredWindowPoint.x;
+        linePoints[11] = hoveredWindowPoint.y;
+
+        glLineWidth(3);
+        glColor3ub(196,196,196);
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glVertexPointer( 2, GL_FLOAT, 0, linePoints);
+
+        glDrawArrays(GL_LINE_STRIP, 0, 6);
+
+        glDisableClientState(GL_VERTEX_ARRAY);
+
+        glColor3ub(255,255,255);
+        renderTexture(imageTex_,
+                      textureLocation,
+                      textureSize);
+        glLineWidth(1);
+
+    }
+
 
 }
 

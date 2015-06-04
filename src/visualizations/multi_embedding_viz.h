@@ -35,6 +35,10 @@ public:
 
     void clearHover();
 
+    inline float2 getNormalizedPoint(const float2 normalizedSubvizPoint, const int subvizRow, const int subvizCol) {
+        return (1.f/dims_)*(make_float2(subvizCol,subvizRow) + make_float2(subvizPaddingPercent_) + (1-2*subvizPaddingPercent_)*normalizedSubvizPoint);
+    }
+
 private:
     // -=-=-=-=-=- methods -=-=-=-=-=-
     void clear();

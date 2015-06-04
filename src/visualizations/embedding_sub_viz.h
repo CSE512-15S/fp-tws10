@@ -2,6 +2,8 @@
 #define EMBEDDING_SUB_VIZ_H
 
 #include <vector_types.h>
+#include <vector_functions.h>
+#include <helper_math.h>
 
 class EmbeddingSubViz {
 public:
@@ -25,6 +27,8 @@ public:
     inline float2 getMaxViewportSize() { return maxViewportSize_; }
 
     inline float2 getMaxViewportCenter() { return maxViewportCenter_; }
+
+    inline float2 getNormalizedPoint(const float2 embeddingPoint) { return (embeddingPoint - getMaxViewportCenter())/getMaxViewportSize() + make_float2(0.5); }
 
 private:
     float aspectRatio_;
