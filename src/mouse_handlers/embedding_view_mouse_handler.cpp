@@ -5,7 +5,7 @@
 #include <helper_math.h>
 #include <limits>
 
-EmbeddingViewMouseHandler::EmbeddingViewMouseHandler(EmbeddingViz * viz) :
+EmbeddingViewMouseHandler::EmbeddingViewMouseHandler(SingleEmbeddingViz * viz) :
     viz_(viz), hasSelection_(false), selectionMode_(SelectionModeSingle),
     zoomSpeed_(1.1f) { }
 

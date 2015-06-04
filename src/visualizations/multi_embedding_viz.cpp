@@ -29,7 +29,7 @@ void MultiEmbeddingViz::setEmbedding(const float * embedding, const int embeddin
                 partialEmbedding[i] = make_float2(embedding[i*dims_ + xDim],
                                                   embedding[i*dims_ + yDim]);
             }
-            EmbeddingViz * viz = new EmbeddingViz(aspectRatio_,images_,
+            SingleEmbeddingViz * viz = new SingleEmbeddingViz(aspectRatio_,images_,
                                                   imageWidth_,imageHeight_,
                                                   imageTex_);
             viz->setEmbedding(partialEmbedding,coloring,nEmbedded);
@@ -56,7 +56,7 @@ void MultiEmbeddingViz::render(pangolin::View & view) {
         glPushMatrix();
         glTranslatef(subvizPaddingPercent_,0,0);
         for (int xDim = 0; xDim < dims_; ++xDim) {
-            EmbeddingViz * viz = embeddingVizs_[xDim + yDim*dims_];
+            SingleEmbeddingViz * viz = embeddingVizs_[xDim + yDim*dims_];
 //            viz->render(make_float2(vizWidth,vizHeight));
             viz->render(make_float2(1.f-2*subvizPaddingPercent_));
             //glTranslatef(vizWidth,0,0);
@@ -80,7 +80,7 @@ void MultiEmbeddingViz::setHoverPoint(const float2 viewportPoint) {
 
 //    std::cout << xAxis << ", " << yAxis << std::endl;
 
-    EmbeddingViz * subviz = embeddingVizs_[thisSubvizNum];
+    SingleEmbeddingViz * subviz = embeddingVizs_[thisSubvizNum];
     const float2 subviewportPoint = ((viewportPoint - make_float2(xAxis,yAxis) - make_float2(subvizPaddingPercent_))/(1-2*subvizPaddingPercent_) - make_float2(0.5))*
                                     subviz->getViewportSize() + subviz->getViewportCenter();
     subviz->setHoveredOverPoint(subviewportPoint);
@@ -89,7 +89,7 @@ void MultiEmbeddingViz::setHoverPoint(const float2 viewportPoint) {
 }
 
 void MultiEmbeddingViz::clear() {
-    for (EmbeddingViz * viz : embeddingVizs_) {
+    for (SingleEmbeddingViz * viz : embeddingVizs_) {
         delete viz;
     }
     for (float2 * partialEmbedding : partialEmbeddings_) {

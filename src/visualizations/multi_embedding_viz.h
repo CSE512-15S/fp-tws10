@@ -3,9 +3,9 @@
 
 #include <vector>
 #include <vector_types.h>
-#include "embedding_viz.h"
+#include "single_embedding_viz.h"
 
-class MultiEmbeddingViz {
+class MultiEmbeddingViz : public EmbeddingViz {
 public:
     MultiEmbeddingViz(const float aspectRatio, const float * images,
                       const int imageWidth, const int imageHeight,
@@ -45,7 +45,7 @@ private:
     // -=-=-=-=-=- members -=-=-=-=-=-
     float aspectRatio_;
     int dims_;
-    std::vector<EmbeddingViz *> embeddingVizs_;
+    std::vector<SingleEmbeddingViz *> embeddingVizs_;
     std::vector<float2 *> partialEmbeddings_;
 
     const float * images_;

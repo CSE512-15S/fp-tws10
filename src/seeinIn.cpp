@@ -21,7 +21,7 @@
 #include "mouse_handlers/embedding_view_mouse_handler.h"
 #include "mouse_handlers/filter_view_mouse_handler.h"
 #include "mouse_handlers/multi_embedding_view_mouse_handler.h"
-#include "visualizations/embedding_viz.h"
+#include "visualizations/single_embedding_viz.h"
 #include "visualizations/filter_response_viz.h"
 #include "visualizations/multi_embedding_viz.h"
 
@@ -136,7 +136,7 @@ int main(int argc, char * * argv) {
 
     // -=-=-=-=- set up visualizations -=-=-=-=-
     boost::shared_ptr<caffe::Blob<float> > outputBlob = net.blobs()[net.output_blob_indices()[0]];
-    EmbeddingViz embeddingViz(embeddingViewAspectRatio,testImages,imageWidth,imageHeight,imageTex);
+    SingleEmbeddingViz embeddingViz(embeddingViewAspectRatio,testImages,imageWidth,imageHeight,imageTex);
     embeddingViz.setEmbedding((const float2 *)outputBlob->cpu_data(),testColors.data(),nTestImages);
 
     boost::shared_ptr<caffe::Blob<float> > ip2Blob = net.blob_by_name("ip2");
@@ -269,8 +269,8 @@ int main(int argc, char * * argv) {
 
     //        multiEmbeddingViz.render(embeddingView);
 
-            glColor3ub(255,255,255);
-            renderTexture(previewTex,make_float2(0),make_float2(previewWidth,previewHeight),false);
+//            glColor3ub(255,255,255);
+//            renderTexture(previewTex,make_float2(0),make_float2(previewWidth,previewHeight),false);
 
             glPushMatrix();
             setUpViewport(embeddingView,embeddingViz.getViewportSize(),embeddingViz.getViewportCenter());

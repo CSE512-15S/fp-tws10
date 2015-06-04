@@ -80,10 +80,14 @@ set(sources
 
     src/visualizations/embedding_viz.h
     src/visualizations/embedding_viz.cpp
+    src/visualizations/embedding_sub_viz.h
+    src/visualizations/embedding_sub_viz.cpp
     src/visualizations/filter_response_viz.h
     src/visualizations/filter_response_viz.cpp
     src/visualizations/multi_embedding_viz.h
     src/visualizations/multi_embedding_viz.cpp
+    src/visualizations/single_embedding_viz.h
+    src/visualizations/single_embedding_viz.cpp
 )
 
 include_directories(${PROJECT_SOURCE_DIR}/src)

@@ -5,7 +5,7 @@
 #include <vector_types.h>
 #include <vector_functions.h>
 #include <helper_math.h>
-#include "visualizations/embedding_viz.h"
+#include "visualizations/single_embedding_viz.h"
 
 enum SelectionMode {
     SelectionModeSingle,
@@ -14,7 +14,7 @@ enum SelectionMode {
 
 class EmbeddingViewMouseHandler : public pangolin::Handler {
 public:
-    EmbeddingViewMouseHandler(EmbeddingViz * viz);
+    EmbeddingViewMouseHandler(SingleEmbeddingViz * viz);
 
     void Mouse(pangolin::View & v, pangolin::MouseButton button, int x, int y, bool pressed, int button_state);
 
@@ -51,7 +51,7 @@ private:
     }
 
     // -=-=-=-=-=- members -=-=-=-=-=-
-    EmbeddingViz * viz_;
+    SingleEmbeddingViz * viz_;
 
     bool hasSelection_;
 
