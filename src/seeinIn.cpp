@@ -1,5 +1,6 @@
 #include <pangolin/pangolin.h>
 
+#include <fstream>
 #include <iostream>
 #include <limits>
 
@@ -22,6 +23,8 @@
 #include "visualizations/embedding_viz.h"
 #include "visualizations/filter_response_viz.h"
 #include "visualizations/multi_embedding_viz.h"
+
+#include "tsne.h"
 
 static const int guiWidth = 1920;
 static const int guiHeight = 1080;
@@ -349,16 +352,49 @@ int main(int argc, char * * argv) {
 
         if (filterViewHandler.hasLayerSelection()) {
             std::cout << "selected layer " << filterViewHandler.getSelectedLayer() << std::endl;
-            filterResponseViz.setEmbeddingLayer(filterViewHandler.getSelectedLayer());
-            switch (filterViewHandler.getSelectedLayer()) {
-                case 6:
-                    multiembeddingVizActive = true;
-                    embeddingView.SetHandler(&multiEmbeddingViewHandler);
-                    break;
-                case 7:
-                    multiembeddingVizActive = false;
-                    embeddingView.SetHandler(&embeddingViewHandler);
-                    break;
+            const int layerNum = filterViewHandler.getSelectedLayer();
+            if (layerNum >= 0) {
+                filterResponseViz.setEmbeddingLayer(filterViewHandler.getSelectedLayer());
+                boost::shared_ptr<caffe::Blob<float> > embeddingBlob = net.blob_by_name(filterResponsesToVisualize[layerNum]);
+                const int dims = embeddingBlob->channels();
+                switch (layerNum) {
+                    case 5:
+                        std::cout << "we're about to do some crazy shit here..." << std::endl;
+                        {
+//                            std::cout << "namely, embedding " << dims << " dimensional data" << std::endl;
+//                            std::vector<double> tsneData(nTestImages*dims);
+//                            // todo: wont work on non-1x1 outputs
+//                            for (int i=0; i<embeddingBlob->count(); ++i) {
+//                                tsneData[i] = embeddingBlob->cpu_data()[i];
+//                            }
+//                            std::vector<double> tsneEmbedding(nTestImages*2);
+//                            TSNE tsne;
+//                            tsne.run(tsneData.data(),nTestImages,dims,tsneEmbedding.data(),2,30,0.5);
+//                            std::cout << "tsne done" << std::endl;
+
+                            static std::vector<float> floatEmbedding(nTestImages*2);
+//                            for (int i=0; i<floatEmbedding.size(); ++i) {
+//                                floatEmbedding[i] = tsneEmbedding[i];
+//                            }
+//                            std::ofstream stream("layer5embedding.dat");
+//                            stream.write((char *)floatEmbedding.data(),floatEmbedding.size()*sizeof(float));
+//                            stream.close();
+
+                            std::ifstream stream("layer5embedding.dat");
+                            stream.read((char *)floatEmbedding.data(),floatEmbedding.size()*sizeof(float));
+                            stream.close();
+                            embeddingViz.setEmbedding((float2*)floatEmbedding.data(),testColors.data(),nTestImages);
+                        }
+                        break;
+                    case 6:
+                        multiembeddingVizActive = true;
+                        embeddingView.SetHandler(&multiEmbeddingViewHandler);
+                        break;
+                    case 7:
+                        multiembeddingVizActive = false;
+                        embeddingView.SetHandler(&embeddingViewHandler);
+                        break;
+                }
             }
         } else if (filterViewHandler.hasUnitSelection()) {
             std::cout << "selected unit " << filterViewHandler.getSelectedUnit() << " in layer " << filterViewHandler.getSelectedLayer() << std::endl;
@@ -367,7 +403,7 @@ int main(int argc, char * * argv) {
                 const int selectedLayerNum = filterViewHandler.getSelectedLayer();
                 const int selectedUnit = filterViewHandler.getSelectedUnit();
                 const std::string blobName = filterResponsesToVisualize[selectedLayerNum];
-                const float activationValue = net.blob_by_name(blobName)->cpu_data()[selectedUnit];
+                const float activationValue = 1.f; //net.blob_by_name(blobName)->cpu_data()[selectedUnit];
                 featProjector.computeProjection(blobName,selectedImage,selectedUnit,activationValue);
                 filterResponseViz.setResponse(featProjector);
             }

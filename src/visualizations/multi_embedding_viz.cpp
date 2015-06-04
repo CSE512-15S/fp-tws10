@@ -78,7 +78,7 @@ void MultiEmbeddingViz::setHoverPoint(const float2 viewportPoint) {
     const int thisSubvizNum = xAxis + dims_*yAxis;
     embeddingVizs_[hoveredSubvizIndex_]->clearHover();
 
-    std::cout << xAxis << ", " << yAxis << std::endl;
+//    std::cout << xAxis << ", " << yAxis << std::endl;
 
     EmbeddingViz * subviz = embeddingVizs_[thisSubvizNum];
     const float2 subviewportPoint = ((viewportPoint - make_float2(xAxis,yAxis) - make_float2(subvizPaddingPercent_))/(1-2*subvizPaddingPercent_) - make_float2(0.5))*

@@ -49,6 +49,13 @@ include_directories(${CAFFE_ROOT}/include
 link_directories(${CAFFE_ROOT}/build/lib)
 link_libraries(caffe)
 
+set(tSNE_ROOT /home/tws10/Development/extern/tSNE)
+include_directories(${tSNE_ROOT})
+set(tSNE_sources
+    ${tSNE_ROOT}/sptree.cpp
+    ${tSNE_ROOT}/tsne.cpp
+)
+
 set(sources
     src/feature_projector.h
     src/feature_projector.cpp
@@ -94,6 +101,7 @@ cuda_add_executable(
         src/seeinIn.cpp
         # support sources
         ${sources}
+        ${tSNE_sources}
 )
 else ()
 add_definitions(-DCPU_ONLY)
@@ -106,6 +114,7 @@ add_executable(
         src/seeinIn.cpp
         # support sources
         ${sources}
+        ${tSNE_sources}
 )
 endif()
 
