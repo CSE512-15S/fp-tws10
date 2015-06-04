@@ -1,9 +1,6 @@
 #include "embedding_sub_viz.h"
 
 #include <limits>
-#include <stdlib.h>
-#include <vector_functions.h>
-#include <helper_math.h>
 #include <iostream>
 #include "gl_helpers.h"
 

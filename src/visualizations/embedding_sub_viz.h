@@ -1,6 +1,7 @@
 #ifndef EMBEDDING_SUB_VIZ_H
 #define EMBEDDING_SUB_VIZ_H
 
+#include <stdlib.h>
 #include <vector_types.h>
 #include <vector_functions.h>
 #include <helper_math.h>

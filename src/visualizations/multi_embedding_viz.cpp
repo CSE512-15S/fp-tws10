@@ -77,8 +77,7 @@ void MultiEmbeddingViz::render(pangolin::View & view) {
 
         imageTex_.Upload(images_ + hoveredPointIndex*imageWidth_*imageHeight_,GL_LUMINANCE,GL_FLOAT);
         const float2 hoveredViewportPoint = hoverViz->getEmbedding()[hoveredPointIndex];
-        const float2 hoveredWindowPoint = getNormalizedPoint(hoverViz->getNormalizedPoint(hoveredViewportPoint),hoveredSubvizRow,hoveredSubvizCol)*windowSize;
-        std::cout << hoveredViewportPoint.x << ", " << hoveredViewportPoint.y << " -> " <<  hoveredWindowPoint.x << ", " << hoveredWindowPoint.y << std::endl;
+        const float2 hoveredWindowPoint = getWindowPoint(getViewportPointOfSubvizPoint(hoverViz->getNormalizedPoint(hoveredViewportPoint),hoveredSubvizRow,hoveredSubvizCol),windowSize);
 
         static const float2 hoverOffset = make_float2(imageWidth_/4,imageHeight_/4);
         static const float2 textureSize = make_float2(2*imageWidth_,2*imageHeight_);

@@ -35,8 +35,12 @@ public:
 
     void clearHover();
 
-    inline float2 getNormalizedPoint(const float2 normalizedSubvizPoint, const int subvizRow, const int subvizCol) {
-        return (1.f/dims_)*(make_float2(subvizCol,subvizRow) + make_float2(subvizPaddingPercent_) + (1-2*subvizPaddingPercent_)*normalizedSubvizPoint);
+    inline float2 getViewportPointOfSubvizPoint(const float2 normalizedSubvizPoint, const int subvizRow, const int subvizCol) {
+        return (make_float2(subvizCol,subvizRow) + make_float2(subvizPaddingPercent_) + (1-2*subvizPaddingPercent_)*normalizedSubvizPoint);
+    }
+
+    inline float2 getWindowPoint(const float2 viewportPoint, const float2 windowSize) {
+        return ((viewportPoint - getViewportCenter())/getViewportSize() + make_float2(0.5))*windowSize;
     }
 
 private:
