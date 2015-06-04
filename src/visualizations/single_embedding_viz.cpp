@@ -4,14 +4,7 @@
 SingleEmbeddingViz::SingleEmbeddingViz(const float aspectRatio, const float * images,
                                        const int imageWidth, const int imageHeight,
                                        pangolin::GlTexture & imageTex) :
-    aspectRatio_(aspectRatio),
-    images_(images),
-    imageWidth_(imageWidth),
-    imageHeight_(imageHeight),
-    imageTex_(imageTex),
-    //   previewTex_(previewTex),
-    zoom_(1.f),
-    scroll_(make_float2(0,0)),
+    EmbeddingViz(aspectRatio,images,imageWidth,imageHeight,imageTex,0.1f),
     subViz_(aspectRatio) {
 
 }
@@ -127,13 +120,10 @@ void SingleEmbeddingViz::setHoveredOverPoint(const float2 viewportPoint) {
     subViz_.setHoveredOverPoint(viewportPoint);
 }
 
-void SingleEmbeddingViz::clampZoom() {
-    zoom_ = std::max(std::min(1.f,zoom_),0.1f);
-    clampScroll();
-}
+//void SingleEmbeddingViz::clampScroll() {
 
-void SingleEmbeddingViz::clampScroll() {
+//    scroll_ = fmaxf(getMinScroll(),fminf(scroll_,getMaxScroll()));
 
-    const float2 maxScroll = subViz_.getMaxViewportSize() - getViewportSize();
-    scroll_ = fmaxf(-0.5f*maxScroll,fminf(scroll_,0.5f*maxScroll));
-}
+////    const float2 maxScroll = subViz_.getMaxViewportSize() - getViewportSize();
+////    scroll_ = fmaxf(-0.5f*maxScroll,fminf(scroll_,0.5f*maxScroll));
+//}

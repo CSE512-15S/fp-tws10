@@ -31,52 +31,21 @@ public:
 
     inline const float2 * getEmbedding() { return subViz_.getEmbedding(); }
 
-    inline float getZoom() { return zoom_; }
-
-    inline void setZoom(const float zoom) { zoom_ = zoom; clampZoom(); }
-
-    inline void incrementScroll(const float2 increment) { scroll_ += increment; clampScroll(); }
-
     inline int getHoveredOverPoint() { return subViz_.getHoveredOverPoint(); }
 
     void setHoveredOverPoint(const float2 viewportPoint);
 
     inline void clearHover() { subViz_.clearHover(); }
 
-    inline float2 getWindowPoint(const float2 viewportPoint, const float2 windowSize) {
-        return ((viewportPoint - getViewportCenter())/getViewportSize() + make_float2(0.5))*windowSize;
-    }
+protected:
+
+    inline float2 getMinScroll() { return -1.f*getMaxScroll(); }
+
+    inline float2 getMaxScroll() { return 0.5f*(subViz_.getMaxViewportSize() - getViewportSize()); }
 
 private:
-    // -=-=-=-=-=- methods -=-=-=-=-=-
-    void clampZoom();
-    void clampScroll();
-
-    // -=-=-=-=-=- members -=-=-=-=-=-
-    float aspectRatio_;
-    float zoom_;
-    float2 scroll_;
 
     EmbeddingSubViz subViz_;
-
-    /////////////
-//    float2 maxViewportSize_;
-//    float2 maxViewportCenter_;
-
-//    int nEmbedded_;
-
-//    const float2 * embedding_;
-//    uchar3 * coloring_;
-
-//    int hoveredPointIndex_;
-    ///////////////
-
-    const float * images_;
-    const int imageWidth_;
-    const int imageHeight_;
-//    const uchar3 * previewImg;
-    pangolin::GlTexture & imageTex_;
-//    pangolin::GlTexture & previewTex_;
 
 };
 

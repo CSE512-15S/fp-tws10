@@ -9,60 +9,58 @@
 class EmbeddingViz {
 public:
 
-//    EmbeddingViz(const float aspectRatio, const float * images,
-//                 const int imageWidth, const int imageHeight,
-//                 pangolin::GlTexture & imageTex
-////                 ,
-////                 pangolin::GlTexture & previewTex
-//                 );
-
-//    void setEmbedding(const float2 * embedding, uchar3 * coloring, int nEmbedded);
+    EmbeddingViz(const float aspectRatio, const float * images,
+                 const int imageWidth, const int imageHeight,
+                 pangolin::GlTexture & imageTex, const float minZoom) :
+        zoom_(1.f), scroll_(make_float2(0.f)), aspectRatio_(aspectRatio),
+        images_(images), imageWidth_(imageWidth), imageHeight_(imageHeight),
+        imageTex_(imageTex), minZoom_(minZoom) { }
 
 //    void render(const float2 window);
 
-//    inline float2 getViewportSize() { return zoom_*maxViewportSize_; }
+    virtual float2 getViewportSize() = 0;
 
-//    inline float2 getViewportCenter() { return maxViewportCenter_ + scroll_; }
+    virtual float2 getViewportCenter() = 0;
 
-//    inline int getNumEmbeddedPoints() { return nEmbedded_; }
+    inline float getZoom() { return zoom_; }
 
-//    inline const float2 * getEmbedding() { return embedding_; }
+    inline void setZoom(const float zoom) { zoom_ = zoom; clampZoom(); }
 
-//    inline float getZoom() { return zoom_; }
+    inline void incrementScroll(const float2 increment) { scroll_ += increment; clampScroll(); }
 
-//    inline void setZoom(const float zoom) { zoom_ = zoom; clampZoom(); }
+    virtual int getHoveredOverPoint() = 0;
 
-//    inline void incrementScroll(const float2 increment) { scroll_ += increment; clampScroll(); }
+    virtual void setHoveredOverPoint(const float2 viewportPoint) = 0;
 
-//    inline int getHoveredOverPoint() { return hoveredPointIndex_; }
+    virtual void clearHover() = 0;
 
-//    void setHoveredOverPoint(const float2 viewportPoint);
+    inline float2 getWindowPoint(const float2 viewportPoint, const float2 windowSize) {
+        return ((viewportPoint - getViewportCenter())/getViewportSize() + make_float2(0.5))*windowSize;
+    }
 
-//    inline void clearHover() { hoveredPointIndex_ = -1; }
+protected:
+    // -=-=-=-=-=- methods -=-=-=-=-=-
+    virtual float2 getMinScroll() = 0;
 
-//private:
-//    // -=-=-=-=-=- methods -=-=-=-=-=-
-//    void clampZoom();
-//    void clampScroll();
+    virtual float2 getMaxScroll() = 0;
 
-//    // -=-=-=-=-=- members -=-=-=-=-=-
-//    float aspectRatio_;
-//    float2 maxViewportSize_;
-//    float2 maxViewportCenter_;
-//    float zoom_;
-//    float2 scroll_;
+    inline void clampScroll() { scroll_ = fmaxf(getMinScroll(),fminf(scroll_,getMaxScroll())); }
 
-//    int nEmbedded_;
-//    const float2 * embedding_;
-//    uchar3 * coloring_;
+    inline void clampZoom() { zoom_ = std::max(std::min(1.f,zoom_),minZoom_);  clampScroll(); }
 
-//    int hoveredPointIndex_;
-//    const float * images_;
-//    const int imageWidth_;
-//    const int imageHeight_;
-////    const uchar3 * previewImg;
-//    pangolin::GlTexture & imageTex_;
-////    pangolin::GlTexture & previewTex_;
+    // -=-=-=-=-=- members -=-=-=-=-=-
+    float aspectRatio_;
+    float zoom_;
+    float2 scroll_;
+
+    float minZoom_;
+
+    const float * images_;
+    const int imageWidth_;
+    const int imageHeight_;
+//    const uchar3 * previewImg;
+    pangolin::GlTexture & imageTex_;
+//    pangolin::GlTexture & previewTex_;
 
 };
 

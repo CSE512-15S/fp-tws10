@@ -23,13 +23,7 @@ public:
 
     inline float2 getViewportCenter() { return scroll_ + 0.5*getViewportSize(); }
 
-    inline float getZoom() { return zoom_; }
-
-    inline void setZoom(const float zoom) { zoom_ = zoom; clampZoom(); }
-
-    inline void incrementScroll(const float2 increment) { scroll_ += increment; clampScroll(); }
-
-    void setHoverPoint(const float2 viewportPoint);
+    void setHoveredOverPoint(const float2 viewportPoint);
 
     int getHoveredOverPoint();
 
@@ -39,31 +33,20 @@ public:
         return (make_float2(subvizCol,subvizRow) + make_float2(subvizPaddingPercent_) + (1-2*subvizPaddingPercent_)*normalizedSubvizPoint);
     }
 
-    inline float2 getWindowPoint(const float2 viewportPoint, const float2 windowSize) {
-        return ((viewportPoint - getViewportCenter())/getViewportSize() + make_float2(0.5))*windowSize;
-    }
+protected:
+
+    inline float2 getMinScroll() { return make_float2(0.f); }
+
+    inline float2 getMaxScroll() { return make_float2(dims_) - getViewportSize(); }
 
 private:
     // -=-=-=-=-=- methods -=-=-=-=-=-
     void clear();
 
-    void clampZoom();
-
-    void clampScroll();
-
     // -=-=-=-=-=- members -=-=-=-=-=-
-    float aspectRatio_;
     int dims_;
     std::vector<EmbeddingSubViz *> embeddingVizs_;
     std::vector<float2 *> partialEmbeddings_;
-
-    const float * images_;
-    const int imageWidth_;
-    const int imageHeight_;
-    pangolin::GlTexture & imageTex_;
-
-    float zoom_;
-    float2 scroll_;
 
     int hoveredSubvizIndex_;
 

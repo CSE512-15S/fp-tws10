@@ -57,6 +57,6 @@ void MultiEmbeddingViewMouseHandler::MouseMotion(pangolin::View & v, int x, int 
 void MultiEmbeddingViewMouseHandler::PassiveMouseMotion(pangolin::View & v, int x, int y, int button_state) {
 
     const float2 vpPoint = getViewportPoint(v,make_float2(x,y));
-    viz_->setHoverPoint(vpPoint);
+    viz_->setHoveredOverPoint(vpPoint);
 
 }

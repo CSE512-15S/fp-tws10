@@ -6,13 +6,10 @@
 MultiEmbeddingViz::MultiEmbeddingViz(const float aspectRatio, const float * images,
                                      const int imageWidth, const int imageHeight,
                                      pangolin::GlTexture & imageTex) :
-    aspectRatio_(aspectRatio),images_(images),
-    imageWidth_(imageWidth),
-    imageHeight_(imageHeight),
-    imageTex_(imageTex),
-    zoom_(1.f),
-    scroll_(make_float2(0.f,0.f)),
-    hoveredSubvizIndex_(0) { }
+    EmbeddingViz(aspectRatio,images,imageWidth,imageHeight,imageTex,0.005f),
+    hoveredSubvizIndex_(0) {
+
+}
 
 MultiEmbeddingViz::~MultiEmbeddingViz() {
     clear();
@@ -163,7 +160,7 @@ void MultiEmbeddingViz::render(pangolin::View & view) {
 
 }
 
-void MultiEmbeddingViz::setHoverPoint(const float2 viewportPoint) {
+void MultiEmbeddingViz::setHoveredOverPoint(const float2 viewportPoint) {
 
     const int xAxis = viewportPoint.x;
     const int yAxis = viewportPoint.y;
@@ -192,13 +189,6 @@ void MultiEmbeddingViz::clear() {
     partialEmbeddings_.clear();
 }
 
-void MultiEmbeddingViz::clampZoom() {
-
-    zoom_ = std::max(std::min(1.f,zoom_),0.005f);
-    clampScroll();
-
-}
-
 void MultiEmbeddingViz::clearHover() {
 
     return embeddingVizs_[hoveredSubvizIndex_]->clearHover();
@@ -211,9 +201,8 @@ int MultiEmbeddingViz::getHoveredOverPoint() {
 
 }
 
-void MultiEmbeddingViz::clampScroll() {
+//void MultiEmbeddingViz::clampScroll() {
 
-    scroll_ = fmaxf(make_float2(0.f),fminf(scroll_,make_float2(dims_) - getViewportSize()));
-//    std::cout << scroll_.x << ", " << scroll_.y << std::endl;
+//    scroll_ = fmaxf(getMinScroll(),fminf(scroll_,getMaxScroll()));
 
-}
+//}
