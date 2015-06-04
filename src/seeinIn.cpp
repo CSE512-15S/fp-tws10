@@ -1,4 +1,5 @@
 #include <pangolin/pangolin.h>
+#include <pangolin/gl.h>
 
 #include <fstream>
 #include <iostream>
@@ -175,7 +176,9 @@ int main(int argc, char * * argv) {
 
     bool hasSelection = false;
 
-    FontManager fontManager("Ubuntu");
+
+    // -=-=-=-=- set up font management -=-=-=-=-
+    FontManager fontManager("Ubuntu Mono");
 
     // -=-=-=-=- set up layer visualizations -=-=-=-=-
     std::vector<std::string> filterResponsesToVisualize;
@@ -219,6 +222,29 @@ int main(int argc, char * * argv) {
         filterResponseViz.resize(filterView.GetBounds().w,filterView.GetBounds().h,filterVizZoom);
     });
 
+    // -=-=-=-=- render previews -=-=-=-=-
+    const int previewWidth = 128;
+    const int previewHeight = previewWidth*embeddingViewAspectRatio;
+    pangolin::GlTexture previewTex(previewWidth,previewHeight);
+    {
+        pangolin::GlRenderBuffer previewRenderBuffer(previewWidth,previewHeight);
+        pangolin::GlFramebuffer previewFrameBuffer(previewTex,previewRenderBuffer);
+
+        previewFrameBuffer.Bind();
+        glViewport(0,0,previewWidth,previewHeight);
+        glEnable(GL_SCISSOR_TEST);
+        glScissor(0,0,previewWidth,previewHeight);
+        glClearColor(1,1,1,1);
+        glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glOrtho(0, previewWidth, 0, previewHeight, -1, 1);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        embeddingViz.render(make_float2(previewWidth,previewHeight));
+        previewFrameBuffer.Unbind();
+    }
+
     bool multiembeddingVizActive = false;
 
     for (long frame=1; !pangolin::ShouldQuit(); ++frame) {
@@ -242,6 +268,9 @@ int main(int argc, char * * argv) {
             embeddingViz.render(make_float2(embeddingView.GetBounds().w,embeddingView.GetBounds().h));
 
     //        multiEmbeddingViz.render(embeddingView);
+
+            glColor3ub(255,255,255);
+            renderTexture(previewTex,make_float2(0),make_float2(previewWidth,previewHeight),false);
 
             glPushMatrix();
             setUpViewport(embeddingView,embeddingViz.getViewportSize(),embeddingViz.getViewportCenter());
@@ -359,9 +388,8 @@ int main(int argc, char * * argv) {
                 const int dims = embeddingBlob->channels();
                 switch (layerNum) {
                     case 5:
-                        std::cout << "we're about to do some crazy shit here..." << std::endl;
                         {
-//                            std::cout << "namely, embedding " << dims << " dimensional data" << std::endl;
+//                            std::cout << "embedding " << dims << " dimensional data" << std::endl;
 //                            std::vector<double> tsneData(nTestImages*dims);
 //                            // todo: wont work on non-1x1 outputs
 //                            for (int i=0; i<embeddingBlob->count(); ++i) {
@@ -403,8 +431,10 @@ int main(int argc, char * * argv) {
                 const int selectedLayerNum = filterViewHandler.getSelectedLayer();
                 const int selectedUnit = filterViewHandler.getSelectedUnit();
                 const std::string blobName = filterResponsesToVisualize[selectedLayerNum];
-                const float activationValue = 1.f; //net.blob_by_name(blobName)->cpu_data()[selectedUnit];
+                const float activationValue = net.blob_by_name(blobName)->cpu_data()[selectedUnit];
+                std::cout << "activated at " << activationValue << std::endl;
                 featProjector.computeProjection(blobName,selectedImage,selectedUnit,activationValue);
+                std::cout << "stored as " << featProjector.getResponse(blobName)[selectedUnit] << std::endl;
                 filterResponseViz.setResponse(featProjector);
             }
         }

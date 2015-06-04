@@ -92,6 +92,7 @@ void FeatureProjector::computeProjection(const std::string activationBlobName, c
     }
     std::cout << "data range: " << dataMin << " -> " << dataMax << std::endl;
 
+    std::cout << "now activated at " << activationTmpBlob->cpu_data()[activationIndex] << std::endl;
 }
 
 const float * FeatureProjector::getResponse(const std::string blobName) {

@@ -5,7 +5,7 @@ void setUpViewport(const float2 windowSize, const float2 viewportSize, const flo
     glTranslatef(viewportSize.x/2 - viewportCenter.x,viewportSize.y/2 - viewportCenter.y,0);
 }
 
-void renderTexture(const pangolin::GlTexture & texture, const float2 location, const float2 size ) {
+void renderTexture(const pangolin::GlTexture & texture, const float2 location, const float2 size, bool flipY ) {
 
     GLfloat sq_vert[] = { location.x,          location.y,
                           location.x + size.x, location.y,
@@ -14,8 +14,10 @@ void renderTexture(const pangolin::GlTexture & texture, const float2 location, c
     glVertexPointer(2, GL_FLOAT, 0, sq_vert);
     glEnableClientState(GL_VERTEX_ARRAY);
 
-    static GLfloat sq_tex[]  = { 0,1,  1,1,  1,0,  0,0  };
-    glTexCoordPointer(2, GL_FLOAT, 0, sq_tex);
+
+    static GLfloat sq_tex_no_flip[] = { 0,0,  1,0,  1,1,  0,1  };
+    static GLfloat sq_tex_flip[]  = { 0,1,  1,1,  1,0,  0,0  };
+    glTexCoordPointer(2, GL_FLOAT, 0, flipY ? sq_tex_flip : sq_tex_no_flip);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
     glEnable(GL_TEXTURE_2D);

@@ -9,6 +9,7 @@ EmbeddingViz::EmbeddingViz(const float aspectRatio, const float * images,
    imageWidth_(imageWidth),
    imageHeight_(imageHeight),
    imageTex_(imageTex),
+//   previewTex_(previewTex),
    hoveredPointIndex_(-1),
    zoom_(1.f),
    scroll_(make_float2(0,0)) {

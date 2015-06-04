@@ -10,7 +10,10 @@ public:
 
     EmbeddingViz(const float aspectRatio, const float * images,
                  const int imageWidth, const int imageHeight,
-                 pangolin::GlTexture & imageTex);
+                 pangolin::GlTexture & imageTex
+//                 ,
+//                 pangolin::GlTexture & previewTex
+                 );
 
     void setEmbedding(const float2 * embedding, uchar3 * coloring, int nEmbedded);
 
@@ -56,7 +59,9 @@ private:
     const float * images_;
     const int imageWidth_;
     const int imageHeight_;
+//    const uchar3 * previewImg;
     pangolin::GlTexture & imageTex_;
+//    pangolin::GlTexture & previewTex_;
 
 };
 

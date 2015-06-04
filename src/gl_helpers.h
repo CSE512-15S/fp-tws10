@@ -15,7 +15,7 @@ void setUpViewport(const float2 windowSize, const float2 viewportSize, const flo
 
 inline void setUpViewport(pangolin::View & window, const float2 viewportSize, const float2 viewportCenter) { setUpViewport(make_float2(window.GetBounds().w,window.GetBounds().h),viewportSize,viewportCenter); }
 
-void renderTexture(const pangolin::GlTexture & texture, const float2 location = make_float2(0,0), const float2 size = make_float2(1,1));
+void renderTexture(const pangolin::GlTexture & texture, const float2 location = make_float2(0,0), const float2 size = make_float2(1,1), bool flipY = true);
 
 inline static void glScalePixels(const float3 scale = make_float3(1.f), const float3 bias = make_float3(0.f)){
     glPixelTransferf(GL_RED_SCALE, scale.x);
