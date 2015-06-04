@@ -21,7 +21,7 @@ public:
 
     void setEmbedding(const float2 * embedding, uchar3 * coloring, int nEmbedded);
 
-    void render(const float2 window);
+    void render(const float2 windowSize);
 
     inline float2 getViewportSize() { return zoom_*subViz_.getMaxViewportSize(); }
 
@@ -42,6 +42,10 @@ public:
     void setHoveredOverPoint(const float2 viewportPoint);
 
     inline void clearHover() { subViz_.clearHover(); }
+
+    inline float2 getWindowPoint(const float2 viewportPoint, const float2 windowSize) {
+        return ((viewportPoint - getViewportCenter())/getViewportSize() + make_float2(0.5))*windowSize;
+    }
 
 private:
     // -=-=-=-=-=- methods -=-=-=-=-=-
