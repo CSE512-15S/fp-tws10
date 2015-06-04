@@ -21,9 +21,9 @@ public:
 
     void render(const float2 windowSize);
 
-    inline float2 getViewportSize() { return make_float2(zoom_*dims_); }
+    inline float2 getMaxViewportSize() { return make_float2(dims_); }
 
-    inline float2 getViewportCenter() { return scroll_ + 0.5*getViewportSize(); }
+    inline float2 getMaxViewportCenter() { return make_float2(0.5*dims_); }
 
     void setHoveredOverPoint(const float2 viewportPoint);
 
@@ -34,12 +34,6 @@ public:
     inline float2 getViewportPointOfSubvizPoint(const float2 normalizedSubvizPoint, const int subvizRow, const int subvizCol) {
         return (make_float2(subvizCol,subvizRow) + make_float2(subvizPaddingPercent_) + (1-2*subvizPaddingPercent_)*normalizedSubvizPoint);
     }
-
-protected:
-
-    inline float2 getMinScroll() { return make_float2(0.f); }
-
-    inline float2 getMaxScroll() { return make_float2(dims_) - getViewportSize(); }
 
 private:
     // -=-=-=-=-=- methods -=-=-=-=-=-

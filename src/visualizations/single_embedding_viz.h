@@ -22,9 +22,9 @@ public:
 
     void render(const float2 windowSize);
 
-    inline float2 getViewportSize() { return zoom_*subViz_.getMaxViewportSize(); }
+    inline float2 getMaxViewportSize() { return subViz_.getMaxViewportSize(); }
 
-    inline float2 getViewportCenter() { return subViz_.getMaxViewportCenter() + scroll_; }
+    inline float2 getMaxViewportCenter() { return subViz_.getMaxViewportCenter(); }
 
     inline int getNumEmbeddedPoints() { return subViz_.getNumEmbeddedPoints(); }
 
@@ -35,12 +35,6 @@ public:
     void setHoveredOverPoint(const float2 viewportPoint);
 
     inline void clearHover() { subViz_.clearHover(); }
-
-protected:
-
-    inline float2 getMinScroll() { return -1.f*getMaxScroll(); }
-
-    inline float2 getMaxScroll() { return 0.5f*(subViz_.getMaxViewportSize() - getViewportSize()); }
 
 private:
 

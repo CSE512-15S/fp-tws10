@@ -42,13 +42,15 @@ void MultiEmbeddingViz::render(const float2 windowSize) {
 //    std::cout << view.GetBounds().w << " x " << view.GetBounds().h << std::endl;
 
     glPushMatrix();
-    setUpViewport(windowSize,make_float2(dims_),make_float2(0.5*dims_));
+//    setUpViewport(windowSize,make_float2(dims_),make_float2(0.5*dims_));
+    setUpViewport(windowSize,getViewportSize(),getViewportCenter());
 
 //    const float vizHeight = view.GetBounds().h / (float)dims_;
 //    const float vizWidth = view.GetBounds().w / (float)dims_;
 
-    glScalef(1.f/zoom_,1.f/zoom_,1.f/zoom_);
-    glTranslatef(-scroll_.x,-scroll_.y+subvizPaddingPercent_,0);
+//    glScalef(1.f/zoom_,1.f/zoom_,1.f/zoom_);
+//    glTranslatef(-scroll_.x,-scroll_.y+subvizPaddingPercent_,0);
+    glTranslatef(0,subvizPaddingPercent_,0);
     for (int yDim = 0; yDim < dims_; ++yDim) {
         glPushMatrix();
         glTranslatef(subvizPaddingPercent_,0,0);

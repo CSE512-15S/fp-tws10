@@ -25,9 +25,13 @@ public:
 
     void render(const float2 windowSize);
 
-    virtual float2 getViewportSize() = 0;
+    inline float2 getViewportSize() { return zoom_*getMaxViewportSize(); }
 
-    virtual float2 getViewportCenter() = 0;
+    inline float2 getViewportCenter() { return getMaxViewportCenter() + scroll_; }
+
+    virtual float2 getMaxViewportSize() = 0;
+
+    virtual float2 getMaxViewportCenter() = 0;
 
     inline float getZoom() { return zoom_; }
 
@@ -49,13 +53,13 @@ public:
 
 protected:
     // -=-=-=-=-=- methods -=-=-=-=-=-
-    virtual float2 getMinScroll() = 0;
-
-    virtual float2 getMaxScroll() = 0;
-
     inline void clampScroll() { scroll_ = fmaxf(getMinScroll(),fminf(scroll_,getMaxScroll())); }
 
     inline void clampZoom() { zoom_ = std::max(std::min(1.f,zoom_),minZoom_);  clampScroll(); }
+
+    inline float2 getMinScroll() { return -1.f*getMaxScroll(); }
+
+    inline float2 getMaxScroll() { return 0.5f*(getMaxViewportSize() - getViewportSize()); }
 
     // -=-=-=-=-=- members -=-=-=-=-=-
     float aspectRatio_;
