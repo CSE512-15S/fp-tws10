@@ -36,11 +36,11 @@ void EmbeddingSubViz::setEmbedding(const float2 * embedding, uchar3 * coloring, 
 
 }
 
-void EmbeddingSubViz::render(const float2 window, const float2 viewportSize, const float2 viewportCenter) {
+void EmbeddingSubViz::render(const float2 windowSize, const float2 viewportSize, const float2 viewportCenter) {
 
     glPushMatrix();
 
-    setUpViewport(window,viewportSize,viewportCenter);
+    setUpViewport(windowSize,viewportSize,viewportCenter);
 
     glPointSize(3);
     glColor3ub(0,0,0);

@@ -10,14 +10,16 @@ class MultiEmbeddingViz : public EmbeddingViz {
 public:
     MultiEmbeddingViz(const float aspectRatio, const float * images,
                       const int imageWidth, const int imageHeight,
-                      pangolin::GlTexture & imageTex);
+                      pangolin::GlTexture & imageTex,
+                      const int overviewWidth, const int overviewHeight,
+                      pangolin::GlTexture & overviewTex);
 
     ~MultiEmbeddingViz();
 
     void setEmbedding(const float * embedding, const int embeddingDimensions,
                       uchar3 * coloring, const int nEmbedded);
 
-    void render(pangolin::View & view);
+    void render(const float2 windowSize);
 
     inline float2 getViewportSize() { return make_float2(zoom_*dims_); }
 

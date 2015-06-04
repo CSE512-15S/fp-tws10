@@ -134,13 +134,17 @@ int main(int argc, char * * argv) {
     pangolin::GlTexture imageTex(imageWidth,imageHeight);
     imageTex.SetNearestNeighbour();
 
+    const int overviewWidth = 256;
+    const int overviewHeight = overviewWidth*embeddingViewAspectRatio;
+    pangolin::GlTexture overviewTex(overviewWidth,overviewHeight);
+
     // -=-=-=-=- set up visualizations -=-=-=-=-
     boost::shared_ptr<caffe::Blob<float> > outputBlob = net.blobs()[net.output_blob_indices()[0]];
-    SingleEmbeddingViz embeddingViz(embeddingViewAspectRatio,testImages,imageWidth,imageHeight,imageTex);
+    SingleEmbeddingViz embeddingViz(embeddingViewAspectRatio,testImages,imageWidth,imageHeight,imageTex,overviewWidth,overviewHeight,overviewTex);
     embeddingViz.setEmbedding((const float2 *)outputBlob->cpu_data(),testColors.data(),nTestImages);
 
     boost::shared_ptr<caffe::Blob<float> > ip2Blob = net.blob_by_name("ip2");
-    MultiEmbeddingViz multiEmbeddingViz(embeddingViewAspectRatio,testImages,imageWidth,imageHeight,imageTex);
+    MultiEmbeddingViz multiEmbeddingViz(embeddingViewAspectRatio,testImages,imageWidth,imageHeight,imageTex,overviewWidth,overviewHeight,overviewTex);
     multiEmbeddingViz.setEmbedding(ip2Blob->cpu_data(),ip2Blob->channels(),testColors.data(),nTestImages);
 
     // -=-=-=-=- set up mouse handlers -=-=-=-=-
@@ -223,26 +227,30 @@ int main(int argc, char * * argv) {
     });
 
     // -=-=-=-=- render previews -=-=-=-=-
-    const int previewWidth = 128;
-    const int previewHeight = previewWidth*embeddingViewAspectRatio;
-    pangolin::GlTexture previewTex(previewWidth,previewHeight);
     {
-        pangolin::GlRenderBuffer previewRenderBuffer(previewWidth,previewHeight);
-        pangolin::GlFramebuffer previewFrameBuffer(previewTex,previewRenderBuffer);
+        pangolin::GlRenderBuffer previewRenderBuffer(overviewWidth,overviewHeight);
+        pangolin::GlFramebuffer previewFrameBuffer(overviewTex,previewRenderBuffer);
 
         previewFrameBuffer.Bind();
-        glViewport(0,0,previewWidth,previewHeight);
+        glViewport(0,0,overviewWidth,overviewHeight);
         glEnable(GL_SCISSOR_TEST);
-        glScissor(0,0,previewWidth,previewHeight);
+        glScissor(0,0,overviewWidth,overviewHeight);
         glClearColor(1,1,1,1);
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        glOrtho(0, previewWidth, 0, previewHeight, -1, 1);
+        glOrtho(0, overviewWidth, 0, overviewHeight, -1, 1);
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
-        embeddingViz.render(make_float2(previewWidth,previewHeight));
+        embeddingViz.render(make_float2(overviewWidth,overviewHeight));
         previewFrameBuffer.Unbind();
+        overviewTex.Download(embeddingViz.getOverviewImage(),GL_RGB,GL_UNSIGNED_BYTE);
+
+        previewFrameBuffer.Bind();
+        glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+        multiEmbeddingViz.render(make_float2(overviewWidth,overviewHeight));
+        previewFrameBuffer.Unbind();
+        overviewTex.Download(multiEmbeddingViz.getOverviewImage(),GL_RGB,GL_UNSIGNED_BYTE);
     }
 
     bool multiembeddingVizActive = false;
@@ -262,10 +270,11 @@ int main(int argc, char * * argv) {
         embeddingView.ActivateScissorAndClear();
         embeddingView.ActivatePixelOrthographic();
 
+        const float2 windowSize = make_float2(embeddingView.GetBounds().w,embeddingView.GetBounds().h);
         if (multiembeddingVizActive) {
-            multiEmbeddingViz.render(embeddingView);
+            multiEmbeddingViz.render(windowSize);
         } else {
-            embeddingViz.render(make_float2(embeddingView.GetBounds().w,embeddingView.GetBounds().h));
+            embeddingViz.render(windowSize);
 
     //        multiEmbeddingViz.render(embeddingView);
 
@@ -273,7 +282,7 @@ int main(int argc, char * * argv) {
 //            renderTexture(previewTex,make_float2(0),make_float2(previewWidth,previewHeight),false);
 
             glPushMatrix();
-            setUpViewport(embeddingView,embeddingViz.getViewportSize(),embeddingViz.getViewportCenter());
+            setUpViewport(windowSize,embeddingViz.getViewportSize(),embeddingViz.getViewportCenter());
 
     //        {
     //            glColor3ub(0,0,0);

@@ -5,8 +5,10 @@
 
 MultiEmbeddingViz::MultiEmbeddingViz(const float aspectRatio, const float * images,
                                      const int imageWidth, const int imageHeight,
-                                     pangolin::GlTexture & imageTex) :
-    EmbeddingViz(aspectRatio,images,imageWidth,imageHeight,imageTex,0.005f),
+                                     pangolin::GlTexture & imageTex,
+                                     const int overviewWidth, const int overviewHeight,
+                                     pangolin::GlTexture & overviewTex) :
+    EmbeddingViz(aspectRatio,0.005f,images,imageWidth,imageHeight,imageTex,overviewWidth,overviewHeight,overviewTex),
     hoveredSubvizIndex_(0) {
 
 }
@@ -35,12 +37,12 @@ void MultiEmbeddingViz::setEmbedding(const float * embedding, const int embeddin
 
 }
 
-void MultiEmbeddingViz::render(pangolin::View & view) {
+void MultiEmbeddingViz::render(const float2 windowSize) {
 
 //    std::cout << view.GetBounds().w << " x " << view.GetBounds().h << std::endl;
 
     glPushMatrix();
-    setUpViewport(view,make_float2(dims_),make_float2(0.5*dims_));
+    setUpViewport(windowSize,make_float2(dims_),make_float2(0.5*dims_));
 
 //    const float vizHeight = view.GetBounds().h / (float)dims_;
 //    const float vizWidth = view.GetBounds().w / (float)dims_;
@@ -69,8 +71,6 @@ void MultiEmbeddingViz::render(pangolin::View & view) {
 
         const int hoveredSubvizCol = hoveredSubvizIndex_ % dims_;
         const int hoveredSubvizRow = hoveredSubvizIndex_ / dims_;
-
-        const float2 windowSize = make_float2(view.GetBounds().w,view.GetBounds().h);
 
         imageTex_.Upload(images_ + hoveredPointIndex*imageWidth_*imageHeight_,GL_LUMINANCE,GL_FLOAT);
         const float2 hoveredViewportPoint = hoverViz->getEmbedding()[hoveredPointIndex];
@@ -157,7 +157,7 @@ void MultiEmbeddingViz::render(pangolin::View & view) {
 
     }
 
-
+    EmbeddingViz::render(windowSize);
 }
 
 void MultiEmbeddingViz::setHoveredOverPoint(const float2 viewportPoint) {

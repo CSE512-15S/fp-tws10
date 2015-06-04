@@ -3,8 +3,10 @@
 
 SingleEmbeddingViz::SingleEmbeddingViz(const float aspectRatio, const float * images,
                                        const int imageWidth, const int imageHeight,
-                                       pangolin::GlTexture & imageTex) :
-    EmbeddingViz(aspectRatio,images,imageWidth,imageHeight,imageTex,0.1f),
+                                       pangolin::GlTexture & imageTex,
+                                       const int overviewWidth, const int overviewHeight,
+                                       pangolin::GlTexture & overviewTex) :
+    EmbeddingViz(aspectRatio,0.1f,images,imageWidth,imageHeight,imageTex, overviewWidth, overviewHeight, overviewTex),
     subViz_(aspectRatio) {
 
 }
@@ -112,6 +114,8 @@ void SingleEmbeddingViz::render(const float2 windowSize) {
         glLineWidth(1);
 
     }
+
+    EmbeddingViz::render(windowSize);
 
 }
 

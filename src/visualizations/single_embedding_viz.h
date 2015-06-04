@@ -14,10 +14,9 @@ public:
 
     SingleEmbeddingViz(const float aspectRatio, const float * images,
                        const int imageWidth, const int imageHeight,
-                       pangolin::GlTexture & imageTex
-//                 ,
-//                 pangolin::GlTexture & previewTex
-                 );
+                       pangolin::GlTexture & imageTex,
+                       const int overviewWidth, const int overviewHeight,
+                       pangolin::GlTexture & overviewTex);
 
     void setEmbedding(const float2 * embedding, uchar3 * coloring, int nEmbedded);
 

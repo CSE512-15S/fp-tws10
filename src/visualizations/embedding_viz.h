@@ -5,18 +5,25 @@
 #include <vector_types.h>
 #include <vector_functions.h>
 #include <helper_math.h>
+#include <vector>
 
 class EmbeddingViz {
 public:
 
-    EmbeddingViz(const float aspectRatio, const float * images,
+    EmbeddingViz(const float aspectRatio, const float minZoom,
+                 const float * images,
                  const int imageWidth, const int imageHeight,
-                 pangolin::GlTexture & imageTex, const float minZoom) :
+                 pangolin::GlTexture & imageTex,
+                 const int overviewWidth, const int overviewHeight,
+                 pangolin::GlTexture & overviewTex) :
         zoom_(1.f), scroll_(make_float2(0.f)), aspectRatio_(aspectRatio),
         images_(images), imageWidth_(imageWidth), imageHeight_(imageHeight),
-        imageTex_(imageTex), minZoom_(minZoom) { }
+        imageTex_(imageTex), minZoom_(minZoom),
+        overviewImage_(overviewWidth*overviewHeight),
+        overviewWidth_(overviewWidth), overviewHeight_(overviewHeight),
+        overviewTex_(overviewTex) { }
 
-//    void render(const float2 window);
+    void render(const float2 windowSize);
 
     virtual float2 getViewportSize() = 0;
 
@@ -38,6 +45,8 @@ public:
         return ((viewportPoint - getViewportCenter())/getViewportSize() + make_float2(0.5))*windowSize;
     }
 
+    inline uchar3 * getOverviewImage() { return overviewImage_.data(); }
+
 protected:
     // -=-=-=-=-=- methods -=-=-=-=-=-
     virtual float2 getMinScroll() = 0;
@@ -58,9 +67,13 @@ protected:
     const float * images_;
     const int imageWidth_;
     const int imageHeight_;
-//    const uchar3 * previewImg;
+    std::vector<uchar3> overviewImage_;
+    const int overviewWidth_;
+    const int overviewHeight_;
     pangolin::GlTexture & imageTex_;
-//    pangolin::GlTexture & previewTex_;
+    pangolin::GlTexture & overviewTex_;
+
+    static constexpr float overviewZoomThreshold_ = 0.666f;
 
 };
 
