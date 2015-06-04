@@ -29,9 +29,7 @@ void MultiEmbeddingViz::setEmbedding(const float * embedding, const int embeddin
                 partialEmbedding[i] = make_float2(embedding[i*dims_ + xDim],
                                                   embedding[i*dims_ + yDim]);
             }
-            SingleEmbeddingViz * viz = new SingleEmbeddingViz(aspectRatio_,images_,
-                                                  imageWidth_,imageHeight_,
-                                                  imageTex_);
+            EmbeddingSubViz * viz = new EmbeddingSubViz(aspectRatio_);
             viz->setEmbedding(partialEmbedding,coloring,nEmbedded);
             partialEmbeddings_.push_back(partialEmbedding);
             embeddingVizs_.push_back(viz);
@@ -56,9 +54,9 @@ void MultiEmbeddingViz::render(pangolin::View & view) {
         glPushMatrix();
         glTranslatef(subvizPaddingPercent_,0,0);
         for (int xDim = 0; xDim < dims_; ++xDim) {
-            SingleEmbeddingViz * viz = embeddingVizs_[xDim + yDim*dims_];
+            EmbeddingSubViz * viz = embeddingVizs_[xDim + yDim*dims_];
 //            viz->render(make_float2(vizWidth,vizHeight));
-            viz->render(make_float2(1.f-2*subvizPaddingPercent_));
+            viz->render(make_float2(1.f-2*subvizPaddingPercent_),viz->getMaxViewportSize(),viz->getMaxViewportCenter());
             //glTranslatef(vizWidth,0,0);
             glTranslatef(1,0,0);
         }
@@ -80,16 +78,16 @@ void MultiEmbeddingViz::setHoverPoint(const float2 viewportPoint) {
 
 //    std::cout << xAxis << ", " << yAxis << std::endl;
 
-    SingleEmbeddingViz * subviz = embeddingVizs_[thisSubvizNum];
+    EmbeddingSubViz * subviz = embeddingVizs_[thisSubvizNum];
     const float2 subviewportPoint = ((viewportPoint - make_float2(xAxis,yAxis) - make_float2(subvizPaddingPercent_))/(1-2*subvizPaddingPercent_) - make_float2(0.5))*
-                                    subviz->getViewportSize() + subviz->getViewportCenter();
+                                    subviz->getMaxViewportSize() + subviz->getMaxViewportCenter();
     subviz->setHoveredOverPoint(subviewportPoint);
 
     hoveredSubvizIndex_ = thisSubvizNum;
 }
 
 void MultiEmbeddingViz::clear() {
-    for (SingleEmbeddingViz * viz : embeddingVizs_) {
+    for (EmbeddingSubViz * viz : embeddingVizs_) {
         delete viz;
     }
     for (float2 * partialEmbedding : partialEmbeddings_) {

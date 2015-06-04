@@ -6,7 +6,7 @@
 class EmbeddingSubViz {
 public:
 
-    EmbeddingSubViz(float aspectRatio) : aspectRatio_(aspectRatio) { }
+    EmbeddingSubViz(float aspectRatio) : aspectRatio_(aspectRatio), hoveredPointIndex_(-1) { }
 
     void setEmbedding(const float2 * embedding, uchar3 * coloring, int nEmbedded);
 
