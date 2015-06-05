@@ -2,16 +2,17 @@ varying vec3 N;
 varying vec3 v;
 
 uniform float scale;
+attribute float selected;
 
 void main(){
     v = vec3(gl_ModelViewMatrix * gl_Vertex);
     N = normalize(gl_NormalMatrix * gl_Normal);
 
     gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
-    if (gl_FogCoord > 0.f) {
+    if (selected > 0.f) {
         gl_FrontColor = gl_Color;
         gl_Position.z = -0.5;
-        if (gl_FogCoord > 0.5001f) {
+        if (selected > 0.5001f) {
             gl_PointSize = scale*2.f;
         } else {
             gl_PointSize = scale;

@@ -17,7 +17,15 @@ ScatterPlotShader::ScatterPlotShader() {
     shaderProgram_.AddShader(pangolin::GlSlFragmentShader,fragSource);
     shaderProgram_.Link();
 
+    // -=-=-=- set up uniforms -=-=-=-
     shaderProgram_.Bind();
     setScale(1.f);
+
+    // -=-=-=- set up attributes -=-=-=-
+//    GLint prog;
+//    glGetIntegerv(GL_CURRENT_PROGRAM,&prog);
+//    glBindAttribLocation(prog, 5, "selected");
+    std::cout << getSelectionLocation() << std::endl;
+
     shaderProgram_.Unbind();
 }

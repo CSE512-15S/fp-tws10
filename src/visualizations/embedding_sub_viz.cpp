@@ -56,13 +56,18 @@ void EmbeddingSubViz::render(const float2 windowSize, const float2 viewportSize,
     glEnableClientState(GL_COLOR_ARRAY);
     glColorPointer(3,GL_UNSIGNED_BYTE,0,coloring_);
 
-    glEnableClientState(GL_FOG_COORDINATE_ARRAY);
-    glFogCoordPointer(GL_FLOAT,0,selection_);
+//    glEnableClientState(GL_FOG_COORDINATE_ARRAY);
+    //glFogCoordPointer(GL_FLOAT,0,selection_);
+//    glVertexAttrib1fv(pointShader_.getSelectionLocation(),selection_);
+    glEnableVertexAttribArray(pointShader_.getSelectionLocation());
+    glVertexAttribPointer(pointShader_.getSelectionLocation(),1,GL_FLOAT,false,0,selection_);
+    std::cout << pointShader_.getSelectionLocation() << std::endl;
 
     glDrawArrays(GL_POINTS, 0, nEmbedded_);
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
-    glDisableClientState(GL_FOG_COORDINATE_ARRAY);
+    glDisableVertexAttribArray(pointShader_.getSelectionLocation());
+//    glDisableClientState(GL_FOG_COORDINATE_ARRAY);
     glDisable(GL_DEPTH_TEST);
 
     pointShader_.unbind();

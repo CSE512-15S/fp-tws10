@@ -15,6 +15,10 @@ public:
 
     inline void setScale(float scale) { shaderProgram_.SetUniform("scale",scale); }
 
+    inline GLint getSelectionLocation() {
+        return shaderProgram_.GetAttributeHandle("selected");
+    }
+
 private:
 
     pangolin::GlSlProgram shaderProgram_;
