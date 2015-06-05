@@ -80,6 +80,8 @@ set(sources
 
     src/shaders/scatter_plot.frag
     src/shaders/scatter_plot.vert
+    src/shaders/scatter_plot_shader.h
+    src/shaders/scatter_plot_shader.cpp
 
     src/visualizations/embedding_viz.h
     src/visualizations/embedding_viz.cpp

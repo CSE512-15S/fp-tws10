@@ -141,20 +141,7 @@ int main(int argc, char * * argv) {
     pangolin::GlTexture overviewTex(overviewWidth,overviewHeight);
 
     // -=-=-=-=- set up point shader -=-=-=-=-
-    pangolin::GlSlProgram pointShader;
-    {
-        std::ifstream fragStream("../src/shaders/scatter_plot.frag"); // TODO
-        std::string fragSource( (std::istreambuf_iterator<char>(fragStream) ),
-                                (std::istreambuf_iterator<char>()));
-        fragStream.close();
-        std::ifstream vertStream("../src/shaders/scatter_plot.vert");
-        std::string vertSource( (std::istreambuf_iterator<char>(vertStream) ),
-                                (std::istreambuf_iterator<char>()));
-        vertStream.close();
-        pointShader.AddShader(pangolin::GlSlVertexShader,vertSource);
-        pointShader.AddShader(pangolin::GlSlFragmentShader,fragSource);
-        pointShader.Link();
-    }
+    ScatterPlotShader pointShader;
 
     // -=-=-=-=- set up visualizations -=-=-=-=-
     boost::shared_ptr<caffe::Blob<float> > outputBlob = net.blobs()[net.output_blob_indices()[0]];

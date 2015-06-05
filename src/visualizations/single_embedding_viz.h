@@ -18,7 +18,7 @@ public:
                        pangolin::GlTexture & imageTex,
                        const int overviewWidth, const int overviewHeight,
                        pangolin::GlTexture & overviewTex,
-                       pangolin::GlSlProgram & pointShader,
+                       ScatterPlotShader & pointShader,
                        float * selection);
 
     void setEmbedding(const float2 * embedding, uchar3 * coloring, int nEmbedded);

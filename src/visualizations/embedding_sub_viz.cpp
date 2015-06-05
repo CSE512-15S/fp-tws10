@@ -44,7 +44,7 @@ void EmbeddingSubViz::render(const float2 windowSize, const float2 viewportSize,
 
     setUpViewport(windowSize,viewportSize,viewportCenter);
 
-    pointShader_.Bind();
+    pointShader_.bind();
 
     glPointSize(3);
     glColor3ub(0,0,0);
@@ -62,7 +62,7 @@ void EmbeddingSubViz::render(const float2 windowSize, const float2 viewportSize,
     glDisableClientState(GL_COLOR_ARRAY);
     glDisableClientState(GL_FOG_COORDINATE_ARRAY);
 
-    pointShader_.Unbind();
+    pointShader_.unbind();
 
     if (hoveredPointIndex_ >= 0 && hoveredPointIndex_ < nEmbedded_) {
 

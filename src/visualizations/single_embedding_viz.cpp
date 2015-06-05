@@ -6,7 +6,7 @@ SingleEmbeddingViz::SingleEmbeddingViz(const float aspectRatio, const float * im
                                        pangolin::GlTexture & imageTex,
                                        const int overviewWidth, const int overviewHeight,
                                        pangolin::GlTexture & overviewTex,
-                                       pangolin::GlSlProgram & pointShader,
+                                       ScatterPlotShader & pointShader,
                                        float * selection) :
     EmbeddingViz(aspectRatio,0.1f,images,imageWidth,imageHeight,imageTex, overviewWidth, overviewHeight, overviewTex),
     subViz_(aspectRatio,pointShader,selection) {
