@@ -17,7 +17,8 @@ void EmbeddingViewMouseHandler::Mouse(pangolin::View & v, pangolin::MouseButton 
             if (!pressed && !scrolled_) {
                 switch (selectionMode_) {
                     case SelectionModeSingle:
-                        if (getHoveredOverPoint() >= 0) { hasSelection_ = true; }
+//                        if (getHoveredOverPoint() >= 0) { hasSelection_ = true; }
+                        hasSelection_ = true;
                         break;
                     case SelectionModeLasso:
                         {

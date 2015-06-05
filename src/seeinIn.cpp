@@ -120,7 +120,7 @@ int main(int argc, char * * argv) {
     std::vector<uchar3> testColors(nTestImages);
     for (int i=0; i<nTestImages; ++i) { testColors[i] = digitColors[testLabels[i]]; }
 
-    std::vector<float> selection(nTestImages,1.f);
+    std::vector<float> selection(nTestImages,0.5f);
 
     // -=-=-=-=- process test data -=-=-=-=-
     boost::shared_ptr<caffe::Blob<float> > inputBlob = net.blobs()[net.input_blob_indices()[0]];
@@ -393,6 +393,9 @@ int main(int argc, char * * argv) {
             case SelectionModeSingle:
             {
                 selectedImage = embeddingViewHandler.getHoveredOverPoint();
+                if (selectedImage == -1) {
+                    std::fill(selection.begin(),selection.end(),0.5f);
+                }
             } break;
             case SelectionModeLasso:
             {
@@ -402,6 +405,9 @@ int main(int argc, char * * argv) {
             }
         } else if (multiEmbeddingViewHandler.hasSelection()) {
             selectedImage = multiEmbeddingViewHandler.getHoveredOverPoint();
+            if (selectedImage == -1) {
+                std::fill(selection.begin(),selection.end(),0.5f);
+            }
         }
         if (selectedImage >= 0) {
             filterResponseViz.setSelection(selectedImage);

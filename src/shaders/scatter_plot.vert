@@ -7,7 +7,11 @@ void main(){
     gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
     if (gl_FogCoord > 0) {
         gl_FrontColor = gl_Color;
-        gl_PointSize = 3;
+        if (gl_FogCoord > 0.5001f) {
+            gl_PointSize = 6;
+        } else {
+            gl_PointSize = 3;
+        }
     } else {
         gl_FrontColor = gl_Color + 0.75*(vec4(1,1,1,1) - gl_Color);
         gl_PointSize = 2;

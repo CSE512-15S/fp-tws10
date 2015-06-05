@@ -9,7 +9,7 @@ void MultiEmbeddingViewMouseHandler::Mouse(pangolin::View & v, pangolin::MouseBu
     switch (button) {
         case pangolin::MouseButtonLeft:
             if (!pressed && !scrolled_) {
-                if (getHoveredOverPoint() >= 0) { hasSelection_ = true; }
+                hasSelection_ = true;
             } else {
                 lastMouse_ = make_float2(x,y);
                 scrolled_ = false;
