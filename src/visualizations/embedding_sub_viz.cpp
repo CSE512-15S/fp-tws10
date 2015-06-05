@@ -48,6 +48,8 @@ void EmbeddingSubViz::render(const float2 windowSize, const float2 viewportSize,
 
     glPointSize(3);
     glColor3ub(0,0,0);
+    glEnable(GL_DEPTH_TEST);
+
     glEnableClientState(GL_VERTEX_ARRAY);
     glVertexPointer(2,GL_FLOAT,0,embedding_);
 
@@ -61,6 +63,7 @@ void EmbeddingSubViz::render(const float2 windowSize, const float2 viewportSize,
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
     glDisableClientState(GL_FOG_COORDINATE_ARRAY);
+    glDisable(GL_DEPTH_TEST);
 
     pointShader_.unbind();
 
