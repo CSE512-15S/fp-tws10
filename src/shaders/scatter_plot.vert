@@ -16,7 +16,8 @@ void main(){
             gl_PointSize = scale;
         }
     } else {
-        gl_FrontColor = gl_Color + 0.75*(vec4(1,1,1,1) - gl_Color);
+        //gl_FrontColor = gl_Color + 0.75*(vec4(1,1,1,1) - gl_Color);
+        gl_FrontColor = 0.1*gl_Color + 0.9*vec4(0.9,0.9,0.9,0.9);
         gl_PointSize = scale*0.666f;
     }
 }

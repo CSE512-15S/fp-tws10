@@ -26,10 +26,10 @@ void SingleEmbeddingViz::render(const float2 windowSize) {
     const float2 zoomedSize = getViewportSize(); //zoom_*maxViewportSize_;
     const float2 scrolledCenter = getViewportCenter(); //maxViewportCenter_ + scroll_;
 
-    const float pointSizeWindow = pointSizeViewport_/subViz_.getMaxViewportSize().x*windowSize.x;
+    const float pointSizeWindow = pointSizeViewport_/subViz_.getMaxViewportSize().x*windowSize.x*sqrtf(1.f/zoom_);
 
     pointShader_.bind();
-    pointShader_.setScale(pointSizeWindow*sqrtf(1.f/zoom_));
+    pointShader_.setScale(pointSizeWindow);
     pointShader_.unbind();
 
     subViz_.render(windowSize,zoomedSize,scrolledCenter);
@@ -127,17 +127,12 @@ void SingleEmbeddingViz::render(const float2 windowSize) {
 
 }
 
-void SingleEmbeddingViz::setHoveredOverPoint(const float2 viewportPoint, const float2 windowSize) {
+void SingleEmbeddingViz::setHoveredOverPoint(const float2 viewportPoint) {
 
-    const float maxDistViewport = maxHoverDistPixels_/windowSize.x*getViewportSize().x;
+//    const float pointSizeWindow = pointSizeViewport_/subViz_.getMaxViewportSize().x*windowSize.x*sqrtf(1.f/zoom_);
+
+    const float maxDistViewport = pointSizeHoverMultiplier_*pointSizeViewport_*sqrtf(zoom_); //maxHoverDistPixels_/windowSize.x*getViewportSize().x;
 
     subViz_.setHoveredOverPoint(viewportPoint,maxDistViewport);
 }
 
-//void SingleEmbeddingViz::clampScroll() {
-
-//    scroll_ = fmaxf(getMinScroll(),fminf(scroll_,getMaxScroll()));
-
-////    const float2 maxScroll = subViz_.getMaxViewportSize() - getViewportSize();
-////    scroll_ = fmaxf(-0.5f*maxScroll,fminf(scroll_,0.5f*maxScroll));
-//}

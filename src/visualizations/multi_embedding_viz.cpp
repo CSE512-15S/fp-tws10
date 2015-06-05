@@ -171,7 +171,7 @@ void MultiEmbeddingViz::render(const float2 windowSize) {
     EmbeddingViz::render(windowSize);
 }
 
-void MultiEmbeddingViz::setHoveredOverPoint(const float2 viewportPoint, const float2 windowSize) {
+void MultiEmbeddingViz::setHoveredOverPoint(const float2 viewportPoint) {
 
     const int xAxis = viewportPoint.x;
     const int yAxis = viewportPoint.y;
@@ -185,7 +185,7 @@ void MultiEmbeddingViz::setHoveredOverPoint(const float2 viewportPoint, const fl
     const float2 subviewportPoint = ((viewportPoint - make_float2(xAxis,yAxis) - make_float2(subvizPaddingPercent_))/(1-2*subvizPaddingPercent_) - make_float2(0.5))*
                                     subviz->getMaxViewportSize() + subviz->getMaxViewportCenter();
 
-    const float maxDistViewport = maxHoverDistPixels_/windowSize.x*getViewportSize().x*(1-2*subvizPaddingPercent_/dims_)*subviz->getMaxViewportSize().x; //maxHoverDistPixels_/((windowSize.x/dims_)*(1-2*subvizPaddingPercent_))*subviz->getMaxViewportSize().x;
+    const float maxDistViewport = pointSizeHoverMultiplier_*pointSizeViewport_*sqrtf(zoom_)*getMaxViewportSize().x/subviz->getMaxViewportSize().x; //maxHoverDistPixels_/windowSize.x*getViewportSize().x*(1-2*subvizPaddingPercent_/dims_)*subviz->getMaxViewportSize().x; //maxHoverDistPixels_/((windowSize.x/dims_)*(1-2*subvizPaddingPercent_))*subviz->getMaxViewportSize().x;
     subviz->setHoveredOverPoint(subviewportPoint,maxDistViewport);
 
     hoveredSubvizIndex_ = thisSubvizNum;

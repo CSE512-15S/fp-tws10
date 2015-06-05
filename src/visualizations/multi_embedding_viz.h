@@ -27,7 +27,7 @@ public:
 
     inline float2 getMaxViewportCenter() { return make_float2(0.5*dims_); }
 
-    void setHoveredOverPoint(const float2 viewportPoint, const float2 windowSize);
+    void setHoveredOverPoint(const float2 viewportPoint);
 
     int getHoveredOverPoint();
 
