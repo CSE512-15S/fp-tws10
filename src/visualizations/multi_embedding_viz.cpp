@@ -7,9 +7,11 @@ MultiEmbeddingViz::MultiEmbeddingViz(const float aspectRatio, const float * imag
                                      const int imageWidth, const int imageHeight,
                                      pangolin::GlTexture & imageTex,
                                      const int overviewWidth, const int overviewHeight,
-                                     pangolin::GlTexture & overviewTex) :
+                                     pangolin::GlTexture & overviewTex,
+                                     pangolin::GlSlProgram & pointShader,
+                                     float * selection) :
     EmbeddingViz(aspectRatio,0.005f,images,imageWidth,imageHeight,imageTex,overviewWidth,overviewHeight,overviewTex),
-    hoveredSubvizIndex_(0) {
+    hoveredSubvizIndex_(0), pointShader_(pointShader), selection_(selection) {
 
 }
 
@@ -28,7 +30,7 @@ void MultiEmbeddingViz::setEmbedding(const float * embedding, const int embeddin
                 partialEmbedding[i] = make_float2(embedding[i*dims_ + xDim],
                                                   embedding[i*dims_ + yDim]);
             }
-            EmbeddingSubViz * viz = new EmbeddingSubViz(aspectRatio_);
+            EmbeddingSubViz * viz = new EmbeddingSubViz(aspectRatio_,pointShader_,selection_);
             viz->setEmbedding(partialEmbedding,coloring,nEmbedded);
             partialEmbeddings_.push_back(partialEmbedding);
             embeddingVizs_.push_back(viz);

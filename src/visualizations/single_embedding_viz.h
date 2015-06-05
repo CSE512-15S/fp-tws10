@@ -2,6 +2,7 @@
 #define SINGLE_EMBEDDING_VIZ_H
 
 #include <pangolin/pangolin.h>
+#include <pangolin/glsl.h>
 #include <vector_types.h>
 #include <vector_functions.h>
 #include <helper_math.h>
@@ -16,7 +17,9 @@ public:
                        const int imageWidth, const int imageHeight,
                        pangolin::GlTexture & imageTex,
                        const int overviewWidth, const int overviewHeight,
-                       pangolin::GlTexture & overviewTex);
+                       pangolin::GlTexture & overviewTex,
+                       pangolin::GlSlProgram & pointShader,
+                       float * selection);
 
     void setEmbedding(const float2 * embedding, uchar3 * coloring, int nEmbedded);
 

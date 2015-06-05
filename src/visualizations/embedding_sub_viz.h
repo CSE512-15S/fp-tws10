@@ -5,11 +5,13 @@
 #include <vector_types.h>
 #include <vector_functions.h>
 #include <helper_math.h>
+#include <pangolin/glsl.h>
 
 class EmbeddingSubViz {
 public:
 
-    EmbeddingSubViz(float aspectRatio) : aspectRatio_(aspectRatio), hoveredPointIndex_(-1) { }
+    EmbeddingSubViz(float aspectRatio, pangolin::GlSlProgram & pointShader, float * selection) :
+        aspectRatio_(aspectRatio), pointShader_(pointShader), selection_(selection), hoveredPointIndex_(-1) { }
 
     void setEmbedding(const float2 * embedding, uchar3 * coloring, int nEmbedded);
 
@@ -40,8 +42,11 @@ private:
 
     const float2 * embedding_;
     uchar3 * coloring_;
+    float * selection_;
 
     int hoveredPointIndex_;
+
+    pangolin::GlSlProgram & pointShader_;
 };
 
 #endif // EMBEDDING_SUB_VIZ_H

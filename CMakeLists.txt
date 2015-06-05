@@ -78,6 +78,9 @@ set(sources
     src/mouse_handlers/multi_embedding_view_mouse_handler.h
     src/mouse_handlers/multi_embedding_view_mouse_handler.cpp
 
+    src/shaders/scatter_plot.frag
+    src/shaders/scatter_plot.vert
+
     src/visualizations/embedding_viz.h
     src/visualizations/embedding_viz.cpp
     src/visualizations/embedding_sub_viz.h

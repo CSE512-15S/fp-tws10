@@ -12,7 +12,9 @@ public:
                       const int imageWidth, const int imageHeight,
                       pangolin::GlTexture & imageTex,
                       const int overviewWidth, const int overviewHeight,
-                      pangolin::GlTexture & overviewTex);
+                      pangolin::GlTexture & overviewTex,
+                      pangolin::GlSlProgram & pointShader,
+                      float * selection);
 
     ~MultiEmbeddingViz();
 
@@ -45,6 +47,9 @@ private:
     std::vector<float2 *> partialEmbeddings_;
 
     int hoveredSubvizIndex_;
+
+    pangolin::GlSlProgram & pointShader_;
+    float * selection_;
 
     static constexpr float subvizPaddingPercent_ = 0.05f;
 

@@ -6,7 +6,7 @@
 
 class FilterViewMouseHandler : public pangolin::Handler {
 public:
-    FilterViewMouseHandler(FilterResponseViz * viz) : viz_(viz), scrollSpeed_(10) { }
+    FilterViewMouseHandler(FilterResponseViz * viz) : viz_(viz), scrollSpeed_(20), selectedLayer_(-1) { }
 
     void Mouse(pangolin::View & v, pangolin::MouseButton button, int x, int y, bool pressed, int button_state);
 

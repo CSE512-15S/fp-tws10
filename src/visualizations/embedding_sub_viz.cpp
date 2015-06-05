@@ -2,6 +2,8 @@
 
 #include <limits>
 #include <iostream>
+#include <fstream>
+#include <string>
 #include "gl_helpers.h"
 
 void EmbeddingSubViz::setEmbedding(const float2 * embedding, uchar3 * coloring, int nEmbedded) {
@@ -42,6 +44,8 @@ void EmbeddingSubViz::render(const float2 windowSize, const float2 viewportSize,
 
     setUpViewport(windowSize,viewportSize,viewportCenter);
 
+    pointShader_.Bind();
+
     glPointSize(3);
     glColor3ub(0,0,0);
     glEnableClientState(GL_VERTEX_ARRAY);
@@ -50,9 +54,15 @@ void EmbeddingSubViz::render(const float2 windowSize, const float2 viewportSize,
     glEnableClientState(GL_COLOR_ARRAY);
     glColorPointer(3,GL_UNSIGNED_BYTE,0,coloring_);
 
+    glEnableClientState(GL_FOG_COORDINATE_ARRAY);
+    glFogCoordPointer(GL_FLOAT,0,selection_);
+
     glDrawArrays(GL_POINTS, 0, nEmbedded_);
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
+    glDisableClientState(GL_FOG_COORDINATE_ARRAY);
+
+    pointShader_.Unbind();
 
     if (hoveredPointIndex_ >= 0 && hoveredPointIndex_ < nEmbedded_) {
 

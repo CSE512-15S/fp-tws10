@@ -46,14 +46,6 @@ void EmbeddingViz::render(const float2 windowSize) {
 
         glDisableClientState(GL_VERTEX_ARRAY);
 
-//        glBegin(GL_LINE_LOOP);
-//        glVertex2f(contextUpper.x,contextUpper.y);
-//        glVertex2f(contextUpper.x,contextLower.y);
-//        glVertex2f(contextLower.x,contextLower.y);
-//        glVertex2f(contextLower.x,contextUpper.y);
-//        glEnd();
-
-
         glLineWidth(1);
     }
 }

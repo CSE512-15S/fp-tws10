@@ -120,6 +120,8 @@ int main(int argc, char * * argv) {
     std::vector<uchar3> testColors(nTestImages);
     for (int i=0; i<nTestImages; ++i) { testColors[i] = digitColors[testLabels[i]]; }
 
+    std::vector<float> selection(nTestImages,1.f);
+
     // -=-=-=-=- process test data -=-=-=-=-
     boost::shared_ptr<caffe::Blob<float> > inputBlob = net.blobs()[net.input_blob_indices()[0]];
     assert(inputBlob->num() == nTestImages);
@@ -138,13 +140,29 @@ int main(int argc, char * * argv) {
     const int overviewHeight = overviewWidth*embeddingViewAspectRatio;
     pangolin::GlTexture overviewTex(overviewWidth,overviewHeight);
 
+    // -=-=-=-=- set up point shader -=-=-=-=-
+    pangolin::GlSlProgram pointShader;
+    {
+        std::ifstream fragStream("../src/shaders/scatter_plot.frag"); // TODO
+        std::string fragSource( (std::istreambuf_iterator<char>(fragStream) ),
+                                (std::istreambuf_iterator<char>()));
+        fragStream.close();
+        std::ifstream vertStream("../src/shaders/scatter_plot.vert");
+        std::string vertSource( (std::istreambuf_iterator<char>(vertStream) ),
+                                (std::istreambuf_iterator<char>()));
+        vertStream.close();
+        pointShader.AddShader(pangolin::GlSlVertexShader,vertSource);
+        pointShader.AddShader(pangolin::GlSlFragmentShader,fragSource);
+        pointShader.Link();
+    }
+
     // -=-=-=-=- set up visualizations -=-=-=-=-
     boost::shared_ptr<caffe::Blob<float> > outputBlob = net.blobs()[net.output_blob_indices()[0]];
-    SingleEmbeddingViz embeddingViz(embeddingViewAspectRatio,testImages,imageWidth,imageHeight,imageTex,overviewWidth,overviewHeight,overviewTex);
+    SingleEmbeddingViz embeddingViz(embeddingViewAspectRatio,testImages,imageWidth,imageHeight,imageTex,overviewWidth,overviewHeight,overviewTex,pointShader,selection.data());
     embeddingViz.setEmbedding((const float2 *)outputBlob->cpu_data(),testColors.data(),nTestImages);
 
     boost::shared_ptr<caffe::Blob<float> > ip2Blob = net.blob_by_name("ip2");
-    MultiEmbeddingViz multiEmbeddingViz(embeddingViewAspectRatio,testImages,imageWidth,imageHeight,imageTex,overviewWidth,overviewHeight,overviewTex);
+    MultiEmbeddingViz multiEmbeddingViz(embeddingViewAspectRatio,testImages,imageWidth,imageHeight,imageTex,overviewWidth,overviewHeight,overviewTex,pointShader,selection.data());
     multiEmbeddingViz.setEmbedding(ip2Blob->cpu_data(),ip2Blob->channels(),testColors.data(),nTestImages);
 
     // -=-=-=-=- set up mouse handlers -=-=-=-=-
@@ -254,6 +272,8 @@ int main(int argc, char * * argv) {
     }
 
     bool multiembeddingVizActive = false;
+
+    glEnable(GL_PROGRAM_POINT_SIZE);
 
     for (long frame=1; !pangolin::ShouldQuit(); ++frame) {
 
@@ -386,6 +406,8 @@ int main(int argc, char * * argv) {
         if (selectedImage >= 0) {
             filterResponseViz.setSelection(selectedImage);
             hasSelection = true;
+            std::memset(selection.data(),0.f,selection.size()*sizeof(float));
+            selection[selectedImage] = 1.f;
         }
 
         if (filterViewHandler.hasLayerSelection()) {
