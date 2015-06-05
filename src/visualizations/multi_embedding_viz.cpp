@@ -52,6 +52,13 @@ void MultiEmbeddingViz::render(const float2 windowSize) {
 
 //    glScalef(1.f/zoom_,1.f/zoom_,1.f/zoom_);
 //    glTranslatef(-scroll_.x,-scroll_.y+subvizPaddingPercent_,0);
+
+    const float pointSizeWindow = pointSizeViewport_*((1 - 2*subvizPaddingPercent_)/dims_)*windowSize.x;
+
+    pointShader_.bind();
+    pointShader_.setScale(pointSizeWindow*sqrtf(1.f/zoom_));
+    pointShader_.unbind();
+
     glTranslatef(0,subvizPaddingPercent_,0);
     for (int yDim = 0; yDim < dims_; ++yDim) {
         glPushMatrix();

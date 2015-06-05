@@ -1,5 +1,8 @@
 varying vec3 N;
 varying vec3 v;
+
+uniform float scale;
+
 void main(){
     v = vec3(gl_ModelViewMatrix * gl_Vertex);
     N = normalize(gl_NormalMatrix * gl_Normal);
@@ -8,12 +11,12 @@ void main(){
     if (gl_FogCoord > 0.f) {
         gl_FrontColor = gl_Color;
         if (gl_FogCoord > 0.5001f) {
-            gl_PointSize = 6.f;
+            gl_PointSize = scale*2.f;
         } else {
-            gl_PointSize = 3.f;
+            gl_PointSize = scale;
         }
     } else {
         gl_FrontColor = gl_Color + 0.75*(vec4(1,1,1,1) - gl_Color);
-        gl_PointSize = 2.f;
+        gl_PointSize = scale*0.666f;
     }
 }

@@ -43,6 +43,8 @@ private:
 
     EmbeddingSubViz subViz_;
 
+    ScatterPlotShader & pointShader_;
+
 };
 
 #endif // SINGLE_EMBEDDING_VIZ_H

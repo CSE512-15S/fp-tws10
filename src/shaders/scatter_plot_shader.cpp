@@ -4,6 +4,7 @@
 
 ScatterPlotShader::ScatterPlotShader() {
 
+    // -=-=-=- compile program -=-=-=-
     std::ifstream fragStream("../src/shaders/scatter_plot.frag"); // TODO
     std::string fragSource( (std::istreambuf_iterator<char>(fragStream) ),
                             (std::istreambuf_iterator<char>()));
@@ -16,4 +17,7 @@ ScatterPlotShader::ScatterPlotShader() {
     shaderProgram_.AddShader(pangolin::GlSlFragmentShader,fragSource);
     shaderProgram_.Link();
 
+    shaderProgram_.Bind();
+    setScale(1.f);
+    shaderProgram_.Unbind();
 }

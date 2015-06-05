@@ -13,9 +13,12 @@ public:
 
     inline void unbind() { shaderProgram_.Unbind(); }
 
+    inline void setScale(float scale) { shaderProgram_.SetUniform("scale",scale); }
+
 private:
 
     pangolin::GlSlProgram shaderProgram_;
+    GLint scaleLocation_;
 
 };
 

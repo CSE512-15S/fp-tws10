@@ -79,6 +79,7 @@ protected:
 
     static constexpr float overviewZoomThreshold_ = 0.666f;
     static constexpr float maxHoverDistPixels_ = 4.f;
+    static constexpr float pointSizeViewport_ = 0.015f; // TODO
 };
 
 #endif // EMBEDDING_VIZ_H

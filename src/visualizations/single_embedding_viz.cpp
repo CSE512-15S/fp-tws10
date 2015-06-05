@@ -9,7 +9,7 @@ SingleEmbeddingViz::SingleEmbeddingViz(const float aspectRatio, const float * im
                                        ScatterPlotShader & pointShader,
                                        float * selection) :
     EmbeddingViz(aspectRatio,0.1f,images,imageWidth,imageHeight,imageTex, overviewWidth, overviewHeight, overviewTex),
-    subViz_(aspectRatio,pointShader,selection) {
+    subViz_(aspectRatio,pointShader,selection), pointShader_(pointShader) {
 
 }
 
@@ -25,6 +25,12 @@ void SingleEmbeddingViz::render(const float2 windowSize) {
 
     const float2 zoomedSize = getViewportSize(); //zoom_*maxViewportSize_;
     const float2 scrolledCenter = getViewportCenter(); //maxViewportCenter_ + scroll_;
+
+    const float pointSizeWindow = pointSizeViewport_/subViz_.getMaxViewportSize().x*windowSize.x;
+
+    pointShader_.bind();
+    pointShader_.setScale(pointSizeWindow*sqrtf(1.f/zoom_));
+    pointShader_.unbind();
 
     subViz_.render(windowSize,zoomedSize,scrolledCenter);
 
