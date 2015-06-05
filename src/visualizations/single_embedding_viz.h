@@ -35,7 +35,7 @@ public:
 
     inline int getHoveredOverPoint() { return subViz_.getHoveredOverPoint(); }
 
-    void setHoveredOverPoint(const float2 viewportPoint);
+    void setHoveredOverPoint(const float2 viewportPoint, const float2 windowSize);
 
     inline void clearHover() { subViz_.clearHover(); }
 

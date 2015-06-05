@@ -5,15 +5,15 @@ void main(){
     N = normalize(gl_NormalMatrix * gl_Normal);
 
     gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
-    if (gl_FogCoord > 0) {
+    if (gl_FogCoord > 0.f) {
         gl_FrontColor = gl_Color;
         if (gl_FogCoord > 0.5001f) {
-            gl_PointSize = 6;
+            gl_PointSize = 6.f;
         } else {
-            gl_PointSize = 3;
+            gl_PointSize = 3.f;
         }
     } else {
         gl_FrontColor = gl_Color + 0.75*(vec4(1,1,1,1) - gl_Color);
-        gl_PointSize = 2;
+        gl_PointSize = 2.f;
     }
-};
+}

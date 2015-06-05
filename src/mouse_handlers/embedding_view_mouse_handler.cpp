@@ -89,7 +89,7 @@ void EmbeddingViewMouseHandler::PassiveMouseMotion(pangolin::View & v, int x, in
     case SelectionModeSingle:
     {
         float2 vpPoint = getViewportPoint(v,make_float2(x,y));
-        viz_->setHoveredOverPoint(vpPoint);
+        viz_->setHoveredOverPoint(vpPoint,make_float2(v.GetBounds().w,v.GetBounds().h));
     } break;
     case SelectionModeLasso:
     {

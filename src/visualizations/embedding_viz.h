@@ -41,7 +41,7 @@ public:
 
     virtual int getHoveredOverPoint() = 0;
 
-    virtual void setHoveredOverPoint(const float2 viewportPoint) = 0;
+    virtual void setHoveredOverPoint(const float2 viewportPoint, const float2 windowSize) = 0;
 
     virtual void clearHover() = 0;
 
@@ -78,7 +78,7 @@ protected:
     pangolin::GlTexture & overviewTex_;
 
     static constexpr float overviewZoomThreshold_ = 0.666f;
-
+    static constexpr float maxHoverDistPixels_ = 4.f;
 };
 
 #endif // EMBEDDING_VIZ_H

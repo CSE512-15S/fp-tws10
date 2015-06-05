@@ -83,7 +83,7 @@ void EmbeddingSubViz::render(const float2 windowSize, const float2 viewportSize,
     glPopMatrix();
 }
 
-void EmbeddingSubViz::setHoveredOverPoint(const float2 viewportPoint) {
+void EmbeddingSubViz::setHoveredOverPoint(const float2 viewportPoint, const float maxDist) {
 
     int closestPoint = -1;
     float closestDist = std::numeric_limits<float>::infinity();
@@ -95,6 +95,6 @@ void EmbeddingSubViz::setHoveredOverPoint(const float2 viewportPoint) {
         }
     }
 
-    hoveredPointIndex_ = closestDist < 0.05 ? closestPoint : -1;
+    hoveredPointIndex_ = closestDist < maxDist ? closestPoint : -1;
 
 }

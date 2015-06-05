@@ -121,9 +121,11 @@ void SingleEmbeddingViz::render(const float2 windowSize) {
 
 }
 
-void SingleEmbeddingViz::setHoveredOverPoint(const float2 viewportPoint) {
+void SingleEmbeddingViz::setHoveredOverPoint(const float2 viewportPoint, const float2 windowSize) {
 
-    subViz_.setHoveredOverPoint(viewportPoint);
+    const float maxDistViewport = maxHoverDistPixels_/windowSize.x*getViewportSize().x;
+
+    subViz_.setHoveredOverPoint(viewportPoint,maxDistViewport);
 }
 
 //void SingleEmbeddingViz::clampScroll() {
