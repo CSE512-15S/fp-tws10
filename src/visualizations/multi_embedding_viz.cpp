@@ -138,6 +138,16 @@ void MultiEmbeddingViz::render(const float2 windowSize) {
 //    setUpViewport(windowSize,make_float2(dims_),make_float2(0.5*dims_));
     setUpViewport(windowSize,getViewportSize(),getViewportCenter());
 
+    const float2 viewportMin = getViewportCenter() - 0.5*getViewportSize();
+    const float2 viewportMax = getViewportCenter() + 0.5*getViewportSize();
+    const int2 visibleAxisRangeX = make_int2(floor(viewportMin.x + subvizPaddingPercent_),ceil(viewportMax.x - subvizPaddingPercent_));
+    const int2 visibleAxisRangeY = make_int2(floor(viewportMin.y + subvizPaddingPercent_),ceil(viewportMax.y - subvizPaddingPercent_));
+
+    assert(visibleAxisRangeX.x >= 0 && visibleAxisRangeX.x <= dims_);
+    assert(visibleAxisRangeX.y >= 0 && visibleAxisRangeX.y <= dims_);
+    assert(visibleAxisRangeY.x >= 0 && visibleAxisRangeY.x <= dims_);
+    assert(visibleAxisRangeY.y >= 0 && visibleAxisRangeY.y <= dims_);
+
 //    const float vizHeight = view.GetBounds().h / (float)dims_;
 //    const float vizWidth = view.GetBounds().w / (float)dims_;
 
@@ -150,11 +160,13 @@ void MultiEmbeddingViz::render(const float2 windowSize) {
     pointShader_.setScale(pointSizeWindow*sqrtf(1.f/zoom_));
     pointShader_.unbind();
 
+    glTranslatef(0,visibleAxisRangeY.x,0);
     glTranslatef(0,subvizPaddingPercent_,0);
-    for (int yDim = 0; yDim < dims_; ++yDim) {
+    for (int yDim = visibleAxisRangeY.x; yDim < visibleAxisRangeY.y; ++yDim) {
         glPushMatrix();
+        glTranslatef(visibleAxisRangeX.x,0,0);
         glTranslatef(subvizPaddingPercent_,0,0);
-        for (int xDim = 0; xDim < dims_; ++xDim) {
+        for (int xDim = visibleAxisRangeX.x; xDim < visibleAxisRangeX.y; ++xDim) {
             EmbeddingSubViz * viz = embeddingVizs_[xDim + yDim*dims_];
 //            viz->render(make_float2(vizWidth,vizHeight));
             viz->render(make_float2(1.f-2*subvizPaddingPercent_),viz->getMaxViewportSize(),viz->getMaxViewportCenter());
