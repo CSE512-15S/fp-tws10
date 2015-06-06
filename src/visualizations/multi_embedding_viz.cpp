@@ -27,6 +27,7 @@ void MultiEmbeddingViz::setEmbedding(const float * embedding, const int embeddin
 
     // -=-=-=- compute axis bounds -=-=-=-
     dims_ = embeddingDimensions;
+    width_ = height_ = 1;
     std::vector<float> viewportSizeByDim(dims_);
     std::vector<float> viewportCenterByDim(dims_);
     for (int d=0; d<dims_; ++d) {
@@ -63,6 +64,71 @@ void MultiEmbeddingViz::setEmbedding(const float * embedding, const int embeddin
     }
 
 }
+
+void MultiEmbeddingViz::setEmbedding(const float * embedding, const int embeddingDimensions,
+                                     uchar3 * coloring, const int nEmbedded,
+                                     const int width, const int height, const int2 receptiveField) {
+
+    assert(embeddingDimensions > 0);
+    assert(width > 0);
+    assert(height > 0);
+    assert(receptiveField.x > 0);
+    assert(receptiveField.y > 0);
+
+    // -=-=-=- compute axis bounds -=-=-=-
+    dims_ = embeddingDimensions;
+    width_ = width;
+    height_ = height;
+    receptiveField_ = receptiveField;
+    std::vector<float> viewportSizeByDim(dims_);
+    std::vector<float> viewportCenterByDim(dims_);
+    for (int d=0; d<dims_; ++d) {
+
+        float minEmbedding = std::numeric_limits<float>::infinity();
+        float maxEmbedding = -minEmbedding;
+        for (int n=0; n<nEmbedded; ++n) {
+            for (int h=0; h<height; ++h) {
+                for (int w=0; w<width; ++w) {
+                    const int i = w + width*(h + height*(d + dims_*n));
+                    minEmbedding = std::min(minEmbedding,embedding[i]);
+                    maxEmbedding = std::max(maxEmbedding,embedding[i]);
+                }
+            }
+        }
+        const float embeddingSize = maxEmbedding - minEmbedding;
+        const float paddedEmbeddingSize = 1.02*embeddingSize;
+        viewportSizeByDim[d] = paddedEmbeddingSize;
+        viewportCenterByDim[d] = minEmbedding + 0.5*paddedEmbeddingSize;
+
+    }
+    float maxViewportSize = viewportSizeByDim[0];
+    for (int d=1; d<dims_; ++d) {
+        maxViewportSize = std::max(maxViewportSize,viewportSizeByDim[d]);
+    }
+
+    // -=-=-=- set up subvizs -=-=-=-
+    clear();
+    for (int yDim = 0; yDim < dims_; ++yDim) {
+        for (int xDim = 0; xDim < dims_; ++xDim) {
+            float2 * partialEmbedding = new float2[nEmbedded*width*height];
+            for (int n=0; n<nEmbedded; ++n) {
+                for (int h=0; h<height; ++h) {
+                    for (int w=0; w<width; ++w) {
+                        partialEmbedding[w + width*(h + height*n)] = make_float2(
+                                embedding[w + width*(h + height*(xDim + dims_*n))],
+                                embedding[w + width*(h + height*(yDim + dims_*n))]);
+                    }
+                }
+            }
+            EmbeddingSubViz * viz = new EmbeddingSubViz(aspectRatio_,pointShader_,selection_);
+            viz->setEmbedding(partialEmbedding,coloring,nEmbedded,make_float2(maxViewportSize,maxViewportSize),make_float2(viewportCenterByDim[xDim],viewportCenterByDim[yDim]));
+            partialEmbeddings_.push_back(partialEmbedding);
+            embeddingVizs_.push_back(viz);
+        }
+    }
+
+}
+
 
 void MultiEmbeddingViz::render(const float2 windowSize) {
 
@@ -190,6 +256,23 @@ void MultiEmbeddingViz::render(const float2 windowSize) {
                       textureLocation,
                       textureSize);
         glLineWidth(1);
+
+        if (width_ > 1 && height_ > 1) {
+            const int hoverPointW = hoveredPointIndex % width_;
+            const int hoverPointH = (hoveredPointIndex / width_) % height_;
+            std::cout << hoverPointW << ", " << hoverPointH << std::endl;
+
+            const float2 receptiveFieldSize = textureSize/make_float2(imageWidth_,imageHeight_)*make_float2(receptiveField_.x,receptiveField_.y);
+            const float2 receptiveFieldOffset = textureSize/make_float2(imageWidth_,imageHeight_)*make_float2(hoverPointW,hoverPointH);
+
+            glColor3ub(255,0,0);
+            glBegin(GL_LINE_LOOP);
+            glVertex2f(textureLocation.x + receptiveFieldOffset.x + receptiveFieldSize.x, textureLocation.y + receptiveFieldOffset.y + receptiveFieldSize.y);
+            glVertex2f(textureLocation.x + receptiveFieldOffset.x                       , textureLocation.y + receptiveFieldOffset.y + receptiveFieldSize.y);
+            glVertex2f(textureLocation.x + receptiveFieldOffset.x                       , textureLocation.y + receptiveFieldOffset.y                        );
+            glVertex2f(textureLocation.x + receptiveFieldOffset.x + receptiveFieldSize.x, textureLocation.y + receptiveFieldOffset.y                        );
+            glEnd();
+        }
 
     }
 

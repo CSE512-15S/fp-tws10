@@ -13,9 +13,9 @@ public:
     inline void bind() {
         shaderProgram_.Bind();
 
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_BUFFER, tboTex_);
-        glTexBuffer(GL_TEXTURE_BUFFER, GL_R32F, tbo_);
+//        glActiveTexture(GL_TEXTURE0);
+//        glBindTexture(GL_TEXTURE_BUFFER, tboTex_);
+//        glTexBuffer(GL_TEXTURE_BUFFER, GL_R32F, tbo_);
 
     }
 
@@ -35,8 +35,8 @@ private:
     pangolin::GlSlProgram shaderProgram_;
     GLint scaleLocation_;
 
-    GLuint tbo_;
-    GLuint tboTex_;
+//    GLuint tbo_;
+//    GLuint tboTex_;
 };
 
 #endif // SCATTER_PLOT_SHADER_H

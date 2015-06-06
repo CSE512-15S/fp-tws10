@@ -21,6 +21,11 @@ public:
     void setEmbedding(const float * embedding, const int embeddingDimensions,
                       uchar3 * coloring, const int nEmbedded);
 
+    void setEmbedding(const float * embedding, const int embeddingDimensions,
+                      uchar3 * coloring, const int nEmbedded,
+                      const int width, const int height,
+                      const int2 receptiveField_);
+
     void render(const float2 windowSize);
 
     inline float2 getMaxViewportSize() { return make_float2(dims_); }
@@ -43,6 +48,10 @@ private:
 
     // -=-=-=-=-=- members -=-=-=-=-=-
     int dims_;
+    int width_;
+    int height_;
+    int2 receptiveField_;
+
     std::vector<EmbeddingSubViz *> embeddingVizs_;
     std::vector<float2 *> partialEmbeddings_;
 

@@ -155,7 +155,10 @@ int main(int argc, char * * argv) {
 
     boost::shared_ptr<caffe::Blob<float> > ip2Blob = net.blob_by_name("ip2");
     MultiEmbeddingViz multiEmbeddingViz(embeddingViewAspectRatio,testImages,imageWidth,imageHeight,imageTex,overviewWidth,overviewHeight,overviewTex,pointShader,selection.data());
-    multiEmbeddingViz.setEmbedding(ip2Blob->cpu_data(),ip2Blob->channels(),testColors.data(),nTestImages);
+//    multiEmbeddingViz.setEmbedding(ip2Blob->cpu_data(),ip2Blob->channels(),testColors.data(),nTestImages);
+
+    boost::shared_ptr<caffe::Blob<float> > pool2Blob = net.blob_by_name("pool1");
+    multiEmbeddingViz.setEmbedding(pool2Blob->cpu_data(),pool2Blob->channels(),testColors.data(),nTestImages,pool2Blob->width(),pool2Blob->height(),make_int2(16,16));
 
     // -=-=-=-=- set up mouse handlers -=-=-=-=-
     EmbeddingViewMouseHandler embeddingViewHandler(&embeddingViz);
@@ -236,6 +239,7 @@ int main(int argc, char * * argv) {
         filterResponseViz.resize(filterView.GetBounds().w,filterView.GetBounds().h,filterVizZoom);
     });
 
+
     glEnable(GL_PROGRAM_POINT_SIZE);
 
     // -=-=-=-=- render previews -=-=-=-=-
@@ -269,6 +273,8 @@ int main(int argc, char * * argv) {
 
     for (long frame=1; !pangolin::ShouldQuit(); ++frame) {
 
+        CheckGlDieOnError();
+
         static pangolin::basetime lastTime = pangolin::TimeNow();
         pangolin::basetime timeNow = pangolin::TimeNow();
         std::cout << pangolin::TimeDiff_s(lastTime,timeNow) << std::endl;
@@ -281,18 +287,25 @@ int main(int argc, char * * argv) {
             filterResponseViz.resize(filterView.GetBounds().w,filterView.GetBounds().h,filterVizZoom);
         }
 
+        CheckGlDieOnError();
+
         glClearColor(1,1,1,1);
 
         // -=-=-=-=-=-=- embedding view -=-=-=-=-=-=-
         embeddingView.ActivateScissorAndClear();
         embeddingView.ActivatePixelOrthographic();
 
+        CheckGlDieOnError();
+
         const float2 windowSize = make_float2(embeddingView.GetBounds().w,embeddingView.GetBounds().h);
         if (multiembeddingVizActive) {
             multiEmbeddingViz.render(windowSize);
+
+            CheckGlDieOnError();
         } else {
             embeddingViz.render(windowSize);
 
+            CheckGlDieOnError();
     //        multiEmbeddingViz.render(embeddingView);
 
 //            glColor3ub(255,255,255);
@@ -361,12 +374,17 @@ int main(int argc, char * * argv) {
     ////        }
 
             glPopMatrix();
+
+
+            CheckGlDieOnError();
         }
 
         // -=-=-=-=-=-=- filter view -=-=-=-=-=-=-
         filterView.ActivateScissorAndClear();
         filterView.ActivatePixelOrthographic();
 
+
+        CheckGlDieOnError();
 //        {
 //            glColor3ub(0,0,0);
 //            glLineWidth(3);
@@ -381,6 +399,8 @@ int main(int argc, char * * argv) {
 
         if (hasSelection) {
             filterResponseViz.render();
+
+            CheckGlDieOnError();
         }
 
         // -=-=-=-=-=-=- input handling -=-=-=-=-=-=-
@@ -472,6 +492,8 @@ int main(int argc, char * * argv) {
                 filterResponseViz.setResponse(featProjector);
             }
         }
+
+        CheckGlDieOnError();
 
         glClearColor(0,0,0,1);
         pangolin::FinishGlutFrame();
