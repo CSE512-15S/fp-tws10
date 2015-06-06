@@ -5,6 +5,8 @@ uniform float scale;
 //uniform samplerBuffer tboTex;
 
 attribute float selected;
+attribute float xCoord;
+attribute float yCoord;
 
 void main(){
     v = vec3(gl_ModelViewMatrix * gl_Vertex);
@@ -12,6 +14,9 @@ void main(){
 
 //    gl_Vertex.x = texelFetch(tboTex,2*gl_VertexID);
 //    gl_Vertex.y = texelFetch(tboTex,2*gl_VertexID + 1);
+
+    gl_Vertex.x = xCoord;
+    gl_Vertex.y = yCoord;
 
     gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
     if (selected > 0.f) {

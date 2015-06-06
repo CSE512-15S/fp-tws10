@@ -17,26 +17,43 @@ public:
 //        glBindTexture(GL_TEXTURE_BUFFER, tboTex_);
 //        glTexBuffer(GL_TEXTURE_BUFFER, GL_R32F, tbo_);
 
+        glEnableVertexAttribArray(getXCoordLocation());
+        glVertexAttribPointer(getXCoordLocation(),1,GL_FLOAT,false,0,xCoords_.data());
+
+        glEnableVertexAttribArray(getYCoordLocation());
+        glVertexAttribPointer(getYCoordLocation(),1,GL_FLOAT,false,0,yCoords_.data());
+
+        glEnableVertexAttribArray(getYCoordLocation());
+
     }
 
     inline void unbind() {
+
+        glDisableVertexAttribArray(getYCoordLocation());
+        glDisableVertexAttribArray(getXCoordLocation());
 
         shaderProgram_.Unbind();
     }
 
     inline void setScale(float scale) { shaderProgram_.SetUniform("scale",scale); }
 
-    inline GLint getSelectionLocation() {
-        return shaderProgram_.GetAttributeHandle("selected");
-    }
+    inline GLint getSelectionLocation() { return selectionLocation_; }
+
+    inline GLint getXCoordLocation() { return xCoordLocation_; }
+
+    inline GLint getYCoordLocation() { return yCoordLocation_; }
 
 private:
 
     pangolin::GlSlProgram shaderProgram_;
-    GLint scaleLocation_;
+    GLint selectionLocation_;
+    GLint xCoordLocation_;
+    GLint yCoordLocation_;
 
 //    GLuint tbo_;
 //    GLuint tboTex_;
+
+    std::vector<float> xCoords_, yCoords_;
 };
 
 #endif // SCATTER_PLOT_SHADER_H
