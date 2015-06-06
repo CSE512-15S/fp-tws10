@@ -2,11 +2,16 @@ varying vec3 N;
 varying vec3 v;
 
 uniform float scale;
+//uniform samplerBuffer tboTex;
+
 attribute float selected;
 
 void main(){
     v = vec3(gl_ModelViewMatrix * gl_Vertex);
     N = normalize(gl_NormalMatrix * gl_Normal);
+
+//    gl_Vertex.x = texelFetch(tboTex,2*gl_VertexID);
+//    gl_Vertex.y = texelFetch(tboTex,2*gl_VertexID + 1);
 
     gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
     if (selected > 0.f) {

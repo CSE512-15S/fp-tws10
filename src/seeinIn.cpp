@@ -1,5 +1,6 @@
 #include <pangolin/pangolin.h>
 #include <pangolin/gl.h>
+#include <pangolin/timer.h>
 
 #include <fstream>
 #include <iostream>
@@ -141,10 +142,14 @@ int main(int argc, char * * argv) {
     pangolin::GlTexture overviewTex(overviewWidth,overviewHeight);
 
     // -=-=-=-=- set up point shader -=-=-=-=-
-    ScatterPlotShader pointShader;
+    int maxTexBufferSize;
+    glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE,&maxTexBufferSize);
+    std::cout << maxTexBufferSize << std::endl;
+
+    boost::shared_ptr<caffe::Blob<float> > outputBlob = net.blobs()[net.output_blob_indices()[0]];
+    ScatterPlotShader pointShader(10000,10,outputBlob->cpu_data());
 
     // -=-=-=-=- set up visualizations -=-=-=-=-
-    boost::shared_ptr<caffe::Blob<float> > outputBlob = net.blobs()[net.output_blob_indices()[0]];
     SingleEmbeddingViz embeddingViz(embeddingViewAspectRatio,testImages,imageWidth,imageHeight,imageTex,overviewWidth,overviewHeight,overviewTex,pointShader,selection.data());
     embeddingViz.setEmbedding((const float2 *)outputBlob->cpu_data(),testColors.data(),nTestImages);
 
@@ -263,6 +268,11 @@ int main(int argc, char * * argv) {
     glEnable(GL_PROGRAM_POINT_SIZE);
 
     for (long frame=1; !pangolin::ShouldQuit(); ++frame) {
+
+        static pangolin::basetime lastTime = pangolin::TimeNow();
+        pangolin::basetime timeNow = pangolin::TimeNow();
+        std::cout << pangolin::TimeDiff_s(lastTime,timeNow) << std::endl;
+        lastTime = pangolin::TimeNow();
 
         if (pangolin::HasResized()) {
             pangolin::DisplayBase().ActivateScissorAndClear();

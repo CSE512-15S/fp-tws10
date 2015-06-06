@@ -7,12 +7,22 @@
 class ScatterPlotShader {
 public:
 
-    ScatterPlotShader();
+    ScatterPlotShader(const int nPoints, const int nDims, const float * pointData);
     ~ScatterPlotShader();
 
-    inline void bind() { shaderProgram_.Bind(); }
+    inline void bind() {
+        shaderProgram_.Bind();
 
-    inline void unbind() { shaderProgram_.Unbind(); }
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_BUFFER, tboTex_);
+        glTexBuffer(GL_TEXTURE_BUFFER, GL_R32F, tbo_);
+
+    }
+
+    inline void unbind() {
+
+        shaderProgram_.Unbind();
+    }
 
     inline void setScale(float scale) { shaderProgram_.SetUniform("scale",scale); }
 

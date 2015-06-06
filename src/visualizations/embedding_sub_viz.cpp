@@ -47,10 +47,6 @@ void EmbeddingSubViz::setEmbedding(const float2 * embedding, uchar3 * coloring, 
 
 void EmbeddingSubViz::render(const float2 windowSize, const float2 viewportSize, const float2 viewportCenter) {
 
-    int maxTexBufferSize;
-    glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE,&maxTexBufferSize);
-    std::cout << maxTexBufferSize << std::endl;
-
     glPushMatrix();
 
     setUpViewport(windowSize,viewportSize,viewportCenter);
@@ -72,7 +68,6 @@ void EmbeddingSubViz::render(const float2 windowSize, const float2 viewportSize,
 //    glVertexAttrib1fv(pointShader_.getSelectionLocation(),selection_);
     glEnableVertexAttribArray(pointShader_.getSelectionLocation());
     glVertexAttribPointer(pointShader_.getSelectionLocation(),1,GL_FLOAT,false,0,selection_);
-    std::cout << pointShader_.getSelectionLocation() << std::endl;
 
     glDrawArrays(GL_POINTS, 0, nEmbedded_);
     glDisableClientState(GL_VERTEX_ARRAY);

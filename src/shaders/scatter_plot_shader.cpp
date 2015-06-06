@@ -2,7 +2,7 @@
 
 #include <fstream>
 
-ScatterPlotShader::ScatterPlotShader() {
+ScatterPlotShader::ScatterPlotShader(const int nPoints, const int nDims, const float * pointData) {
 
     // -=-=-=- compile program -=-=-=-
     std::ifstream fragStream("../src/shaders/scatter_plot.frag"); // TODO
@@ -31,22 +31,23 @@ ScatterPlotShader::ScatterPlotShader() {
 
     // -=-=-=- set up texture buffer object -=-=-=-
     // TODO:
-    const int nPoints = 10000;
-    const int nDims = 10;
-    const float * pointData = 0;
-    glGenBuffers(1, &tbo_);
-    glBindBuffer(GL_TEXTURE_BUFFER, tbo_);
-    glBufferData(GL_TEXTURE_BUFFER, nPoints*nDims*sizeof(float), pointData,GL_STATIC_DRAW);
+//    const int nPoints = 10000;
+//    const int nDims = 10;
+//    const float * pointData = 0;
 
-    glGenTextures(1, &tboTex_);
+//    glGenBuffers(1, &tbo_);
+//    glBindBuffer(GL_TEXTURE_BUFFER, tbo_);
+//    glBufferData(GL_TEXTURE_BUFFER, nPoints*nDims*sizeof(float), pointData,GL_STATIC_DRAW);
 
-    glBindBuffer(GL_TEXTURE_BUFFER,0);
+//    glGenTextures(1, &tboTex_);
+
+//    glBindBuffer(GL_TEXTURE_BUFFER,0);
 
 }
 
 ScatterPlotShader::~ScatterPlotShader() {
 
-    glDeleteBuffers(1, &tbo_);
-    glDeleteTextures(1, &tboTex_);
+//    glDeleteBuffers(1, &tbo_);
+//    glDeleteTextures(1, &tboTex_);
 
 }
