@@ -8,6 +8,7 @@ class ScatterPlotShader {
 public:
 
     ScatterPlotShader();
+    ~ScatterPlotShader();
 
     inline void bind() { shaderProgram_.Bind(); }
 
@@ -24,6 +25,8 @@ private:
     pangolin::GlSlProgram shaderProgram_;
     GLint scaleLocation_;
 
+    GLuint tbo_;
+    GLuint tboTex_;
 };
 
 #endif // SCATTER_PLOT_SHADER_H

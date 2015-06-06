@@ -47,6 +47,10 @@ void EmbeddingSubViz::setEmbedding(const float2 * embedding, uchar3 * coloring, 
 
 void EmbeddingSubViz::render(const float2 windowSize, const float2 viewportSize, const float2 viewportCenter) {
 
+    int maxTexBufferSize;
+    glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE,&maxTexBufferSize);
+    std::cout << maxTexBufferSize << std::endl;
+
     glPushMatrix();
 
     setUpViewport(windowSize,viewportSize,viewportCenter);

@@ -28,4 +28,25 @@ ScatterPlotShader::ScatterPlotShader() {
     std::cout << getSelectionLocation() << std::endl;
 
     shaderProgram_.Unbind();
+
+    // -=-=-=- set up texture buffer object -=-=-=-
+    // TODO:
+    const int nPoints = 10000;
+    const int nDims = 10;
+    const float * pointData = 0;
+    glGenBuffers(1, &tbo_);
+    glBindBuffer(GL_TEXTURE_BUFFER, tbo_);
+    glBufferData(GL_TEXTURE_BUFFER, nPoints*nDims*sizeof(float), pointData,GL_STATIC_DRAW);
+
+    glGenTextures(1, &tboTex_);
+
+    glBindBuffer(GL_TEXTURE_BUFFER,0);
+
+}
+
+ScatterPlotShader::~ScatterPlotShader() {
+
+    glDeleteBuffers(1, &tbo_);
+    glDeleteTextures(1, &tboTex_);
+
 }
