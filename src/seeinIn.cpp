@@ -192,7 +192,7 @@ int main(int argc, char * * argv) {
 
 
     // -=-=-=-=- set up font management -=-=-=-=-
-    FontManager fontManager("Ubuntu Mono");
+    FontManager fontManager("GaramondNo8");
 
     // -=-=-=-=- set up layer visualizations -=-=-=-=-
     std::vector<std::string> filterResponsesToVisualize;
@@ -236,6 +236,8 @@ int main(int argc, char * * argv) {
         filterResponseViz.resize(filterView.GetBounds().w,filterView.GetBounds().h,filterVizZoom);
     });
 
+    glEnable(GL_PROGRAM_POINT_SIZE);
+
     // -=-=-=-=- render previews -=-=-=-=-
     {
         pangolin::GlRenderBuffer previewRenderBuffer(overviewWidth,overviewHeight);
@@ -264,8 +266,6 @@ int main(int argc, char * * argv) {
     }
 
     bool multiembeddingVizActive = false;
-
-    glEnable(GL_PROGRAM_POINT_SIZE);
 
     for (long frame=1; !pangolin::ShouldQuit(); ++frame) {
 

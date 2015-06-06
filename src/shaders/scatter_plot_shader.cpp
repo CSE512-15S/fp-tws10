@@ -22,10 +22,6 @@ ScatterPlotShader::ScatterPlotShader(const int nPoints, const int nDims, const f
     setScale(1.f);
 
     // -=-=-=- set up attributes -=-=-=-
-//    GLint prog;
-//    glGetIntegerv(GL_CURRENT_PROGRAM,&prog);
-//    glBindAttribLocation(prog, 5, "selected");
-    std::cout << getSelectionLocation() << std::endl;
 
     shaderProgram_.Unbind();
 
