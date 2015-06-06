@@ -47,18 +47,21 @@ void MultiEmbeddingViz::setEmbedding(const float * embedding, const int embeddin
         maxViewportSize = std::max(maxViewportSize,viewportSizeByDim[d]);
     }
 
-    // -=-=-=- set up subvizs -=-=-=-
+    // -=-=-=- compute parallel coordinate arrays -=-=-=-
     clear();
+    parallelCoordinateArrays_.resize(dims_);
+    for (int d=0; d<dims_; ++d) {
+        parallelCoordinateArrays_[d] = new float[nEmbedded];
+        for (int i=0; i<nEmbedded; ++i) {
+            parallelCoordinateArrays_[d][i] = embedding[i*dims_ + d];
+        }
+    }
+
+    // -=-=-=- set up subvizs -=-=-=-
     for (int yDim = 0; yDim < dims_; ++yDim) {
         for (int xDim = 0; xDim < dims_; ++xDim) {
-            float2 * partialEmbedding = new float2[nEmbedded];
-            for (int i=0; i<nEmbedded; ++i) {
-                partialEmbedding[i] = make_float2(embedding[i*dims_ + xDim],
-                                                  embedding[i*dims_ + yDim]);
-            }
             EmbeddingSubViz * viz = new EmbeddingSubViz(aspectRatio_,pointShader_,selection_);
-            viz->setEmbedding(partialEmbedding,coloring,nEmbedded,make_float2(maxViewportSize,maxViewportSize),make_float2(viewportCenterByDim[xDim],viewportCenterByDim[yDim]));
-            partialEmbeddings_.push_back(partialEmbedding);
+            viz->setEmbedding(parallelCoordinateArrays_[xDim],parallelCoordinateArrays_[yDim],coloring,nEmbedded,make_float2(maxViewportSize,maxViewportSize),make_float2(viewportCenterByDim[xDim],viewportCenterByDim[yDim]));
             embeddingVizs_.push_back(viz);
         }
     }
@@ -106,23 +109,25 @@ void MultiEmbeddingViz::setEmbedding(const float * embedding, const int embeddin
         maxViewportSize = std::max(maxViewportSize,viewportSizeByDim[d]);
     }
 
-    // -=-=-=- set up subvizs -=-=-=-
+    // -=-=-=- compute parallel coordinate arrays -=-=-=-
     clear();
-    for (int yDim = 0; yDim < dims_; ++yDim) {
-        for (int xDim = 0; xDim < dims_; ++xDim) {
-            float2 * partialEmbedding = new float2[nEmbedded*width*height];
-            for (int n=0; n<nEmbedded; ++n) {
-                for (int h=0; h<height; ++h) {
-                    for (int w=0; w<width; ++w) {
-                        partialEmbedding[w + width*(h + height*n)] = make_float2(
-                                embedding[w + width*(h + height*(xDim + dims_*n))],
-                                embedding[w + width*(h + height*(yDim + dims_*n))]);
-                    }
+    parallelCoordinateArrays_.resize(dims_);
+    for (int d=0; d<dims_; ++d) {
+        parallelCoordinateArrays_[d] = new float[nEmbedded*width_*height_];
+        for (int i=0; i<nEmbedded; ++i) {
+            for (int h=0; h<height_; ++h) {
+                for (int w=0; w<width_; ++w) {
+                    parallelCoordinateArrays_[d][w + width_*(h + height_*i)] = embedding[w + width_*(h + height_*(d + dims_*i))];
                 }
             }
+        }
+    }
+
+    // -=-=-=- set up subvizs -=-=-=-
+    for (int yDim = 0; yDim < dims_; ++yDim) {
+        for (int xDim = 0; xDim < dims_; ++xDim) {
             EmbeddingSubViz * viz = new EmbeddingSubViz(aspectRatio_,pointShader_,selection_);
-            viz->setEmbedding(partialEmbedding,coloring,nEmbedded,make_float2(maxViewportSize,maxViewportSize),make_float2(viewportCenterByDim[xDim],viewportCenterByDim[yDim]));
-            partialEmbeddings_.push_back(partialEmbedding);
+            viz->setEmbedding(parallelCoordinateArrays_[xDim],parallelCoordinateArrays_[yDim],coloring,nEmbedded,make_float2(maxViewportSize,maxViewportSize),make_float2(viewportCenterByDim[xDim],viewportCenterByDim[yDim]));
             embeddingVizs_.push_back(viz);
         }
     }
@@ -187,7 +192,7 @@ void MultiEmbeddingViz::render(const float2 windowSize) {
         const int hoveredSubvizRow = hoveredSubvizIndex_ / dims_;
 
         imageTex_.Upload(images_ + hoveredPointIndex*imageWidth_*imageHeight_,GL_LUMINANCE,GL_FLOAT);
-        const float2 hoveredViewportPoint = hoverViz->getEmbedding()[hoveredPointIndex];
+        const float2 hoveredViewportPoint = hoverViz->getEmbeddedPoint(hoveredPointIndex);
         const float2 hoveredWindowPoint = getWindowPoint(getViewportPointOfSubvizPoint(hoverViz->getNormalizedPoint(hoveredViewportPoint),hoveredSubvizRow,hoveredSubvizCol),windowSize);
 
         static const float2 hoverOffset = make_float2(imageWidth_/4,imageHeight_/4);
@@ -315,11 +320,11 @@ void MultiEmbeddingViz::clear() {
     for (EmbeddingSubViz * viz : embeddingVizs_) {
         delete viz;
     }
-    for (float2 * partialEmbedding : partialEmbeddings_) {
-        delete partialEmbedding;
+    for (float * coordinateArray : parallelCoordinateArrays_) {
+        delete coordinateArray;
     }
     embeddingVizs_.clear();
-    partialEmbeddings_.clear();
+    parallelCoordinateArrays_.clear();
 }
 
 void MultiEmbeddingViz::clearHover() {

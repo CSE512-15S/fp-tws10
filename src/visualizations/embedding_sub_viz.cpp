@@ -6,13 +6,13 @@
 #include <string>
 #include "gl_helpers.h"
 
-void EmbeddingSubViz::setEmbedding(const float2 * embedding, uchar3 * coloring, int nEmbedded) {
+void EmbeddingSubViz::setEmbedding(const float * xCoords, const float * yCoords, const uchar3 * coloring, const int nEmbedded) {
 
     float2 minEmbedding = make_float2(std::numeric_limits<float>::infinity(),std::numeric_limits<float>::infinity());
     float2 maxEmbedding = -1*minEmbedding;
     for (int i=0; i<nEmbedded; ++i) {
-        minEmbedding = fminf(minEmbedding,embedding[i]);
-        maxEmbedding = fmaxf(maxEmbedding,embedding[i]);
+        minEmbedding = fminf(minEmbedding,make_float2(xCoords[i],yCoords[i]));
+        maxEmbedding = fmaxf(maxEmbedding,make_float2(xCoords[i],yCoords[i]));
     }
 
     float2 embeddingSize = maxEmbedding - minEmbedding;
@@ -27,18 +27,20 @@ void EmbeddingSubViz::setEmbedding(const float2 * embedding, uchar3 * coloring, 
     }
     maxViewportCenter_ = minEmbedding + 0.5*embeddingSize;
 
-    embedding_ = embedding;
+    xCoords_ = xCoords;
+    yCoords_ = yCoords;
     coloring_ = coloring;
     nEmbedded_ = nEmbedded;
 
 }
 
-void EmbeddingSubViz::setEmbedding(const float2 * embedding, uchar3 * coloring, int nEmbedded, const float2 maxViewportSize, const float2 maxViewportCenter) {
+void EmbeddingSubViz::setEmbedding(const float * xCoords, const float * yCoords, const uchar3 * coloring, const int nEmbedded, const float2 maxViewportSize, const float2 maxViewportCenter) {
 
     maxViewportSize_ = maxViewportSize;
     maxViewportCenter_ = maxViewportCenter;
 
-    embedding_ = embedding;
+    xCoords_ = xCoords;
+    yCoords_ = yCoords;
     coloring_ = coloring;
     nEmbedded_ = nEmbedded;
 
@@ -58,7 +60,14 @@ void EmbeddingSubViz::render(const float2 windowSize, const float2 viewportSize,
     glEnable(GL_DEPTH_TEST);
 
     glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(2,GL_FLOAT,0,embedding_);
+    glVertexPointer(2,GL_FLOAT,0,xCoords_); // TODO
+
+    glEnableVertexAttribArray(pointShader_.getXCoordLocation());
+    glVertexAttribPointer(pointShader_.getXCoordLocation(),1,GL_FLOAT,false,0,xCoords_);
+
+    glEnableVertexAttribArray(pointShader_.getYCoordLocation());
+    glVertexAttribPointer(pointShader_.getYCoordLocation(),1,GL_FLOAT,false,0,yCoords_);
+
 
     glEnableClientState(GL_COLOR_ARRAY);
     glColorPointer(3,GL_UNSIGNED_BYTE,0,coloring_);
@@ -70,6 +79,11 @@ void EmbeddingSubViz::render(const float2 windowSize, const float2 viewportSize,
     glVertexAttribPointer(pointShader_.getSelectionLocation(),1,GL_FLOAT,false,0,selection_);
 
     glDrawArrays(GL_POINTS, 0, nEmbedded_);
+
+
+    glDisableVertexAttribArray(pointShader_.getYCoordLocation());
+    glDisableVertexAttribArray(pointShader_.getXCoordLocation());
+
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
     glDisableVertexAttribArray(pointShader_.getSelectionLocation());
@@ -84,12 +98,12 @@ void EmbeddingSubViz::render(const float2 windowSize, const float2 viewportSize,
         glPointSize(12);
         glBegin(GL_POINTS);
         glColor3ub(255,255,255);
-        glVertex(embedding_[hoveredPointIndex_]);
+        glVertex2f(xCoords_[hoveredPointIndex_],yCoords_[hoveredPointIndex_]);
         glEnd();
         glPointSize(9);
         glBegin(GL_POINTS);
         glColor(coloring_[hoveredPointIndex_]);
-        glVertex(embedding_[hoveredPointIndex_]);
+        glVertex2f(xCoords_[hoveredPointIndex_],yCoords_[hoveredPointIndex_]);
         glEnd();
         glPointSize(1);
     }
@@ -102,7 +116,7 @@ void EmbeddingSubViz::setHoveredOverPoint(const float2 viewportPoint, const floa
     int closestPoint = -1;
     float closestDist = std::numeric_limits<float>::infinity();
     for (int i=0; i<getNumEmbeddedPoints(); ++i) {
-        float dist = length(viewportPoint - getEmbedding()[i]);
+        float dist = length(viewportPoint - make_float2(xCoords_[i],yCoords_[i]));
         if (dist < closestDist) {
             closestDist = dist;
             closestPoint = i;

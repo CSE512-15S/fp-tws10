@@ -108,7 +108,7 @@ void EmbeddingViewMouseHandler::computeEnclosedEmbeddedPoints() {
 
     std::cout << "computing enclosure" << std::endl;
     for (int i=0; i<viz_->getNumEmbeddedPoints(); ++i) {
-        selection_[i] = isInPolygon(viz_->getEmbedding()[i],lassoPoints_);
+        selection_[i] = isInPolygon(viz_->getEmbeddedPoint(i),lassoPoints_);
     }
 
 }

@@ -13,21 +13,25 @@ public:
     EmbeddingSubViz(float aspectRatio, ScatterPlotShader & pointShader, float * selection) :
         aspectRatio_(aspectRatio), pointShader_(pointShader), selection_(selection), hoveredPointIndex_(-1) { }
 
-    void setEmbedding(const float2 * embedding, uchar3 * coloring, int nEmbedded);
+    void setEmbedding(const float * xCoords, const float * yCoords, const uchar3 * coloring, const int nEmbedded);
 
-    void setEmbedding(const float2 * embedding, uchar3 * coloring, int nEmbedded, const float2 maxViewportSize, const float2 maxViewportCenter);
+    void setEmbedding(const float * xCoords, const float * yCoords, const uchar3 * coloring, const int nEmbedded, const float2 maxViewportSize, const float2 maxViewportCenter);
 
     void render(const float2 window, const float2 viewportSize, const float2 viewportCenter);
 
     inline int getNumEmbeddedPoints() { return nEmbedded_; }
-
-    inline const float2 * getEmbedding() { return embedding_; }
 
     inline int getHoveredOverPoint() { return hoveredPointIndex_; }
 
     void setHoveredOverPoint(const float2 viewportPoint, const float maxDist);
 
     inline void clearHover() { hoveredPointIndex_ = -1; }
+
+    inline const float * getXCoords() { return xCoords_; }
+
+    inline const float * getYCoords() { return yCoords_; }
+
+    inline float2 getEmbeddedPoint(const int index) { return make_float2(getXCoords()[index],getYCoords()[index]); }
 
     inline float2 getMaxViewportSize() { return maxViewportSize_; }
 
@@ -42,9 +46,10 @@ private:
     float2 maxViewportCenter_;
     int nEmbedded_;
 
-    const float2 * embedding_;
-    uchar3 * coloring_;
-    float * selection_;
+    const float * xCoords_;
+    const float * yCoords_;
+    const uchar3 * coloring_;
+    const float * selection_;
 
     int hoveredPointIndex_;
 

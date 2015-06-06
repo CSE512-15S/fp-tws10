@@ -17,21 +17,10 @@ public:
 //        glBindTexture(GL_TEXTURE_BUFFER, tboTex_);
 //        glTexBuffer(GL_TEXTURE_BUFFER, GL_R32F, tbo_);
 
-        glEnableVertexAttribArray(getXCoordLocation());
-        glVertexAttribPointer(getXCoordLocation(),1,GL_FLOAT,false,0,xCoords_.data());
-
-        glEnableVertexAttribArray(getYCoordLocation());
-        glVertexAttribPointer(getYCoordLocation(),1,GL_FLOAT,false,0,yCoords_.data());
-
-        glEnableVertexAttribArray(getYCoordLocation());
 
     }
 
     inline void unbind() {
-
-        glDisableVertexAttribArray(getYCoordLocation());
-        glDisableVertexAttribArray(getXCoordLocation());
-
         shaderProgram_.Unbind();
     }
 
@@ -53,7 +42,6 @@ private:
 //    GLuint tbo_;
 //    GLuint tboTex_;
 
-    std::vector<float> xCoords_, yCoords_;
 };
 
 #endif // SCATTER_PLOT_SHADER_H

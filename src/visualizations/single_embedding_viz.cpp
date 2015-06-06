@@ -9,15 +9,29 @@ SingleEmbeddingViz::SingleEmbeddingViz(const float aspectRatio, const float * im
                                        ScatterPlotShader & pointShader,
                                        float * selection) :
     EmbeddingViz(aspectRatio,0.1f,images,imageWidth,imageHeight,imageTex, overviewWidth, overviewHeight, overviewTex),
-    subViz_(aspectRatio,pointShader,selection), pointShader_(pointShader) {
+    subViz_(aspectRatio,pointShader,selection), pointShader_(pointShader), xCoords_(0), yCoords_(0) {
 
+}
+
+SingleEmbeddingViz::~SingleEmbeddingViz() {
+    delete [] xCoords_;
+    delete [] yCoords_;
 }
 
 void SingleEmbeddingViz::setEmbedding(const float2 * embedding,
                                       uchar3 * coloring,
                                       int nEmbedded) {
 
-    subViz_.setEmbedding(embedding,coloring,nEmbedded);
+    delete [] xCoords_;
+    delete [] yCoords_;
+    xCoords_ = new float[nEmbedded];
+    yCoords_ = new float[nEmbedded];
+    for (int i=0; i<nEmbedded; ++i) {
+        xCoords_[i] = embedding[i].x;
+        yCoords_[i] = embedding[i].y;
+    }
+
+    subViz_.setEmbedding(xCoords_,yCoords_,coloring,nEmbedded);
 
 }
 
@@ -38,7 +52,7 @@ void SingleEmbeddingViz::render(const float2 windowSize) {
     if (hoveredPointIndex >= 0 && hoveredPointIndex < subViz_.getNumEmbeddedPoints()) {
 
         imageTex_.Upload(images_ + hoveredPointIndex*imageWidth_*imageHeight_,GL_LUMINANCE,GL_FLOAT);
-        const float2 hoveredViewportPoint = subViz_.getEmbedding()[hoveredPointIndex];
+        const float2 hoveredViewportPoint = subViz_.getEmbeddedPoint(hoveredPointIndex);
         const float2 hoveredWindowPoint = getWindowPoint(hoveredViewportPoint,windowSize);
 //        std::cout << hoveredViewportPoint.x << ", " << hoveredViewportPoint.y << " -> " <<  hoveredWindowPoint.x << ", " << hoveredWindowPoint.y << std::endl;
 

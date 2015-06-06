@@ -21,6 +21,8 @@ public:
                        ScatterPlotShader & pointShader,
                        float * selection);
 
+    ~SingleEmbeddingViz();
+
     void setEmbedding(const float2 * embedding, uchar3 * coloring, int nEmbedded);
 
     void render(const float2 windowSize);
@@ -31,7 +33,7 @@ public:
 
     inline int getNumEmbeddedPoints() { return subViz_.getNumEmbeddedPoints(); }
 
-    inline const float2 * getEmbedding() { return subViz_.getEmbedding(); }
+    inline const float2 getEmbeddedPoint(const int index) { return subViz_.getEmbeddedPoint(index); }
 
     inline int getHoveredOverPoint() { return subViz_.getHoveredOverPoint(); }
 
@@ -44,6 +46,9 @@ private:
     EmbeddingSubViz subViz_;
 
     ScatterPlotShader & pointShader_;
+
+    float * xCoords_;
+    float * yCoords_;
 
 };
 

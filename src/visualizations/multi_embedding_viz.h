@@ -60,7 +60,7 @@ private:
     ScatterPlotShader & pointShader_;
     float * selection_;
 
-//    std::vector<float *> parallelCoordinateArrays_;
+    std::vector<float *> parallelCoordinateArrays_;
 
     static constexpr float subvizPaddingPercent_ = 0.05f;
 

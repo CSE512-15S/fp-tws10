@@ -242,6 +242,7 @@ int main(int argc, char * * argv) {
 
     glEnable(GL_PROGRAM_POINT_SIZE);
 
+
     // -=-=-=-=- render previews -=-=-=-=-
     {
         pangolin::GlRenderBuffer previewRenderBuffer(overviewWidth,overviewHeight);

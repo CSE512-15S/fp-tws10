@@ -43,13 +43,6 @@ ScatterPlotShader::ScatterPlotShader(const int nPoints, const int nDims, const f
 
 //    glBindBuffer(GL_TEXTURE_BUFFER,0);
 
-    xCoords_.resize(nPoints);
-    yCoords_.resize(nPoints);
-    for (int i=0; i<nPoints; ++i) {
-        xCoords_[i] = pointData[2*i];
-        yCoords_[i] = pointData[2*i + 1];
-    }
-
 }
 
 ScatterPlotShader::~ScatterPlotShader() {
