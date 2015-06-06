@@ -77,6 +77,7 @@ protected:
     pangolin::GlTexture & imageTex_;
     pangolin::GlTexture & overviewTex_;
 
+    static constexpr float overviewSizePercent_ = 0.2;
     static constexpr float overviewZoomThreshold_ = 0.666f;
     static constexpr float pointSizeHoverMultiplier_ = 1.5f;
     static constexpr float pointSizeViewport_ = 0.015f; // TODO

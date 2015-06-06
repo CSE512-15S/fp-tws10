@@ -8,7 +8,7 @@ void EmbeddingViz::render(const float2 windowSize) {
         glColor3ub(255,255,255);
 
         const float2 overviewLocation = make_float2(0,0);
-        const float2 overviewSize = make_float2(overviewWidth_,overviewHeight_);
+        const float2 overviewSize = overviewSizePercent_*windowSize; //make_float2(overviewWidth_,overviewHeight_);
         renderTexture(overviewTex_,overviewLocation,overviewSize,false);
 
         const float2 contextUpper = (getViewportCenter() + 0.5*getViewportSize() - (getMaxViewportCenter() - 0.5*getMaxViewportSize()))/getMaxViewportSize()*overviewSize;
