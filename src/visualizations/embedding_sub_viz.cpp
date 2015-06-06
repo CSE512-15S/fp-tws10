@@ -31,12 +31,19 @@ void EmbeddingSubViz::setEmbedding(const float2 * embedding, uchar3 * coloring, 
     coloring_ = coloring;
     nEmbedded_ = nEmbedded;
 
-    std::cout << "embedding spans " << minEmbedding.x << " -> " << maxEmbedding.x << ", " << minEmbedding.y << " -> " << maxEmbedding.y << std::endl;
-    std::cout << "embedding size: " << embeddingSize.x << ", " << embeddingSize.y << std::endl;
-    std::cout << "embedding center: " << maxViewportCenter_.x << ", " << maxViewportCenter_.y << std::endl;
-    std::cout << "viewport size: " << maxViewportSize_.x << ", " << maxViewportSize_.y << std::endl;
+}
+
+void EmbeddingSubViz::setEmbedding(const float2 * embedding, uchar3 * coloring, int nEmbedded, const float2 maxViewportSize, const float2 maxViewportCenter) {
+
+    maxViewportSize_ = maxViewportSize;
+    maxViewportCenter_ = maxViewportCenter;
+
+    embedding_ = embedding;
+    coloring_ = coloring;
+    nEmbedded_ = nEmbedded;
 
 }
+
 
 void EmbeddingSubViz::render(const float2 windowSize, const float2 viewportSize, const float2 viewportCenter) {
 

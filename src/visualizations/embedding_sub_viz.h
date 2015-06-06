@@ -15,6 +15,8 @@ public:
 
     void setEmbedding(const float2 * embedding, uchar3 * coloring, int nEmbedded);
 
+    void setEmbedding(const float2 * embedding, uchar3 * coloring, int nEmbedded, const float2 maxViewportSize, const float2 maxViewportCenter);
+
     void render(const float2 window, const float2 viewportSize, const float2 viewportCenter);
 
     inline int getNumEmbeddedPoints() { return nEmbedded_; }

@@ -2,6 +2,7 @@
 
 #include "gl_helpers.h"
 #include <vector_functions.h>
+#include <limits>
 
 MultiEmbeddingViz::MultiEmbeddingViz(const float aspectRatio, const float * images,
                                      const int imageWidth, const int imageHeight,
@@ -21,8 +22,32 @@ MultiEmbeddingViz::~MultiEmbeddingViz() {
 
 void MultiEmbeddingViz::setEmbedding(const float * embedding, const int embeddingDimensions,
                                      uchar3 * coloring, const int nEmbedded) {
-    clear();
+
+    assert(embeddingDimensions > 0);
+
+    // -=-=-=- compute axis bounds -=-=-=-
     dims_ = embeddingDimensions;
+    std::vector<float> viewportSizeByDim(dims_);
+    std::vector<float> viewportCenterByDim(dims_);
+    for (int d=0; d<dims_; ++d) {
+        float minEmbedding = std::numeric_limits<float>::infinity();
+        float maxEmbedding = -minEmbedding;
+        for (int i=0; i<nEmbedded; ++i) {
+            minEmbedding = std::min(minEmbedding,embedding[i*dims_ + d]);
+            maxEmbedding = std::max(maxEmbedding,embedding[i*dims_ + d]);
+        }
+        const float embeddingSize = maxEmbedding - minEmbedding;
+        const float paddedEmbeddingSize = 1.02*embeddingSize;
+        viewportSizeByDim[d] = paddedEmbeddingSize;
+        viewportCenterByDim[d] = minEmbedding + 0.5*paddedEmbeddingSize;
+    }
+    float maxViewportSize = viewportSizeByDim[0];
+    for (int d=1; d<dims_; ++d) {
+        maxViewportSize = std::max(maxViewportSize,viewportSizeByDim[d]);
+    }
+
+    // -=-=-=- set up subvizs -=-=-=-
+    clear();
     for (int yDim = 0; yDim < dims_; ++yDim) {
         for (int xDim = 0; xDim < dims_; ++xDim) {
             float2 * partialEmbedding = new float2[nEmbedded];
@@ -31,7 +56,7 @@ void MultiEmbeddingViz::setEmbedding(const float * embedding, const int embeddin
                                                   embedding[i*dims_ + yDim]);
             }
             EmbeddingSubViz * viz = new EmbeddingSubViz(aspectRatio_,pointShader_,selection_);
-            viz->setEmbedding(partialEmbedding,coloring,nEmbedded);
+            viz->setEmbedding(partialEmbedding,coloring,nEmbedded,make_float2(maxViewportSize,maxViewportSize),make_float2(viewportCenterByDim[xDim],viewportCenterByDim[yDim]));
             partialEmbeddings_.push_back(partialEmbedding);
             embeddingVizs_.push_back(viz);
         }
