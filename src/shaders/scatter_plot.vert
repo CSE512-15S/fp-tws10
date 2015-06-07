@@ -15,10 +15,10 @@ void main(){
 //    gl_Vertex.x = texelFetch(tboTex,2*gl_VertexID);
 //    gl_Vertex.y = texelFetch(tboTex,2*gl_VertexID + 1);
 
-    gl_Vertex.x = xCoord;
-    gl_Vertex.y = yCoord;
+//    gl_Vertex.x = xCoord;
+//    gl_Vertex.y = yCoord;
 
-    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+    gl_Position = gl_ModelViewProjectionMatrix * vec4(xCoord,yCoord,gl_Vertex.z,gl_Vertex.w);
     if (selected > 0.f) {
         gl_FrontColor = gl_Color;
         gl_Position.z = -0.5;
