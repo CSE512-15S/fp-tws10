@@ -58,6 +58,16 @@ public:
 
     inline void setShowOverview(const bool showOverview) { showOverview_ = showOverview; }
 
+    virtual void getEnclosedPoints(std::vector<int> & enclosedPoints, const std::vector<float2> & viewportLassoPoints) = 0;
+
+    inline float2 getPixelsPerViewportUnit(const float2 windowSize) {
+        return windowSize/getViewportSize();
+    }
+
+    inline float2 getViewportUnitsPerPixel(const float2 windowSize) {
+        return getViewportSize()/windowSize;
+    }
+
 protected:
     // -=-=-=-=-=- methods -=-=-=-=-=-
     inline void clampScroll() { scroll_ = fmaxf(getMinScroll(),fminf(scroll_,getMaxScroll())); }

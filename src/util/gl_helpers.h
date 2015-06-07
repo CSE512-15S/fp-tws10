@@ -9,6 +9,8 @@
 
 inline void glColor(const uchar3 color) { glColor3ubv(&color.x); }
 
+inline void glColor(const uchar4 color) { glColor4ubv(&color.x); }
+
 inline void glVertex(const float2 vertex) { glVertex2fv(&vertex.x); }
 
 void setUpViewport(const float2 windowSize, const float2 viewportSize, const float2 viewportCenter);

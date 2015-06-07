@@ -18,27 +18,6 @@ public:
 
     void PassiveMouseMotion(pangolin::View & v, int x, int y, int button_state);
 
-    inline int getHoveredOverPoint() { return viz_->getHoveredOverPoint(); }
-
-    inline bool hasSelection() { bool retVal = hasSelection_; hasSelection_ = false; return retVal;  }
-
-    inline std::vector<float2> & getLassoPoints() { return lassoPoints_; }
-
-    inline void clearLassoPoints() { lassoPoints_.clear(); }
-
-private:
-
-    bool hasSelection_;
-
-    std::vector<float2> lassoPoints_;
-
-    float2 lastMouse_;
-    bool scrolled_;
-
-    float zoomSpeed_;
-
-    static constexpr float stickStartThreshold_ = 0.1f;
-
 };
 
 #endif // SINGLE_EMBEDDING_VIEW_MOUSE_HANDLER_H

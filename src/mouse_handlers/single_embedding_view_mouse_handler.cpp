@@ -6,8 +6,7 @@
 #include <limits>
 
 SingleEmbeddingViewMouseHandler::SingleEmbeddingViewMouseHandler(SingleEmbeddingViz * viz) :
-    EmbeddingViewMouseHandler(viz), hasSelection_(false),
-    zoomSpeed_(1.1f) { }
+    EmbeddingViewMouseHandler(viz) { }
 
 void SingleEmbeddingViewMouseHandler::Mouse(pangolin::View & v, pangolin::MouseButton button, int x, int y, bool pressed, int button_state) {
     pangolin::Handler::Mouse(v,button,x,y,pressed,button_state);
@@ -17,7 +16,6 @@ void SingleEmbeddingViewMouseHandler::Mouse(pangolin::View & v, pangolin::MouseB
             if (!pressed && !scrolled_) {
                 switch (selectionMode_) {
                     case SelectionModeSingle:
-//                        if (getHoveredOverPoint() >= 0) { hasSelection_ = true; }
                         hasSelection_ = true;
                         break;
                     case SelectionModeLasso:
@@ -27,10 +25,11 @@ void SingleEmbeddingViewMouseHandler::Mouse(pangolin::View & v, pangolin::MouseB
                                 // first lasso point - add the click, and then another point for the temporary next point
                                 lassoPoints_.push_back(vpPoint);
                                 lassoPoints_.push_back(vpPoint);
-                            } else if (length(vpPoint - lassoPoints_.front()) < stickStartThreshold_) {
+                            } else if (lassoPoints_.size() > 2 &&
+                                       length(vpPoint - lassoPoints_.front()) <
+                                       viz_->getViewportUnitsPerPixel(make_float2(v.GetBounds().w,v.GetBounds().h)).x*stickyStartThresholdPixels_) {
                                 // lasso is complete - close the loop
                                 lassoPoints_.back() = lassoPoints_.front();
-//                                computeEnclosedEmbeddedPoints();
                                 hasSelection_ = true;
                             } else {
                                 // latch the current point
@@ -44,23 +43,14 @@ void SingleEmbeddingViewMouseHandler::Mouse(pangolin::View & v, pangolin::MouseB
                 scrolled_ = false;
             }
             break;
+        case pangolin::MouseButtonRight:
+            clearLassoPoints();
+            break;
         case pangolin::MouseWheelUp:
-            {
-                const float2 vpPoint = getViewportPoint(v,make_float2(x,y));
-                viz_->setZoom(viz_->getZoom()/zoomSpeed_);
-                const float2 viewPoint = getViewPoint(v,vpPoint);
-                const float2 diff = viewPoint - make_float2(x,y);
-                viz_->incrementScroll(diff*(viz_->getViewportSize().x/v.GetBounds().w));
-            }
+            zoomIn(v,x,y);
             break;
         case pangolin::MouseWheelDown:
-            {
-                const float2 vpPoint = getViewportPoint(v,make_float2(x,y));
-                viz_->setZoom(viz_->getZoom()*zoomSpeed_);
-                const float2 viewPoint = getViewPoint(v,vpPoint);
-                const float2 diff = viewPoint - make_float2(x,y);
-                viz_->incrementScroll(diff*(viz_->getViewportSize().x/v.GetBounds().w));
-            }
+            zoomOut(v,x,y);
             break;
     }
 
@@ -69,18 +59,18 @@ void SingleEmbeddingViewMouseHandler::Mouse(pangolin::View & v, pangolin::MouseB
 void SingleEmbeddingViewMouseHandler::MouseMotion(pangolin::View & v, int x, int y, int button_state) {
     pangolin::Handler::MouseMotion(v,x,y,button_state);
 
-    const float2 thisMouse = make_float2(x,y);
-    const float2 diff = lastMouse_ - thisMouse;
-//    std::cout << "pixel diff: " << diff.x << ", " << diff.y << std::endl;
-    const float2 relativeScale = make_float2(viz_->getViewportSize().x/v.GetBounds().w,viz_->getViewportSize().y/v.GetBounds().h);
-    const float2 embeddingDiff = relativeScale*diff;
-//    std::cout << "embedding diff: " << embeddingDiff.x << ", " << embeddingDiff.y << std::endl;
+    if (selectionMode_ == SelectionModeSingle || lassoPoints_.size() == 0) {
+        const float2 thisMouse = make_float2(x,y);
+        const float2 diff = lastMouse_ - thisMouse;
+        const float2 relativeScale = make_float2(viz_->getViewportSize().x/v.GetBounds().w,viz_->getViewportSize().y/v.GetBounds().h);
+        const float2 embeddingDiff = relativeScale*diff;
 
-    viz_->incrementScroll(embeddingDiff);
-    viz_->clearHover();
+        viz_->incrementScroll(embeddingDiff);
+        viz_->clearHover();
 
-    lastMouse_ = thisMouse;
-    scrolled_ = true;
+        lastMouse_ = thisMouse;
+        scrolled_ = true;
+    }
 
 }
 
@@ -88,21 +78,22 @@ void SingleEmbeddingViewMouseHandler::PassiveMouseMotion(pangolin::View & v, int
     pangolin::Handler::PassiveMouseMotion(v,x,y,button_state);
 
     switch (selectionMode_) {
-    case SelectionModeSingle:
-    {
-        float2 vpPoint = getViewportPoint(v,make_float2(x,y));
-        viz_->setHoveredOverPoint(vpPoint);
-    } break;
-    case SelectionModeLasso:
-    {
-        if (lassoPoints_.size() > 0) {
-            float2 vpPoint = getViewportPoint(v,make_float2(x,y));
-            if (length(vpPoint - lassoPoints_.front()) < 0.1) {
-                vpPoint = lassoPoints_.front();
-            }
-            lassoPoints_.back() = vpPoint;
-        }
-    } break;
+        case SelectionModeSingle:
+            {
+                float2 vpPoint = getViewportPoint(v,make_float2(x,y));
+                viz_->setHoveredOverPoint(vpPoint);
+            } break;
+        case SelectionModeLasso:
+            {
+                if (lassoPoints_.size() > 0) {
+                    float2 vpPoint = getViewportPoint(v,make_float2(x,y));
+                    if (length(vpPoint - lassoPoints_.front()) <
+                            viz_->getViewportUnitsPerPixel(make_float2(v.GetBounds().w,v.GetBounds().h)).x*stickyStartThresholdPixels_) {
+                        vpPoint = lassoPoints_.front();
+                    }
+                    lassoPoints_.back() = vpPoint;
+                }
+            } break;
     }
 }
 

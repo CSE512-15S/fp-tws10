@@ -18,6 +18,14 @@ public:
 
     inline SelectionMode getSelectionMode() { return selectionMode_; }
 
+    inline std::vector<float2> & getLassoPoints() { return lassoPoints_; }
+
+    inline void clearLassoPoints() { lassoPoints_.clear(); }
+
+    inline bool hasSelection() { bool retVal = hasSelection_; hasSelection_ = false; return retVal;  }
+
+    inline int getHoveredOverPoint() { return viz_->getHoveredOverPoint(); }
+
 protected:
     // -=-=-=-=-=- methods -=-=-=-=-=-
     inline float2 getViewportPoint(pangolin::View & v, const float2 guiPoint) {
@@ -30,9 +38,25 @@ protected:
                 make_float2(v.GetBounds().w,v.GetBounds().h) + make_float2(v.GetBounds().l,v.GetBounds().b);
     }
 
+    void zoomIn(pangolin::View & v, const int x, const int y);
+
+    void zoomOut(pangolin::View & v, const int x, const int y);
+
     // -=-=-=-=-=- members -=-=-=-=-=-
-    SelectionMode selectionMode_;
     EmbeddingViz * viz_;
+
+    SelectionMode selectionMode_;
+
+    std::vector<float2> lassoPoints_;
+
+    bool hasSelection_;
+
+    float2 lastMouse_;
+    bool scrolled_;
+
+    float zoomSpeed_;
+
+    static constexpr float stickyStartThresholdPixels_ = 10.f;
 };
 
 #endif // EMBEDDING_VIEW_MOUSE_HANDLER_H

@@ -38,8 +38,15 @@ public:
 
     void clearHover();
 
+    void getEnclosedPoints(std::vector<int> & enclosedPoints, const std::vector<float2> & viewportLassoPoints);
+
     inline float2 getViewportPointOfSubvizPoint(const float2 normalizedSubvizPoint, const int subvizRow, const int subvizCol) {
         return (make_float2(subvizCol,subvizRow) + make_float2(subvizPaddingPercent_) + (1-2*subvizPaddingPercent_)*normalizedSubvizPoint);
+    }
+
+    inline float2 getSubvizPointOfViewportPoint(const float2 viewportPoint, const int subvizRow, const int subvizCol, EmbeddingSubViz * subviz) {
+        return ((viewportPoint - make_float2(subvizCol,subvizRow) - make_float2(subvizPaddingPercent_))/(1-2*subvizPaddingPercent_) - make_float2(0.5))*
+                subviz->getMaxViewportSize() + subviz->getMaxViewportCenter();
     }
 
 private:

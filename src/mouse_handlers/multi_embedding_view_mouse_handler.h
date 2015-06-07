@@ -17,18 +17,6 @@ public:
 
     void PassiveMouseMotion(pangolin::View & v, int x, int y, int button_state);
 
-    inline bool hasSelection() { bool retVal = hasSelection_; hasSelection_ = false; return retVal;  }
-
-    inline int getHoveredOverPoint() { return viz_->getHoveredOverPoint(); }
-
-private:
-
-    bool hasSelection_;
-
-    float2 lastMouse_;
-    bool scrolled_;
-
-    float zoomSpeed_;
 };
 
 #endif // MULTI_EMBEDDING_VIEW_MOUSE_HANDLER_H

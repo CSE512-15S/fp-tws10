@@ -128,6 +128,8 @@ int main(int argc, char * * argv) {
     // -=-=-=-=- set up mouse handlers -=-=-=-=-
     SingleEmbeddingViewMouseHandler embeddingViewHandler(&embeddingViz);
     MultiEmbeddingViewMouseHandler multiEmbeddingViewHandler(&multiEmbeddingViz);
+    EmbeddingViewMouseHandler * activeEmbeddingHandler = &embeddingViewHandler;
+    EmbeddingViz * activeEmbeddingViz = &embeddingViz;
 
     // -=-=-=-=- set up views -=-=-=-=-
     pangolin::View embeddingView(embeddingViewAspectRatio);
@@ -224,8 +226,9 @@ int main(int argc, char * * argv) {
         filterResponseViz.resize(filterView.GetBounds().w,filterView.GetBounds().h,filterVizZoom);
     });
 
-
+    // -=-=-=-=- set up gl -=-=-=-=-
     glEnable(GL_PROGRAM_POINT_SIZE);
+    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 
     // -=-=-=-=- render previews -=-=-=-=-
     std::vector<uchar3*> overviewImages;
@@ -330,9 +333,24 @@ int main(int argc, char * * argv) {
         // -=-=-=-=-=-=- tool view -=-=-=-=-=-=-
         toolView.ActivateScissorAndClear();
         toolView.ActivatePixelOrthographic();
-        glColor3ub(255,255,255);
-        renderTexture(pointSelection,make_float2(0,toolView.GetBounds().t() - 34),make_float2(32,32));
-        renderTexture(lassoSelection,make_float2(34,toolView.GetBounds().t() - 34),make_float2(32,32));
+        {
+            uchar4 pointColor, lassoColor;
+            if (activeEmbeddingHandler->getSelectionMode() == SelectionModeSingle) {
+                pointColor = make_uchar4(255,255,255,255);
+                lassoColor = make_uchar4(255,255,255,128);
+            } else {
+                pointColor = make_uchar4(255,255,255,128);
+                lassoColor = make_uchar4(255,255,255,255);
+            }
+
+            glEnable(GL_BLEND);
+            glColor(pointColor);
+            renderTexture(pointSelection,make_float2(0,toolView.GetBounds().t() - 34),make_float2(32,32));
+            glColor(lassoColor);
+            renderTexture(lassoSelection,make_float2(34,toolView.GetBounds().t() - 34),make_float2(32,32));
+            glDisable(GL_BLEND);
+        }
+
 
         // -=-=-=-=-=-=- embedding view -=-=-=-=-=-=-
         embeddingView.ActivateScissorAndClear();
@@ -341,142 +359,79 @@ int main(int argc, char * * argv) {
         CheckGlDieOnError();
 
         const float2 windowSize = make_float2(embeddingView.GetBounds().w,embeddingView.GetBounds().h);
-        if (multiembeddingVizActive) {
-            multiEmbeddingViz.render(windowSize);
+        activeEmbeddingViz->render(windowSize);
+        CheckGlDieOnError();
+        //        multiEmbeddingViz.render(embeddingView);
 
-            CheckGlDieOnError();
-        } else {
-            embeddingViz.render(windowSize);
-
-            CheckGlDieOnError();
-    //        multiEmbeddingViz.render(embeddingView);
-
-//            glColor3ub(255,255,255);
-//            renderTexture(previewTex,make_float2(0),make_float2(previewWidth,previewHeight),false);
-
-            glPushMatrix();
-            setUpViewport(windowSize,embeddingViz.getViewportSize(),embeddingViz.getViewportCenter());
-
-    //        {
-    //            glColor3ub(0,0,0);
-    //            glLineWidth(3);
-    //            glBegin(GL_LINE_LOOP);
-    //            glVertex2f(viewportCenter.x - viewportSize.x/2 + 1e-4, viewportCenter.y - viewportSize.y/2 + 1e-4);
-    //            glVertex2f(viewportCenter.x - viewportSize.x/2 + 1e-4, viewportCenter.y + viewportSize.y/2 - 1e-4);
-    //            glVertex2f(viewportCenter.x + viewportSize.x/2 - 1e-4, viewportCenter.y + viewportSize.y/2 - 1e-4);
-    //            glVertex2f(viewportCenter.x + viewportSize.x/2 - 1e-4, viewportCenter.y - viewportSize.y/2 + 1e-4);
-    //            glEnd();
-    //            glLineWidth(1);
-    //        }
-
-            switch (embeddingViewHandler.getSelectionMode()) {
+        switch (activeEmbeddingHandler->getSelectionMode()) {
             case SelectionModeSingle:
-            {
+                {
 
-            } break;
+                } break;
             case SelectionModeLasso:
-            {
-                std::vector<float2> lassoPoints = embeddingViewHandler.getLassoPoints();
-                glColor3ub(0,0,0);
-                glLineWidth(2);
-                glBegin(GL_LINE_STRIP);
-                for (float2 v : lassoPoints) {
-                    glVertex(v);
-                }
-                glEnd();
-                glLineWidth(1);
-            } break;
-            }
+                {
+                    std::vector<float2> lassoPoints = activeEmbeddingHandler->getLassoPoints();
+                    if (lassoPoints.size() > 0) {
+                        std::cout << "drawing lasso" << std::endl;
+                        if (activeEmbeddingViz == &multiEmbeddingViz) {
+                            std::cout << " on multi" << std::endl;
+                        }
 
-    ////        if (selectedImage >= 0) {
-    ////            boost::shared_ptr<caffe::Layer<float> > featLayer = net.layer_by_name("feat");
+                        glPushMatrix();
+                        setUpViewport(windowSize,activeEmbeddingViz->getViewportSize(),activeEmbeddingViz->getViewportCenter());
 
-    ////            boost::shared_ptr<caffe::Blob<float> > weightBlob = featLayer->blobs()[0];
-    ////            boost::shared_ptr<caffe::Blob<float> > biasBlob = featLayer->blobs()[1];
+                        glColor3ub(0,0,0);
+                        glLineWidth(2);
+                        glEnableClientState(GL_VERTEX_ARRAY);
+                        glVertexPointer(2,GL_FLOAT,0,lassoPoints.data());
+                        glDrawArrays(GL_LINE_STRIP,0,lassoPoints.size());
+                        glDisableClientState(GL_VERTEX_ARRAY);
+                        glLineWidth(1);
 
-    ////            boost::shared_ptr<caffe::Blob<float> > featInputBlob = net.blob_by_name("ip2");
-
-    ////            printBlobSize(weightBlob);
-    ////            printBlobSize(biasBlob);
-    ////            printBlobSize(featInputBlob);
-
-    ////            glLineWidth(2);
-    ////            glColor3ub(0,0,0);
-    ////            float2 end = make_float2(biasBlob->cpu_data()[0],biasBlob->cpu_data()[1]);
-    ////            glBegin(GL_LINES);
-    ////            for (int i=0; i<weightBlob->channels(); ++i) {
-    ////                float2 W = make_float2(weightBlob->cpu_data()[i],weightBlob->cpu_data()[weightBlob->channels() + i]);
-    ////                float x = featInputBlob->cpu_data()[selectedImage*featInputBlob->channels() + i];
-    ////                float2 nextEnd = end + x*W;
-    ////                glVertex(end);
-    ////                glVertex(nextEnd);
-    ////                end = nextEnd;
-    ////            }
-    ////            glEnd();
-    ////            glLineWidth(1);
-    ////        }
-
-            glPopMatrix();
-
-
-            CheckGlDieOnError();
+                        glPopMatrix();
+                    }
+                } break;
         }
+
+
+        CheckGlDieOnError();
 
         // -=-=-=-=-=-=- filter view -=-=-=-=-=-=-
         filterView.ActivateScissorAndClear();
         filterView.ActivatePixelOrthographic();
 
-
         CheckGlDieOnError();
-//        {
-//            glColor3ub(0,0,0);
-//            glLineWidth(3);
-//            glBegin(GL_LINE_LOOP);
-//            glVertex2f(1e-4, 1e-4);
-//            glVertex2f(1e-4, filterView.GetBounds().h - 1e-4);
-//            glVertex2f(filterView.GetBounds().w - 1e-4, filterView.GetBounds().h - 1e-4);
-//            glVertex2f(filterView.GetBounds().w - 1e-4, 1e-4);
-//            glEnd();
-//            glLineWidth(1);
-//        }
 
         if (hasSelection) {
             filterResponseViz.render();
-
             CheckGlDieOnError();
         }
 
         // -=-=-=-=-=-=- input handling -=-=-=-=-=-=-
         int selectedImage = -1;
-        if (embeddingViewHandler.hasSelection()) {
-            switch (embeddingViewHandler.getSelectionMode()) {
+        if (activeEmbeddingHandler->hasSelection()) {
+            switch (activeEmbeddingHandler->getSelectionMode()) {
                 case SelectionModeSingle:
                     {
-                        selectedImage = embeddingViewHandler.getHoveredOverPoint();
+                        selectedImage = activeEmbeddingHandler->getHoveredOverPoint();
                         if (selectedImage == -1) {
                             std::fill(selection.begin(),selection.end(),0.5f);
                         }
                     } break;
                 case SelectionModeLasso:
                     {
-                        std::vector<float2> & lassoPoints = embeddingViewHandler.getLassoPoints();
-//                        embeddingViz
+                        std::vector<float2> & lassoPoints = activeEmbeddingHandler->getLassoPoints();
                         std::vector<int> enclosedPoints;
-                        embeddingViz.getEnclosedPoints(enclosedPoints,lassoPoints);
+                        activeEmbeddingViz->getEnclosedPoints(enclosedPoints,lassoPoints);
                         std::cout << enclosedPoints.size() << " points enclosed" << std::endl;
                         std::fill(selection.begin(),selection.end(),0.0f);
                         for (int i=0; i<enclosedPoints.size(); ++i) {
                             selection[enclosedPoints[i]] = 1.f;
                         }
                         filterResponseViz.setSelection(selection);
-                        embeddingViewHandler.clearLassoPoints();
+                        activeEmbeddingHandler->clearLassoPoints();
                         hasSelection = true;
                     } break;
-            }
-        } else if (multiEmbeddingViewHandler.hasSelection()) {
-            selectedImage = multiEmbeddingViewHandler.getHoveredOverPoint();
-            if (selectedImage == -1) {
-                std::fill(selection.begin(),selection.end(),0.5f);
             }
         }
         if (selectedImage >= 0) {
@@ -497,12 +452,13 @@ int main(int argc, char * * argv) {
                 const int dims = embeddingBlob->channels();
                 if (dims == 2) {
                     multiembeddingVizActive = false;
-                    embeddingView.SetHandler(&embeddingViewHandler);
+                    activeEmbeddingHandler = &embeddingViewHandler;
+                    activeEmbeddingViz = &embeddingViz;
                     embeddingViz.setEmbedding((const float2 *)embeddingBlob->cpu_data(),testColors.data(),nTestImages);
-                    embeddingViz.setOverviewImage(overviewImages[layerNum]);
                 } else {
                     multiembeddingVizActive = true;
-                    embeddingView.SetHandler(&multiEmbeddingViewHandler);
+                    activeEmbeddingHandler = &multiEmbeddingViewHandler;
+                    activeEmbeddingViz = &multiEmbeddingViz;
                     if (embeddingBlob->width() == 1 && embeddingBlob->height() == 1) {
                         multiEmbeddingViz.setEmbedding(embeddingBlob->cpu_data(),dims,
                                                        testColors.data(),nTestImages);
@@ -514,8 +470,10 @@ int main(int argc, char * * argv) {
                                                        layerRelativeScales[blobName]);
                     }
                     multiEmbeddingViz.setZoom(1.f);
-                    multiEmbeddingViz.setOverviewImage(overviewImages[layerNum]);
                 }
+                embeddingView.SetHandler(activeEmbeddingHandler);
+                activeEmbeddingViz->setOverviewImage(overviewImages[layerNum]);
+
             }
         } else if (filterViewHandler.hasUnitSelection()) {
             std::cout << "selected unit " << filterViewHandler.getSelectedUnit() << " in layer " << filterViewHandler.getSelectedLayer() << std::endl;
@@ -536,9 +494,12 @@ int main(int argc, char * * argv) {
             switch (selectedButton) {
                 case 0:
                     embeddingViewHandler.setSelectionMode(SelectionModeSingle);
+                    multiEmbeddingViewHandler.setSelectionMode(SelectionModeSingle);
+                    activeEmbeddingHandler->clearLassoPoints();
                     break;
                 case 1:
                     embeddingViewHandler.setSelectionMode(SelectionModeLasso);
+                    multiEmbeddingViewHandler.setSelectionMode(SelectionModeLasso);
                     break;
             }
         }

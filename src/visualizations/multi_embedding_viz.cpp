@@ -329,8 +329,9 @@ void MultiEmbeddingViz::setHoveredOverPoint(const float2 viewportPoint) {
 //    std::cout << xAxis << ", " << yAxis << std::endl;
 
     EmbeddingSubViz * subviz = embeddingVizs_[thisSubvizNum];
-    const float2 subviewportPoint = ((viewportPoint - make_float2(xAxis,yAxis) - make_float2(subvizPaddingPercent_))/(1-2*subvizPaddingPercent_) - make_float2(0.5))*
-                                    subviz->getMaxViewportSize() + subviz->getMaxViewportCenter();
+    const float2 subviewportPoint = getSubvizPointOfViewportPoint(viewportPoint,yAxis,xAxis,subviz);
+//            ((viewportPoint - make_float2(xAxis,yAxis) - make_float2(subvizPaddingPercent_))/(1-2*subvizPaddingPercent_) - make_float2(0.5))*
+//                                    subviz->getMaxViewportSize() + subviz->getMaxViewportCenter();
 
     const float maxDistViewport = pointSizeHoverMultiplier_*pointSizeViewport_*sqrtf(zoom_)*getMaxViewportSize().x/subviz->getMaxViewportSize().x; //maxHoverDistPixels_/windowSize.x*getViewportSize().x*(1-2*subvizPaddingPercent_/dims_)*subviz->getMaxViewportSize().x; //maxHoverDistPixels_/((windowSize.x/dims_)*(1-2*subvizPaddingPercent_))*subviz->getMaxViewportSize().x;
     subviz->setHoveredOverPoint(subviewportPoint,maxDistViewport);
@@ -373,5 +374,22 @@ void MultiEmbeddingViz::adjustZoomLimits() {
 
     std::cout << "zoom limits set to " << minZoom_ << " -> " << maxZoom_ << std::endl;
     clampZoom();
+
+}
+
+void MultiEmbeddingViz::getEnclosedPoints(std::vector<int> & enclosedPoints, const std::vector<float2> & viewportLassoPoints) {
+
+    assert(viewportLassoPoints.size() > 0);
+
+    const int xAxis = viewportLassoPoints[0].x;
+    const int yAxis = viewportLassoPoints[0].y;
+
+    const int thisSubvizNum = xAxis + dims_*yAxis;
+    EmbeddingSubViz * subviz = embeddingVizs_[thisSubvizNum];
+    std::vector<float2> subviewportLassoPoints(viewportLassoPoints.size());
+    for (int i=0; i<viewportLassoPoints.size(); ++i) {
+        subviewportLassoPoints[i] = getSubvizPointOfViewportPoint(viewportLassoPoints[i],yAxis,xAxis,subviz);
+    }
+    subviz->getEnclosedPoints(enclosedPoints,subviewportLassoPoints);
 
 }
