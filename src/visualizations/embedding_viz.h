@@ -38,6 +38,8 @@ public:
 
     inline void setZoom(const float zoom) { zoom_ = zoom; clampZoom(); }
 
+    inline void setZoomOverridingLimits(const float zoom) { zoom_ = zoom; }
+
     inline void incrementScroll(const float2 increment) { scroll_ += increment; clampScroll(); }
 
     virtual int getHoveredOverPoint() = 0;

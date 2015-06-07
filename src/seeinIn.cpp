@@ -285,6 +285,7 @@ int main(int argc, char * * argv) {
 
                 viz = &multiEmbeddingViz;
             }
+//            viz->setZoomOverridingLimits(1.f);
             viz->setZoom(1.f);
 
             glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);

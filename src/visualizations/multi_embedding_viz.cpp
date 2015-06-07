@@ -12,7 +12,7 @@ MultiEmbeddingViz::MultiEmbeddingViz(const float aspectRatio, const float * imag
                                      ScatterPlotShader & pointShader,
                                      float * selection) :
     EmbeddingViz(aspectRatio,0.005f,images,imageWidth,imageHeight,imageTex,overviewWidth,overviewHeight,overviewTex),
-    hoveredSubvizIndex_(0), pointShader_(pointShader), selection_(selection) {
+    hoveredSubvizIndex_(0), pointShader_(pointShader), selection_(selection), colorCopies_(0), selectionCopies_(0) {
 
 }
 
@@ -24,10 +24,12 @@ void MultiEmbeddingViz::setEmbedding(const float * embedding, const int embeddin
                                      uchar3 * coloring, const int nEmbedded) {
 
     assert(embeddingDimensions > 0);
+    assert(nEmbedded > 0);
 
     // -=-=-=- compute axis bounds -=-=-=-
     dims_ = embeddingDimensions;
     width_ = height_ = 1;
+    nEmbedded_ = nEmbedded;
 
     std::vector<float> viewportSizeByDim(dims_);
     std::vector<float> viewportCenterByDim(dims_);
@@ -81,6 +83,7 @@ void MultiEmbeddingViz::setEmbedding(const float * embedding, const int embeddin
     assert(receptiveField.x > 0);
     assert(receptiveField.y > 0);
     assert(stride > 0);
+    assert(nEmbedded_ > 0);
 
     // -=-=-=- compute axis bounds -=-=-=-
     dims_ = embeddingDimensions;
@@ -88,6 +91,8 @@ void MultiEmbeddingViz::setEmbedding(const float * embedding, const int embeddin
     height_ = height;
     receptiveField_ = receptiveField;
     stride_ = stride;
+    nEmbedded_ = nEmbedded;
+
     std::vector<float> viewportSizeByDim(dims_);
     std::vector<float> viewportCenterByDim(dims_);
     for (int d=0; d<dims_; ++d) {
@@ -128,11 +133,21 @@ void MultiEmbeddingViz::setEmbedding(const float * embedding, const int embeddin
         }
     }
 
+    // -=-=-=- copy the color array -=-=-=-
+    colorCopies_ = new uchar3[width_*height_*nEmbedded];
+    selectionCopies_ = new float[width_*height_*nEmbedded];
+    for (int i=0; i<nEmbedded_; ++i) {
+        for (int j=0; j<width_*height_; ++j) {
+            colorCopies_[j + i*width_*height_] = coloring[i];
+            selectionCopies_[j + i*width_*height_] = selection_[i];
+        }
+    }
+
     // -=-=-=- set up subvizs -=-=-=-
     for (int yDim = 0; yDim < dims_; ++yDim) {
         for (int xDim = 0; xDim < dims_; ++xDim) {
-            EmbeddingSubViz * viz = new EmbeddingSubViz(aspectRatio_,pointShader_,selection_);
-            viz->setEmbedding(parallelCoordinateArrays_[xDim],parallelCoordinateArrays_[yDim],coloring,nEmbedded,make_float2(maxViewportSize,maxViewportSize),make_float2(viewportCenterByDim[xDim],viewportCenterByDim[yDim]));
+            EmbeddingSubViz * viz = new EmbeddingSubViz(aspectRatio_,pointShader_,selectionCopies_);
+            viz->setEmbedding(parallelCoordinateArrays_[xDim],parallelCoordinateArrays_[yDim],colorCopies_,nEmbedded,make_float2(maxViewportSize,maxViewportSize),make_float2(viewportCenterByDim[xDim],viewportCenterByDim[yDim]));
             embeddingVizs_.push_back(viz);
         }
     }
@@ -198,12 +213,12 @@ void MultiEmbeddingViz::render(const float2 windowSize) {
         const int hoveredSubvizCol = hoveredSubvizIndex_ % dims_;
         const int hoveredSubvizRow = hoveredSubvizIndex_ / dims_;
 
-        imageTex_.Upload(images_ + hoveredPointIndex*imageWidth_*imageHeight_,GL_LUMINANCE,GL_FLOAT);
+        imageTex_.Upload(images_ + (hoveredPointIndex/(width_*height_))*imageWidth_*imageHeight_,GL_LUMINANCE,GL_FLOAT);
         const float2 hoveredViewportPoint = hoverViz->getEmbeddedPoint(hoveredPointIndex);
         const float2 hoveredWindowPoint = getWindowPoint(getViewportPointOfSubvizPoint(hoverViz->getNormalizedPoint(hoveredViewportPoint),hoveredSubvizRow,hoveredSubvizCol),windowSize);
 
         static const float2 hoverOffset = make_float2(imageWidth_/4,imageHeight_/4);
-        static const float2 textureSize = make_float2(2*imageWidth_,2*imageHeight_);
+        static const float2 textureSize = make_float2(8*imageWidth_,8*imageHeight_);
 
         const float2 quad1HoverExtent = hoveredWindowPoint + hoverOffset + textureSize;
 
@@ -287,7 +302,7 @@ void MultiEmbeddingViz::render(const float2 windowSize) {
             std::cout << hoverPointW << ", " << hoverPointH << std::endl;
 
             const float2 receptiveFieldSize = textureSize/make_float2(imageWidth_,imageHeight_)*make_float2(receptiveField_.x,receptiveField_.y);
-            const float2 receptiveFieldOffset = textureSize/make_float2(imageWidth_,imageHeight_)*make_float2(stride_*hoverPointW,stride_*hoverPointH);
+            const float2 receptiveFieldOffset = textureSize/make_float2(imageWidth_,imageHeight_)*make_float2(stride_*hoverPointW,stride_*(height_ - 1 - hoverPointH));
 
             glColor3ub(255,0,0);
             glBegin(GL_LINE_LOOP);
@@ -332,6 +347,10 @@ void MultiEmbeddingViz::clear() {
     }
     embeddingVizs_.clear();
     parallelCoordinateArrays_.clear();
+    delete [] colorCopies_;
+    colorCopies_ = 0;
+    delete [] selectionCopies_;
+    selectionCopies_ = 0;
 }
 
 void MultiEmbeddingViz::clearHover() {

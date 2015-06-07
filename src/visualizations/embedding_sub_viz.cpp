@@ -78,7 +78,11 @@ void EmbeddingSubViz::render(const float2 windowSize, const float2 viewportSize,
     glEnableVertexAttribArray(pointShader_.getSelectionLocation());
     glVertexAttribPointer(pointShader_.getSelectionLocation(),1,GL_FLOAT,false,0,selection_);
 
-    glDrawArrays(GL_POINTS, 0, nEmbedded_);
+    int maxArrayElements;
+    glGetIntegerv(GL_MAX_ELEMENTS_VERTICES,&maxArrayElements);
+    std::cout << "max array elements " << maxArrayElements << std::endl;
+
+    glDrawArrays(GL_POINTS, 0, std::min(nEmbedded_,maxArrayElements));
 
 
     glDisableVertexAttribArray(pointShader_.getYCoordLocation());

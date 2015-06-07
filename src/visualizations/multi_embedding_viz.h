@@ -52,6 +52,7 @@ private:
     int dims_;
     int width_;
     int height_;
+    int nEmbedded_;
     int2 receptiveField_;
     int stride_;
 
@@ -62,6 +63,8 @@ private:
 
     ScatterPlotShader & pointShader_;
     float * selection_;
+    uchar3 * colorCopies_;
+    float * selectionCopies_;
 
     std::vector<float *> parallelCoordinateArrays_;
 
