@@ -73,6 +73,8 @@ set(sources
     src/mouse_handlers/filter_view_mouse_handler.cpp
     src/mouse_handlers/multi_embedding_view_mouse_handler.h
     src/mouse_handlers/multi_embedding_view_mouse_handler.cpp
+    src/mouse_handlers/tool_view_mouse_handler.h
+    src/mouse_handlers/tool_view_mouse_handler.cpp
 
     src/shaders/scatter_plot.frag
     src/shaders/scatter_plot.vert

@@ -22,6 +22,7 @@
 #include "mouse_handlers/embedding_view_mouse_handler.h"
 #include "mouse_handlers/filter_view_mouse_handler.h"
 #include "mouse_handlers/multi_embedding_view_mouse_handler.h"
+#include "mouse_handlers/tool_view_mouse_handler.h"
 #include "util/gl_helpers.h"
 #include "util/image_io.h"
 #include "util/string_format.h"
@@ -31,7 +32,7 @@
 
 static const int guiWidth = 1920;
 static const int guiHeight = 1080;
-static const int panelWidth = 200;
+static const int panelWidth = 274;
 static const float aspectRatio = guiWidth/(float)guiHeight;
 
 static const int embeddingViewWidth = guiHeight;
@@ -57,43 +58,6 @@ static const uchar3 digitColors[10] = {
     make_uchar3(202,178,214 ),
     make_uchar3(106,61,154  )
 };
-
-//void loadWeights(caffe::Net<float> & net, std::string weightFile) {
-
-//    caffe::NetParameter params;
-//    caffe::ReadProtoFromBinaryFile(weightFile,&params);
-
-//    const int nLayers = params.layer_size();
-//    std::cout << nLayers << std::endl;
-//    for (int i=0; i<nLayers; ++i) {
-//        const caffe::LayerParameter & layerParam = params.layer(i);
-//        std::cout << layerParam.name() << std::endl;
-//        const int nParams = layerParam.param_size();
-//        std::cout << nParams << std::endl;
-//        for (int p=0; p<nParams; ++p) {
-//            caffe::ParamSpec param = layerParam.param(p);
-//            std::cout << param.name() << std::endl;
-//            std::map<std::string,int>::const_iterator it = net.param_names_index().find(param.name());
-//            if (it != net.param_names_index().end()) {
-//                std::cout << "net has a matching param" << std::endl;
-//                const caffe::BlobProto & blob = layerParam.blobs(p);
-//                const caffe::BlobShape & blobShape = blob.shape();
-//                std::cout << blobShape.dim(0);
-//                for (int d=1; d<blobShape.dim_size(); ++d) {
-//                    std::cout << " x " << blobShape.dim(d);
-//                } std::cout << std::endl;
-
-//                boost::shared_ptr<caffe::Blob<float> > netParam = net.params()[it->second];
-//                std::cout << netParam->shape()[0];
-//                for (int d=1; d<netParam->shape().size(); ++d) {
-//                    std::cout << " x " << netParam->shape()[d];
-//                } std::cout << std::endl;
-//            }
-//        }
-
-//    }
-
-//}
 
 inline void printBlobSize(boost::shared_ptr<caffe::Blob<float> > blob) {
     std::cout << blob->num() << " x " << blob->channels() << " x " << blob->height() << " x " << blob->width() << std::endl;
@@ -160,10 +124,6 @@ int main(int argc, char * * argv) {
     embeddingViz.setEmbedding((const float2 *)outputBlob->cpu_data(),testColors.data(),nTestImages);
 
     MultiEmbeddingViz multiEmbeddingViz(embeddingViewAspectRatio,testImages,imageWidth,imageHeight,imageTex,overviewWidth,overviewHeight,overviewTex,pointShader,selection.data());
-//    multiEmbeddingViz.setEmbedding(ip2Blob->cpu_data(),ip2Blob->channels(),testColors.data(),nTestImages);
-
-//    boost::shared_ptr<caffe::Blob<float> > pool2Blob = net.blob_by_name("pool2");
-//    multiEmbeddingViz.setEmbedding(pool2Blob->cpu_data(),pool2Blob->channels(),testColors.data(),nTestImages,pool2Blob->width(),pool2Blob->height(),make_int2(16,16),4);
 
     // -=-=-=-=- set up mouse handlers -=-=-=-=-
     EmbeddingViewMouseHandler embeddingViewHandler(&embeddingViz);
@@ -179,11 +139,13 @@ int main(int argc, char * * argv) {
     pangolin::View filterView; //(filterViewAspectRatio);
 
     pangolin::View toolView;
-    toolView.SetBounds(0,1,0,pangolin::Attach::Pix(200));
+    toolView.SetBounds(0,1,0,pangolin::Attach::Pix(panelWidth));
     pangolin::GlTexture pointSelection(64,64);
     pangolin::GlTexture lassoSelection(64,64);
     pointSelection.LoadFromFile("../src/icons/pointSelection.png");
     lassoSelection.LoadFromFile("../src/icons/lassoSelection.png");
+    ToolViewMouseHandler toolViewHandler(2,2,1);
+    toolView.SetHandler(&toolViewHandler);
 
 //    filterView.SetBounds(pangolin::Attach::Frac(0),pangolin::Attach::Frac(1),pangolin::Attach::Frac(embeddingViewWidth/(float)guiWidth),pangolin::Attach::Frac(1),true);
 
@@ -252,7 +214,7 @@ int main(int argc, char * * argv) {
 
     FeatureProjector featProjector(net,filterResponsesToVisualize); //"feat");
 
-    pangolin::RegisterKeyPressCallback(' ',[&embeddingViewHandler, &hasSelection](){ embeddingViewHandler.setSelectionMode(embeddingViewHandler.getSelectionMode() == SelectionModeSingle ? SelectionModeLasso : SelectionModeSingle); hasSelection = false;} );
+//    pangolin::RegisterKeyPressCallback(' ',[&embeddingViewHandler, &hasSelection](){ embeddingViewHandler.setSelectionMode(embeddingViewHandler.getSelectionMode() == SelectionModeSingle ? SelectionModeLasso : SelectionModeSingle); hasSelection = false;} );
     pangolin::RegisterKeyPressCallback('+',[&filterResponseViz, &filterVizZoom, &filterView](){
         filterVizZoom *= 1.25;
         filterResponseViz.resize(filterView.GetBounds().w,filterView.GetBounds().h,filterVizZoom);
@@ -268,10 +230,10 @@ int main(int argc, char * * argv) {
     // -=-=-=-=- render previews -=-=-=-=-
     std::vector<uchar3*> overviewImages;
     {
-        pangolin::GlRenderBuffer previewRenderBuffer(overviewWidth,overviewHeight);
-        pangolin::GlFramebuffer previewFrameBuffer(overviewTex,previewRenderBuffer);
+        pangolin::GlRenderBuffer overviewRenderBuffer(overviewWidth,overviewHeight);
+        pangolin::GlFramebuffer overviewFrameBuffer(overviewTex,overviewRenderBuffer);
 
-        previewFrameBuffer.Bind();
+        overviewFrameBuffer.Bind();
         glViewport(0,0,overviewWidth,overviewHeight);
         glEnable(GL_SCISSOR_TEST);
         glScissor(0,0,overviewWidth,overviewHeight);
@@ -326,21 +288,22 @@ int main(int argc, char * * argv) {
                 glMatrixMode(GL_MODELVIEW);
                 glLoadIdentity();
                 viz->render(make_float2(overviewWidth,overviewHeight));
-                previewFrameBuffer.Unbind();
+                overviewFrameBuffer.Unbind();
                 overviewImages.push_back(new uchar3[overviewWidth*overviewHeight]);
                 overviewTex.Download(overviewImages.back(),GL_RGB,GL_UNSIGNED_BYTE);
 
                 writePNG(cachedFilename.c_str(),overviewImages.back(),overviewWidth,overviewHeight);
 
-                previewFrameBuffer.Bind();
+                overviewFrameBuffer.Bind();
             }
         }
 
-        previewFrameBuffer.Unbind();
+        overviewFrameBuffer.Unbind();
 
     }
     multiEmbeddingViz.setShowOverview(true);
     embeddingViz.setShowOverview(true);
+    embeddingViz.setOverviewImage(overviewImages.back());
 
     bool multiembeddingVizActive = false;
 
@@ -566,6 +529,17 @@ int main(int argc, char * * argv) {
                 featProjector.computeProjection(blobName,selectedImage,selectedUnit,activationValue);
                 std::cout << "stored as " << featProjector.getResponse(blobName)[selectedUnit] << std::endl;
                 filterResponseViz.setResponse(featProjector);
+            }
+        }
+        if (toolViewHandler.hasSelection()) {
+            int selectedButton = toolViewHandler.getSelectedButton();
+            switch (selectedButton) {
+                case 0:
+                    embeddingViewHandler.setSelectionMode(SelectionModeSingle);
+                    break;
+                case 1:
+                    embeddingViewHandler.setSelectionMode(SelectionModeLasso);
+                    break;
             }
         }
 
