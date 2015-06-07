@@ -66,7 +66,7 @@ private:
     std::vector<float *> parallelCoordinateArrays_;
 
     static constexpr float subvizPaddingPercent_ = 0.05f;
-    static const int maxDimsInView_ = 16;
+    static const int maxDimsInView_ = 40;
 
 };
 

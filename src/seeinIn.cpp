@@ -250,8 +250,8 @@ int main(int argc, char * * argv) {
 
     glEnable(GL_PROGRAM_POINT_SIZE);
 
-
     // -=-=-=-=- render previews -=-=-=-=-
+    std::vector<uchar3*> overviewImages;
     {
         pangolin::GlRenderBuffer previewRenderBuffer(overviewWidth,overviewHeight);
         pangolin::GlFramebuffer previewFrameBuffer(overviewTex,previewRenderBuffer);
@@ -261,22 +261,51 @@ int main(int argc, char * * argv) {
         glEnable(GL_SCISSOR_TEST);
         glScissor(0,0,overviewWidth,overviewHeight);
         glClearColor(1,1,1,1);
-        glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glOrtho(0, overviewWidth, 0, overviewHeight, -1, 1);
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-        embeddingViz.render(make_float2(overviewWidth,overviewHeight));
-        previewFrameBuffer.Unbind();
-        overviewTex.Download(embeddingViz.getOverviewImage(),GL_RGB,GL_UNSIGNED_BYTE);
 
-        previewFrameBuffer.Bind();
-        glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-        multiEmbeddingViz.render(make_float2(overviewWidth,overviewHeight));
+        for (int i=0; i<filterResponsesToVisualize.size(); ++i) {
+            std::string blobName = filterResponsesToVisualize[i];
+            std::cout << "making preview for " << blobName << std::endl;
+            boost::shared_ptr<caffe::Blob<float> > embeddingBlob = net.blob_by_name(blobName);
+            const int dims = embeddingBlob->channels();
+            EmbeddingViz * viz;
+            if (dims == 2) {
+                embeddingViz.setEmbedding((const float2 *)embeddingBlob->cpu_data(),testColors.data(),nTestImages);
+                viz = &embeddingViz;
+            } else {
+                if (embeddingBlob->width() == 1 && embeddingBlob->height() == 1) {
+                    multiEmbeddingViz.setEmbedding(embeddingBlob->cpu_data(),dims,
+                                                   testColors.data(),nTestImages);
+                } else {
+                    multiEmbeddingViz.setEmbedding(embeddingBlob->cpu_data(),dims,
+                                                   testColors.data(),nTestImages,
+                                                   embeddingBlob->width(),embeddingBlob->height(),
+                                                   layerReceptiveFields[blobName],
+                                                   layerRelativeScales[blobName]);
+                }
+
+                viz = &multiEmbeddingViz;
+            }
+            viz->setZoom(1.f);
+
+            glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+            glMatrixMode(GL_PROJECTION);
+            glLoadIdentity();
+            glOrtho(0, overviewWidth, 0, overviewHeight, -1, 1);
+            glMatrixMode(GL_MODELVIEW);
+            glLoadIdentity();
+            viz->render(make_float2(overviewWidth,overviewHeight));
+            previewFrameBuffer.Unbind();
+            overviewImages.push_back(new uchar3[overviewWidth*overviewHeight]);
+            overviewTex.Download(overviewImages.back(),GL_RGB,GL_UNSIGNED_BYTE);
+
+            previewFrameBuffer.Bind();
+        }
+
         previewFrameBuffer.Unbind();
-        overviewTex.Download(multiEmbeddingViz.getOverviewImage(),GL_RGB,GL_UNSIGNED_BYTE);
+
     }
+    multiEmbeddingViz.setShowOverview(true);
+    embeddingViz.setShowOverview(true);
 
     bool multiembeddingVizActive = false;
 
@@ -454,6 +483,8 @@ int main(int argc, char * * argv) {
                 if (dims == 2) {
                     multiembeddingVizActive = false;
                     embeddingView.SetHandler(&embeddingViewHandler);
+                    embeddingViz.setEmbedding((const float2 *)embeddingBlob->cpu_data(),testColors.data(),nTestImages);
+                    embeddingViz.setOverviewImage(overviewImages[layerNum]);
                 } else {
                     multiembeddingVizActive = true;
                     embeddingView.SetHandler(&multiEmbeddingViewHandler);
@@ -468,6 +499,7 @@ int main(int argc, char * * argv) {
                                                        layerRelativeScales[blobName]);
                     }
                     multiEmbeddingViz.setZoom(1.f);
+                    multiEmbeddingViz.setOverviewImage(overviewImages[layerNum]);
                 }
             }
         } else if (filterViewHandler.hasUnitSelection()) {
@@ -490,6 +522,10 @@ int main(int argc, char * * argv) {
         glClearColor(0,0,0,1);
         pangolin::FinishGlutFrame();
 
+    }
+
+    for (uchar3 * overviewImage : overviewImages) {
+        delete [] overviewImage;
     }
 
     return 0;

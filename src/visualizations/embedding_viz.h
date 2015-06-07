@@ -21,9 +21,10 @@ public:
         imageTex_(imageTex), minZoom_(minZoom),
         overviewImage_(overviewWidth*overviewHeight),
         overviewWidth_(overviewWidth), overviewHeight_(overviewHeight),
-        overviewTex_(overviewTex), maxZoom_(1.f) { }
+        overviewTex_(overviewTex), maxZoom_(1.f),
+        showOverview_(false) { }
 
-    void render(const float2 windowSize);
+    virtual void render(const float2 windowSize);
 
     inline float2 getViewportSize() { return zoom_*getMaxViewportSize(); }
 
@@ -51,6 +52,10 @@ public:
 
     inline uchar3 * getOverviewImage() { return overviewImage_.data(); }
 
+    inline void setOverviewImage(uchar3 * overviewImage) { std::memcpy(overviewImage_.data(),overviewImage,overviewImage_.size()*sizeof(uchar3)); }
+
+    inline void setShowOverview(const bool showOverview) { showOverview_ = showOverview; }
+
 protected:
     // -=-=-=-=-=- methods -=-=-=-=-=-
     inline void clampScroll() { scroll_ = fmaxf(getMinScroll(),fminf(scroll_,getMaxScroll())); }
@@ -77,6 +82,8 @@ protected:
     const int overviewHeight_;
     pangolin::GlTexture & imageTex_;
     pangolin::GlTexture & overviewTex_;
+
+    bool showOverview_;
 
     static constexpr float overviewSizePercent_ = 0.2;
     static constexpr float overviewZoomThreshold_ = 0.666f;
