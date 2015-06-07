@@ -169,7 +169,7 @@ void MultiEmbeddingViz::render(const float2 windowSize) {
     const float pointSizeWindow = pointSizeViewport_*((1 - 2*subvizPaddingPercent_)/dims_)*windowSize.x;
 
     pointShader_.bind();
-    pointShader_.setScale(pointSizeWindow*sqrtf(1.f/zoom_));
+    pointShader_.setScale(std::max(1.f,pointSizeWindow*sqrtf(1.f/zoom_)));
     pointShader_.unbind();
 
     glTranslatef(0,visibleAxisRangeY.x,0);
