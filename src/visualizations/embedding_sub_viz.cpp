@@ -53,6 +53,18 @@ void EmbeddingSubViz::render(const float2 windowSize, const float2 viewportSize,
 
     setUpViewport(windowSize,viewportSize,viewportCenter);
 
+    glColor3ub(212,212,212);
+    float axes[8] = {
+        0                                          , maxViewportCenter_.y - maxViewportSize_.y*0.4,
+        0                                          , maxViewportCenter_.y + maxViewportSize_.y*0.4,
+        maxViewportCenter_.x - maxViewportSize_.x*0.4, 0,
+        maxViewportCenter_.x + maxViewportSize_.x*0.4, 0
+    };
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glVertexPointer(2,GL_FLOAT,0,axes);
+    glDrawArrays(GL_LINES, 0, 4);
+    glDisableClientState(GL_VERTEX_ARRAY);
+
     pointShader_.bind();
 
     glPointSize(3);
