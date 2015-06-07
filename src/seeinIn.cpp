@@ -472,18 +472,28 @@ int main(int argc, char * * argv) {
         int selectedImage = -1;
         if (embeddingViewHandler.hasSelection()) {
             switch (embeddingViewHandler.getSelectionMode()) {
-            case SelectionModeSingle:
-            {
-                selectedImage = embeddingViewHandler.getHoveredOverPoint();
-                if (selectedImage == -1) {
-                    std::fill(selection.begin(),selection.end(),0.5f);
-                }
-            } break;
-            case SelectionModeLasso:
-            {
-                filterResponseViz.setSelection(embeddingViewHandler.getSelection());
-                hasSelection = true;
-            } break;
+                case SelectionModeSingle:
+                    {
+                        selectedImage = embeddingViewHandler.getHoveredOverPoint();
+                        if (selectedImage == -1) {
+                            std::fill(selection.begin(),selection.end(),0.5f);
+                        }
+                    } break;
+                case SelectionModeLasso:
+                    {
+                        std::vector<float2> & lassoPoints = embeddingViewHandler.getLassoPoints();
+//                        embeddingViz
+                        std::vector<int> enclosedPoints;
+                        embeddingViz.getEnclosedPoints(enclosedPoints,lassoPoints);
+                        std::cout << enclosedPoints.size() << " points enclosed" << std::endl;
+                        std::fill(selection.begin(),selection.end(),0.0f);
+                        for (int i=0; i<enclosedPoints.size(); ++i) {
+                            selection[enclosedPoints[i]] = 1.f;
+                        }
+                        filterResponseViz.setSelection(selection);
+                        embeddingViewHandler.clearLassoPoints();
+                        hasSelection = true;
+                    } break;
             }
         } else if (multiEmbeddingViewHandler.hasSelection()) {
             selectedImage = multiEmbeddingViewHandler.getHoveredOverPoint();

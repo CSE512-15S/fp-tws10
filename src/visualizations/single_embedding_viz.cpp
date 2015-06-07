@@ -149,4 +149,3 @@ void SingleEmbeddingViz::setHoveredOverPoint(const float2 viewportPoint) {
 
     subViz_.setHoveredOverPoint(viewportPoint,maxDistViewport);
 }
-

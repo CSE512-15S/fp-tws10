@@ -41,6 +41,10 @@ public:
 
     inline void clearHover() { subViz_.clearHover(); }
 
+    inline void getEnclosedPoints(std::vector<int> & enclosedPoints, const std::vector<float2> & viewportLassoPoints) {
+        return subViz_.getEnclosedPoints(enclosedPoints, viewportLassoPoints);
+    }
+
 private:
 
     EmbeddingSubViz subViz_;

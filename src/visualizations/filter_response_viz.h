@@ -24,7 +24,7 @@ private:
 
         void setSelection(const int selectedImage);
 
-        void setSelection(std::vector<bool> & selection);
+        void setSelection(std::vector<float> & selection);
 
         void setResponse(const float * response);
 
@@ -68,7 +68,7 @@ public:
 
     void setSelection(const int selectedImage);
 
-    void setSelection(std::vector<bool> & selection);
+    void setSelection(std::vector<float> & selection);
 
     void setResponse(FeatureProjector & responseSource);
 

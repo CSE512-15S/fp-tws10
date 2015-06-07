@@ -93,7 +93,7 @@ void FilterResponseViz::setSelection(const int selectedImage) {
 
 }
 
-void FilterResponseViz::setSelection(std::vector<bool> & selection) {
+void FilterResponseViz::setSelection(std::vector<float> & selection) {
 
     for (IndividualFilterResponseViz * viz : individualVizs_) {
         viz->setSelection(selection);
@@ -211,11 +211,11 @@ void FilterResponseViz::IndividualFilterResponseViz::setResponse(const float * r
     std::memcpy(response_.data(),response,response_.size()*sizeof(float));
 }
 
-void FilterResponseViz::IndividualFilterResponseViz::setSelection(std::vector<bool> & selection) {
+void FilterResponseViz::IndividualFilterResponseViz::setSelection(std::vector<float> & selection) {
     std::memset(response_.data(),0,response_.size()*sizeof(float));
     int n = 0;
     for (int i=0; i<selection.size(); ++i) {
-        if (selection[i]) {
+        if (selection[i] == 1.f) {
             for (int j=0; j<channels_*height_*width_; ++j) {
                 response_[j] += data_[i*channels_*height_*width_ + j];
             }

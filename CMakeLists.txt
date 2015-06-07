@@ -79,6 +79,8 @@ set(sources
     src/shaders/scatter_plot_shader.h
     src/shaders/scatter_plot_shader.cpp
 
+    src/util/geometry.h
+    src/util/geometry.cpp
     src/util/gl_helpers.h
     src/util/gl_helpers.cpp
     src/util/image_io.h

@@ -2,7 +2,8 @@
 
 MultiEmbeddingViewMouseHandler::MultiEmbeddingViewMouseHandler(MultiEmbeddingViz * viz) :
     viz_(viz),
-    zoomSpeed_(1.1f) { }
+    zoomSpeed_(1.1f),
+    hasSelection_(false) { }
 
 void MultiEmbeddingViewMouseHandler::Mouse(pangolin::View & v, pangolin::MouseButton button, int x, int y, bool pressed, int button_state) {
 

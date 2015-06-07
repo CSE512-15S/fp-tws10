@@ -4,6 +4,8 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+
+#include "util/geometry.h"
 #include "util/gl_helpers.h"
 
 void EmbeddingSubViz::setEmbedding(const float * xCoords, const float * yCoords, const uchar3 * coloring, const int nEmbedded) {
@@ -92,7 +94,7 @@ void EmbeddingSubViz::render(const float2 windowSize, const float2 viewportSize,
 
     int maxArrayElements;
     glGetIntegerv(GL_MAX_ELEMENTS_VERTICES,&maxArrayElements);
-    std::cout << "max array elements " << maxArrayElements << std::endl;
+//    std::cout << "max array elements " << maxArrayElements << std::endl;
 
     glDrawArrays(GL_POINTS, 0, std::min(nEmbedded_,maxArrayElements));
 
@@ -140,5 +142,15 @@ void EmbeddingSubViz::setHoveredOverPoint(const float2 viewportPoint, const floa
     }
 
     hoveredPointIndex_ = closestDist < maxDist ? closestPoint : -1;
+
+}
+
+void EmbeddingSubViz::getEnclosedPoints(std::vector<int> & enclosedPoints, const std::vector<float2> & viewportLassoPoints) {
+
+    for (int i=0; i<nEmbedded_; ++i) {
+        if (isInPolygon(getEmbeddedPoint(i),viewportLassoPoints)) {
+            enclosedPoints.push_back(i);
+        }
+    }
 
 }
