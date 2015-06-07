@@ -1,6 +1,6 @@
 #include "filter_response_viz.h"
 
-#include "gl_helpers.h"
+#include "util/gl_helpers.h"
 #include <helper_math.h>
 #include <limits>
 

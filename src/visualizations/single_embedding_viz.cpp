@@ -1,5 +1,5 @@
 #include "single_embedding_viz.h"
-#include "gl_helpers.h"
+#include "util/gl_helpers.h"
 
 SingleEmbeddingViz::SingleEmbeddingViz(const float aspectRatio, const float * images,
                                        const int imageWidth, const int imageHeight,

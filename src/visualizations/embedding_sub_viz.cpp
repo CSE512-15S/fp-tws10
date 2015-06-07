@@ -4,7 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include "gl_helpers.h"
+#include "util/gl_helpers.h"
 
 void EmbeddingSubViz::setEmbedding(const float * xCoords, const float * yCoords, const uchar3 * coloring, const int nEmbedded) {
 
@@ -55,10 +55,10 @@ void EmbeddingSubViz::render(const float2 windowSize, const float2 viewportSize,
 
     glColor3ub(212,212,212);
     float axes[8] = {
-        0                                          , maxViewportCenter_.y - maxViewportSize_.y*0.4,
-        0                                          , maxViewportCenter_.y + maxViewportSize_.y*0.4,
-        maxViewportCenter_.x - maxViewportSize_.x*0.4, 0,
-        maxViewportCenter_.x + maxViewportSize_.x*0.4, 0
+        0.f                                        , maxViewportCenter_.y - maxViewportSize_.y*0.4f,
+        0.f                                        , maxViewportCenter_.y + maxViewportSize_.y*0.4f,
+        maxViewportCenter_.x - maxViewportSize_.x*0.4f, 0.f,
+        maxViewportCenter_.x + maxViewportSize_.x*0.4f, 0.f
     };
     glEnableClientState(GL_VERTEX_ARRAY);
     glVertexPointer(2,GL_FLOAT,0,axes);

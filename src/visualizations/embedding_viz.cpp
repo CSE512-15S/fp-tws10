@@ -1,5 +1,5 @@
 #include "embedding_viz.h"
-#include "gl_helpers.h"
+#include "util/gl_helpers.h"
 
 void EmbeddingViz::render(const float2 windowSize) {
 
@@ -27,6 +27,7 @@ void EmbeddingViz::render(const float2 windowSize) {
             };
             glColor3ub(0,0,255);
             glLineWidth(3);
+            glPointSize(3);
             glEnableClientState(GL_VERTEX_ARRAY);
             glVertexPointer(2,GL_FLOAT,0,arrowPoints);
             glDrawArrays(GL_LINES,0,6);
@@ -34,8 +35,8 @@ void EmbeddingViz::render(const float2 windowSize) {
             glDrawArrays(GL_POINTS,0,6);
             glDisableClientState(GL_VERTEX_ARRAY);
             glLineWidth(1);
+            glPointSize(1);
 
-            std::cout << "the box is too small" << std::endl;
         } else {
 
             // draw context box

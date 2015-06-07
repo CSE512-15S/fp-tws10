@@ -1,6 +1,6 @@
 #include "multi_embedding_viz.h"
 
-#include "gl_helpers.h"
+#include "util/gl_helpers.h"
 #include <vector_functions.h>
 #include <limits>
 

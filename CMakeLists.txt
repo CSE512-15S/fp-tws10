@@ -59,10 +59,6 @@ set(tSNE_sources
 set(sources
     src/feature_projector.h
     src/feature_projector.cpp
-
-    src/gl_helpers.h
-    src/gl_helpers.cpp
-
     src/mnist_io.h
     src/mnist_io.cpp
 
@@ -82,6 +78,13 @@ set(sources
     src/shaders/scatter_plot.vert
     src/shaders/scatter_plot_shader.h
     src/shaders/scatter_plot_shader.cpp
+
+    src/util/gl_helpers.h
+    src/util/gl_helpers.cpp
+    src/util/image_io.h
+    src/util/image_io.cpp
+    src/util/string_format.h
+    src/util/string_format.cpp
 
     src/visualizations/embedding_viz.h
     src/visualizations/embedding_viz.cpp

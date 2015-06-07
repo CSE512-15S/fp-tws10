@@ -7,6 +7,7 @@
 #include <limits>
 
 #include <assert.h>
+#include <sys/stat.h>
 
 #include <Eigen/Dense>
 #include <caffe/caffe.hpp>
@@ -16,12 +17,14 @@
 #include <helper_math.h>
 
 #include "feature_projector.h"
-#include "gl_helpers.h"
 #include "mnist_io.h"
 #include "fonts/font_manager.h"
 #include "mouse_handlers/embedding_view_mouse_handler.h"
 #include "mouse_handlers/filter_view_mouse_handler.h"
 #include "mouse_handlers/multi_embedding_view_mouse_handler.h"
+#include "util/gl_helpers.h"
+#include "util/image_io.h"
+#include "util/string_format.h"
 #include "visualizations/single_embedding_viz.h"
 #include "visualizations/filter_response_viz.h"
 #include "visualizations/multi_embedding_viz.h"
@@ -96,6 +99,11 @@ inline void printBlobSize(boost::shared_ptr<caffe::Blob<float> > blob) {
     std::cout << blob->num() << " x " << blob->channels() << " x " << blob->height() << " x " << blob->width() << std::endl;
 }
 
+inline bool fileExists(std::string filename) {
+    struct stat buffer;
+    return stat(filename.c_str(), &buffer) == 0;
+}
+
 int main(int argc, char * * argv) {
 
     // -=-=-=-=- set up caffe -=-=-=-=-
@@ -151,12 +159,11 @@ int main(int argc, char * * argv) {
     SingleEmbeddingViz embeddingViz(embeddingViewAspectRatio,testImages,imageWidth,imageHeight,imageTex,overviewWidth,overviewHeight,overviewTex,pointShader,selection.data());
     embeddingViz.setEmbedding((const float2 *)outputBlob->cpu_data(),testColors.data(),nTestImages);
 
-    boost::shared_ptr<caffe::Blob<float> > ip2Blob = net.blob_by_name("ip2");
     MultiEmbeddingViz multiEmbeddingViz(embeddingViewAspectRatio,testImages,imageWidth,imageHeight,imageTex,overviewWidth,overviewHeight,overviewTex,pointShader,selection.data());
 //    multiEmbeddingViz.setEmbedding(ip2Blob->cpu_data(),ip2Blob->channels(),testColors.data(),nTestImages);
 
-    boost::shared_ptr<caffe::Blob<float> > pool2Blob = net.blob_by_name("pool2");
-    multiEmbeddingViz.setEmbedding(pool2Blob->cpu_data(),pool2Blob->channels(),testColors.data(),nTestImages,pool2Blob->width(),pool2Blob->height(),make_int2(16,16),4);
+//    boost::shared_ptr<caffe::Blob<float> > pool2Blob = net.blob_by_name("pool2");
+//    multiEmbeddingViz.setEmbedding(pool2Blob->cpu_data(),pool2Blob->channels(),testColors.data(),nTestImages,pool2Blob->width(),pool2Blob->height(),make_int2(16,16),4);
 
     // -=-=-=-=- set up mouse handlers -=-=-=-=-
     EmbeddingViewMouseHandler embeddingViewHandler(&embeddingViz);
@@ -264,42 +271,61 @@ int main(int argc, char * * argv) {
 
         for (int i=0; i<filterResponsesToVisualize.size(); ++i) {
             std::string blobName = filterResponsesToVisualize[i];
-            std::cout << "making preview for " << blobName << std::endl;
-            boost::shared_ptr<caffe::Blob<float> > embeddingBlob = net.blob_by_name(blobName);
-            const int dims = embeddingBlob->channels();
-            EmbeddingViz * viz;
-            if (dims == 2) {
-                embeddingViz.setEmbedding((const float2 *)embeddingBlob->cpu_data(),testColors.data(),nTestImages);
-                viz = &embeddingViz;
-            } else {
-                if (embeddingBlob->width() == 1 && embeddingBlob->height() == 1) {
-                    multiEmbeddingViz.setEmbedding(embeddingBlob->cpu_data(),dims,
-                                                   testColors.data(),nTestImages);
+            std::string cachedFilename = stringFormat("/tmp/seeinIn.overview%02d.png",i);
+            if (fileExists(cachedFilename)) {
+
+                std::cout << "loading cached preview for " << blobName << std::endl;
+                int width, height, channels;
+                unsigned char * image = readPNG(cachedFilename.c_str(),width,height,channels);
+                if (width == overviewWidth && height == overviewHeight && channels == 3) {
+                    overviewImages.push_back((uchar3 *)image);
                 } else {
-                    multiEmbeddingViz.setEmbedding(embeddingBlob->cpu_data(),dims,
-                                                   testColors.data(),nTestImages,
-                                                   embeddingBlob->width(),embeddingBlob->height(),
-                                                   layerReceptiveFields[blobName],
-                                                   layerRelativeScales[blobName]);
+                    delete [] image;
                 }
 
-                viz = &multiEmbeddingViz;
             }
-//            viz->setZoomOverridingLimits(1.f);
-            viz->setZoom(1.f);
 
-            glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-            glMatrixMode(GL_PROJECTION);
-            glLoadIdentity();
-            glOrtho(0, overviewWidth, 0, overviewHeight, -1, 1);
-            glMatrixMode(GL_MODELVIEW);
-            glLoadIdentity();
-            viz->render(make_float2(overviewWidth,overviewHeight));
-            previewFrameBuffer.Unbind();
-            overviewImages.push_back(new uchar3[overviewWidth*overviewHeight]);
-            overviewTex.Download(overviewImages.back(),GL_RGB,GL_UNSIGNED_BYTE);
+            if (overviewImages.size() != (i+1) ){
 
-            previewFrameBuffer.Bind();
+                std::cout << "making preview for " << blobName << std::endl;
+                boost::shared_ptr<caffe::Blob<float> > embeddingBlob = net.blob_by_name(blobName);
+                const int dims = embeddingBlob->channels();
+                EmbeddingViz * viz;
+                if (dims == 2) {
+                    embeddingViz.setEmbedding((const float2 *)embeddingBlob->cpu_data(),testColors.data(),nTestImages);
+                    viz = &embeddingViz;
+                } else {
+                    if (embeddingBlob->width() == 1 && embeddingBlob->height() == 1) {
+                        multiEmbeddingViz.setEmbedding(embeddingBlob->cpu_data(),dims,
+                                                       testColors.data(),nTestImages);
+                    } else {
+                        multiEmbeddingViz.setEmbedding(embeddingBlob->cpu_data(),dims,
+                                                       testColors.data(),nTestImages,
+                                                       embeddingBlob->width(),embeddingBlob->height(),
+                                                       layerReceptiveFields[blobName],
+                                                       layerRelativeScales[blobName]);
+                    }
+
+                    viz = &multiEmbeddingViz;
+                }
+                viz->setZoomOverridingLimits(1.f);
+                //viz->setZoom(1.f);
+
+                glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+                glMatrixMode(GL_PROJECTION);
+                glLoadIdentity();
+                glOrtho(0, overviewWidth, 0, overviewHeight, -1, 1);
+                glMatrixMode(GL_MODELVIEW);
+                glLoadIdentity();
+                viz->render(make_float2(overviewWidth,overviewHeight));
+                previewFrameBuffer.Unbind();
+                overviewImages.push_back(new uchar3[overviewWidth*overviewHeight]);
+                overviewTex.Download(overviewImages.back(),GL_RGB,GL_UNSIGNED_BYTE);
+
+                writePNG(cachedFilename.c_str(),overviewImages.back(),overviewWidth,overviewHeight);
+
+                previewFrameBuffer.Bind();
+            }
         }
 
         previewFrameBuffer.Unbind();
