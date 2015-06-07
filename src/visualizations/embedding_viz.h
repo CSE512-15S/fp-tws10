@@ -91,6 +91,7 @@ protected:
     static constexpr float overviewZoomThreshold_ = 0.666f;
     static constexpr float pointSizeHoverMultiplier_ = 1.5f;
     static constexpr float pointSizeViewport_ = 0.015f; // TODO
+    static const int contextBoxArrowThreshold_ = 10;
 };
 
 #endif // EMBEDDING_VIZ_H

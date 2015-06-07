@@ -14,38 +14,65 @@ void EmbeddingViz::render(const float2 windowSize) {
         const float2 contextUpper = (getViewportCenter() + 0.5*getViewportSize() - (getMaxViewportCenter() - 0.5*getMaxViewportSize()))/getMaxViewportSize()*overviewSize;
         const float2 contextLower = (getViewportCenter() - 0.5*getViewportSize() - (getMaxViewportCenter() - 0.5*getMaxViewportSize()))/getMaxViewportSize()*overviewSize;
 
-        float contextCorners[8] = {
-            contextUpper.x,contextUpper.y,
-            contextUpper.x,contextLower.y,
-            contextLower.x,contextLower.y,
-            contextLower.x,contextUpper.y
-        };
+        if (contextUpper.x - contextLower.x < contextBoxArrowThreshold_) {
+            // draw context arrow
+            const float2 contextCenter = 0.5*(contextUpper+contextLower);
+            float arrowPoints[12] = {
+                contextCenter.x + 20, contextCenter.y + 20,
+                contextCenter.x     , contextCenter.y     ,
+                contextCenter.x     , contextCenter.y     ,
+                contextCenter.x + 8 , contextCenter.y     ,
+                contextCenter.x     , contextCenter.y     ,
+                contextCenter.x     , contextCenter.y + 8
+            };
+            glColor3ub(0,0,255);
+            glLineWidth(3);
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glVertexPointer(2,GL_FLOAT,0,arrowPoints);
+            glDrawArrays(GL_LINES,0,6);
+            glVertexPointer(2,GL_FLOAT,0,arrowPoints);
+            glDrawArrays(GL_POINTS,0,6);
+            glDisableClientState(GL_VERTEX_ARRAY);
+            glLineWidth(1);
 
-        glColor3ub(64,64,64);
-        glLineWidth(4);
-        glPointSize(4);
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glVertexPointer( 2, GL_FLOAT, 0, contextCorners);
-        glDrawArrays(GL_LINE_LOOP, 0, 4);
+            std::cout << "the box is too small" << std::endl;
+        } else {
 
-        glVertexPointer( 2, GL_FLOAT, 0, contextCorners);
-        glDrawArrays(GL_POINTS, 0, 4);
+            // draw context box
+            float contextCorners[8] = {
+                contextUpper.x,contextUpper.y,
+                contextUpper.x,contextLower.y,
+                contextLower.x,contextLower.y,
+                contextLower.x,contextUpper.y
+            };
 
-        glDisableClientState(GL_VERTEX_ARRAY);
+            glColor3ub(64,64,64);
+            glLineWidth(4);
+            glPointSize(4);
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glVertexPointer( 2, GL_FLOAT, 0, contextCorners);
+            glDrawArrays(GL_LINE_LOOP, 0, 4);
 
-        glColor3ub(255,255,255);
-        glLineWidth(2);
-        glPointSize(2);
-        glEnableClientState(GL_VERTEX_ARRAY);
+            glVertexPointer( 2, GL_FLOAT, 0, contextCorners);
+            glDrawArrays(GL_POINTS, 0, 4);
 
-        glVertexPointer( 2, GL_FLOAT, 0, contextCorners);
-        glDrawArrays(GL_LINE_LOOP, 0, 4);
+            glDisableClientState(GL_VERTEX_ARRAY);
 
-        glVertexPointer( 2, GL_FLOAT, 0, contextCorners);
-        glDrawArrays(GL_POINTS, 0, 4);
+            glColor3ub(255,255,255);
+            glLineWidth(2);
+            glPointSize(2);
+            glEnableClientState(GL_VERTEX_ARRAY);
 
-        glDisableClientState(GL_VERTEX_ARRAY);
+            glVertexPointer( 2, GL_FLOAT, 0, contextCorners);
+            glDrawArrays(GL_LINE_LOOP, 0, 4);
 
+            glVertexPointer( 2, GL_FLOAT, 0, contextCorners);
+            glDrawArrays(GL_POINTS, 0, 4);
+
+            glDisableClientState(GL_VERTEX_ARRAY);
+        }
+
+        // put a border around the overview
         glColor3ub(128,128,128);
         glEnableClientState(GL_VERTEX_ARRAY);
         float overviewCorners[8] = {
