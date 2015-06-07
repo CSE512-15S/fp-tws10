@@ -1,7 +1,7 @@
 #include "multi_embedding_view_mouse_handler.h"
 
 MultiEmbeddingViewMouseHandler::MultiEmbeddingViewMouseHandler(MultiEmbeddingViz * viz) :
-    viz_(viz),
+    EmbeddingViewMouseHandler(viz),
     zoomSpeed_(1.1f),
     hasSelection_(false) { }
 

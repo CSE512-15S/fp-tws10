@@ -19,7 +19,7 @@
 #include "feature_projector.h"
 #include "mnist_io.h"
 #include "fonts/font_manager.h"
-#include "mouse_handlers/embedding_view_mouse_handler.h"
+#include "mouse_handlers/single_embedding_view_mouse_handler.h"
 #include "mouse_handlers/filter_view_mouse_handler.h"
 #include "mouse_handlers/multi_embedding_view_mouse_handler.h"
 #include "mouse_handlers/tool_view_mouse_handler.h"
@@ -126,7 +126,7 @@ int main(int argc, char * * argv) {
     MultiEmbeddingViz multiEmbeddingViz(embeddingViewAspectRatio,testImages,imageWidth,imageHeight,imageTex,overviewWidth,overviewHeight,overviewTex,pointShader,selection.data());
 
     // -=-=-=-=- set up mouse handlers -=-=-=-=-
-    EmbeddingViewMouseHandler embeddingViewHandler(&embeddingViz);
+    SingleEmbeddingViewMouseHandler embeddingViewHandler(&embeddingViz);
     MultiEmbeddingViewMouseHandler multiEmbeddingViewHandler(&multiEmbeddingViz);
 
     // -=-=-=-=- set up views -=-=-=-=-

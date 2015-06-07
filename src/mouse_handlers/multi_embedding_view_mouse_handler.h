@@ -1,11 +1,12 @@
 #ifndef MULTI_EMBEDDING_VIEW_MOUSE_HANDLER_H
 #define MULTI_EMBEDDING_VIEW_MOUSE_HANDLER_H
 
+#include "embedding_view_mouse_handler.h"
 #include "visualizations/multi_embedding_viz.h"
 
 #include <helper_math.h>
 
-class MultiEmbeddingViewMouseHandler : public pangolin::Handler {
+class MultiEmbeddingViewMouseHandler : public EmbeddingViewMouseHandler {
 public:
 
     MultiEmbeddingViewMouseHandler(MultiEmbeddingViz * viz);
@@ -21,19 +22,6 @@ public:
     inline int getHoveredOverPoint() { return viz_->getHoveredOverPoint(); }
 
 private:
-    // -=-=-=-=-=- methods -=-=-=-=-=-
-    inline float2 getViewportPoint(pangolin::View & v, const float2 guiPoint) {
-        return make_float2((guiPoint.x - v.GetBounds().l)/(float)v.GetBounds().w - 0.5,
-                           (guiPoint.y - v.GetBounds().b)/(float)v.GetBounds().h - 0.5)*viz_->getViewportSize() + viz_->getViewportCenter();
-    }
-
-    inline float2 getViewPoint(pangolin::View & v, const float2 viewportPoint) {
-        return ((viewportPoint - viz_->getViewportCenter()) / viz_->getViewportSize() + make_float2(0.5,0.5))*
-                make_float2(v.GetBounds().w,v.GetBounds().h) + make_float2(v.GetBounds().l,v.GetBounds().b);
-    }
-
-    // -=-=-=-=-=- members -=-=-=-=-=-
-    MultiEmbeddingViz * viz_;
 
     bool hasSelection_;
 

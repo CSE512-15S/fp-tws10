@@ -1,11 +1,8 @@
-#ifndef SEEIN_IN_MOUSE_HANDLER_H
-#define SEEIN_IN_MOUSE_HANDLER_H
+#ifndef EMBEDDING_VIEW_MOUSE_HANDLER_H
+#define EMBEDDING_VIEW_MOUSE_HANDLER_H
 
 #include <pangolin/pangolin.h>
-#include <vector_types.h>
-#include <vector_functions.h>
-#include <helper_math.h>
-#include "visualizations/single_embedding_viz.h"
+#include "visualizations/embedding_viz.h"
 
 enum SelectionMode {
     SelectionModeSingle,
@@ -14,27 +11,14 @@ enum SelectionMode {
 
 class EmbeddingViewMouseHandler : public pangolin::Handler {
 public:
-    EmbeddingViewMouseHandler(SingleEmbeddingViz * viz);
 
-    void Mouse(pangolin::View & v, pangolin::MouseButton button, int x, int y, bool pressed, int button_state);
-
-    void MouseMotion(pangolin::View & v, int x, int y, int button_state);
-
-    void PassiveMouseMotion(pangolin::View & v, int x, int y, int button_state);
-
-    inline int getHoveredOverPoint() { return viz_->getHoveredOverPoint(); }
-
-    inline bool hasSelection() { bool retVal = hasSelection_; hasSelection_ = false; return retVal;  }
+    EmbeddingViewMouseHandler(EmbeddingViz * viz);
 
     inline void setSelectionMode(SelectionMode mode) { selectionMode_ = mode; }
 
     inline SelectionMode getSelectionMode() { return selectionMode_; }
 
-    inline std::vector<float2> & getLassoPoints() { return lassoPoints_; }
-
-    inline void clearLassoPoints() { lassoPoints_.clear(); }
-
-private:
+protected:
     // -=-=-=-=-=- methods -=-=-=-=-=-
     inline float2 getViewportPoint(pangolin::View & v, const float2 guiPoint) {
         return make_float2((guiPoint.x - v.GetBounds().l)/(float)v.GetBounds().w - 0.5,
@@ -47,20 +31,8 @@ private:
     }
 
     // -=-=-=-=-=- members -=-=-=-=-=-
-    SingleEmbeddingViz * viz_;
-
-    bool hasSelection_;
-
     SelectionMode selectionMode_;
-    std::vector<float2> lassoPoints_;
-
-    float2 lastMouse_;
-    bool scrolled_;
-
-    float zoomSpeed_;
-
-    static constexpr float stickStartThreshold_ = 0.1f;
-
+    EmbeddingViz * viz_;
 };
 
-#endif // SEEIN_IN_MOUSE_HANDLER_H
+#endif // EMBEDDING_VIEW_MOUSE_HANDLER_H
