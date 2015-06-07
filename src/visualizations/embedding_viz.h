@@ -55,7 +55,7 @@ protected:
     // -=-=-=-=-=- methods -=-=-=-=-=-
     inline void clampScroll() { scroll_ = fmaxf(getMinScroll(),fminf(scroll_,getMaxScroll())); }
 
-    inline void clampZoom() { zoom_ = std::max(std::min(1.f,zoom_),minZoom_);  clampScroll(); }
+    inline void clampZoom() { zoom_ = std::max(std::min(maxZoom_,zoom_),minZoom_);  clampScroll(); }
 
     inline float2 getMinScroll() { return -1.f*getMaxScroll(); }
 

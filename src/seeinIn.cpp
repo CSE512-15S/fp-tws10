@@ -278,7 +278,6 @@ int main(int argc, char * * argv) {
         overviewTex.Download(multiEmbeddingViz.getOverviewImage(),GL_RGB,GL_UNSIGNED_BYTE);
     }
 
-    multiEmbeddingViz.setZoom(0.01);
     bool multiembeddingVizActive = false;
 
     for (long frame=1; !pangolin::ShouldQuit(); ++frame) {
@@ -468,6 +467,7 @@ int main(int argc, char * * argv) {
                                                        layerReceptiveFields[blobName],
                                                        layerRelativeScales[blobName]);
                     }
+                    multiEmbeddingViz.setZoom(1.f);
                 }
             }
         } else if (filterViewHandler.hasUnitSelection()) {

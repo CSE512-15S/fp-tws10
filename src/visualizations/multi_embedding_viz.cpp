@@ -352,4 +352,7 @@ void MultiEmbeddingViz::adjustZoomLimits() {
     const float maxDimsInViewZoom = maxDimsInView_/(float)dims_;
     maxZoom_ = std::min(1.f,maxDimsInViewZoom);
 
+    std::cout << "zoom limits set to " << minZoom_ << " -> " << maxZoom_ << std::endl;
+    clampZoom();
+
 }

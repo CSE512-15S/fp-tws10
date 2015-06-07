@@ -19,6 +19,7 @@ void MultiEmbeddingViewMouseHandler::Mouse(pangolin::View & v, pangolin::MouseBu
             {
                 const float2 vpPoint = getViewportPoint(v,make_float2(x,y));
                 viz_->setZoom(viz_->getZoom()/zoomSpeed_);
+                std::cout << viz_->getZoom() << std::endl;
                 const float2 viewPoint = getViewPoint(v,vpPoint);
                 const float2 diff = viewPoint - make_float2(x,y);
                 viz_->incrementScroll(diff*(viz_->getViewportSize().x/v.GetBounds().w));
@@ -28,6 +29,7 @@ void MultiEmbeddingViewMouseHandler::Mouse(pangolin::View & v, pangolin::MouseBu
             {
                 const float2 vpPoint = getViewportPoint(v,make_float2(x,y));
                 viz_->setZoom(viz_->getZoom()*zoomSpeed_);
+                std::cout << viz_->getZoom() << std::endl;
                 const float2 viewPoint = getViewPoint(v,vpPoint);
                 const float2 diff = viewPoint - make_float2(x,y);
                 viz_->incrementScroll(diff*(viz_->getViewportSize().x/v.GetBounds().w));
