@@ -26,8 +26,6 @@
 #include "visualizations/filter_response_viz.h"
 #include "visualizations/multi_embedding_viz.h"
 
-#include "tsne.h"
-
 static const int guiWidth = 1920;
 static const int guiHeight = 1080;
 static const int panelWidth = 200;
@@ -157,8 +155,8 @@ int main(int argc, char * * argv) {
     MultiEmbeddingViz multiEmbeddingViz(embeddingViewAspectRatio,testImages,imageWidth,imageHeight,imageTex,overviewWidth,overviewHeight,overviewTex,pointShader,selection.data());
 //    multiEmbeddingViz.setEmbedding(ip2Blob->cpu_data(),ip2Blob->channels(),testColors.data(),nTestImages);
 
-    boost::shared_ptr<caffe::Blob<float> > pool2Blob = net.blob_by_name("pool1");
-    multiEmbeddingViz.setEmbedding(pool2Blob->cpu_data(),pool2Blob->channels(),testColors.data(),nTestImages,pool2Blob->width(),pool2Blob->height(),make_int2(16,16));
+    boost::shared_ptr<caffe::Blob<float> > pool2Blob = net.blob_by_name("pool2");
+    multiEmbeddingViz.setEmbedding(pool2Blob->cpu_data(),pool2Blob->channels(),testColors.data(),nTestImages,pool2Blob->width(),pool2Blob->height(),make_int2(16,16),4);
 
     // -=-=-=-=- set up mouse handlers -=-=-=-=-
     EmbeddingViewMouseHandler embeddingViewHandler(&embeddingViz);
@@ -218,11 +216,21 @@ int main(int argc, char * * argv) {
     layerRelativeScales["ip2"] = 4;
     layerRelativeScales["feat"] = 4;
 
+    std::map<std::string,int2> layerReceptiveFields;
+    layerReceptiveFields["data"] = make_int2(1,1);
+    layerReceptiveFields["conv1"] = make_int2(5,5);
+    layerReceptiveFields["pool1"] = make_int2(6,6);
+    layerReceptiveFields["conv2"] = make_int2(14,14);
+    layerReceptiveFields["pool2"] = make_int2(16,16);
+    layerReceptiveFields["ip1"] = make_int2(28,28);
+    layerReceptiveFields["ip2"] = make_int2(28,28);
+    layerReceptiveFields["feat"] = make_int2(28,28);
+
 //    std::map<std::string,pangolin::GlTexture*> layerResponseTextures;
     float filterVizZoom = 2.f;
     FilterResponseViz filterResponseViz(net,filterResponsesToVisualize,
                                         layerRelativeScales,filterView.GetBounds().w,filterView.GetBounds().h,fontManager,
-                                        filterVizZoom);
+                                        filterVizZoom,16);
 
     FilterViewMouseHandler filterViewHandler(&filterResponseViz);
     filterView.SetHandler(&filterViewHandler);
@@ -270,16 +278,17 @@ int main(int argc, char * * argv) {
         overviewTex.Download(multiEmbeddingViz.getOverviewImage(),GL_RGB,GL_UNSIGNED_BYTE);
     }
 
+    multiEmbeddingViz.setZoom(0.01);
     bool multiembeddingVizActive = false;
 
     for (long frame=1; !pangolin::ShouldQuit(); ++frame) {
 
         CheckGlDieOnError();
 
-        static pangolin::basetime lastTime = pangolin::TimeNow();
-        pangolin::basetime timeNow = pangolin::TimeNow();
-        std::cout << pangolin::TimeDiff_s(lastTime,timeNow) << std::endl;
-        lastTime = pangolin::TimeNow();
+//        static pangolin::basetime lastTime = pangolin::TimeNow();
+//        pangolin::basetime timeNow = pangolin::TimeNow();
+//        std::cout << pangolin::TimeDiff_s(lastTime,timeNow) << std::endl;
+//        lastTime = pangolin::TimeNow();
 
         if (pangolin::HasResized()) {
             pangolin::DisplayBase().ActivateScissorAndClear();
@@ -439,44 +448,26 @@ int main(int argc, char * * argv) {
             const int layerNum = filterViewHandler.getSelectedLayer();
             if (layerNum >= 0) {
                 filterResponseViz.setEmbeddingLayer(filterViewHandler.getSelectedLayer());
-                boost::shared_ptr<caffe::Blob<float> > embeddingBlob = net.blob_by_name(filterResponsesToVisualize[layerNum]);
+                std::string blobName = filterResponsesToVisualize[layerNum];
+                std::cout << "opening embedding " << blobName << std::endl;
+                boost::shared_ptr<caffe::Blob<float> > embeddingBlob = net.blob_by_name(blobName);
                 const int dims = embeddingBlob->channels();
-                switch (layerNum) {
-                    case 5:
-                        {
-//                            std::cout << "embedding " << dims << " dimensional data" << std::endl;
-//                            std::vector<double> tsneData(nTestImages*dims);
-//                            // todo: wont work on non-1x1 outputs
-//                            for (int i=0; i<embeddingBlob->count(); ++i) {
-//                                tsneData[i] = embeddingBlob->cpu_data()[i];
-//                            }
-//                            std::vector<double> tsneEmbedding(nTestImages*2);
-//                            TSNE tsne;
-//                            tsne.run(tsneData.data(),nTestImages,dims,tsneEmbedding.data(),2,30,0.5);
-//                            std::cout << "tsne done" << std::endl;
-
-                            static std::vector<float> floatEmbedding(nTestImages*2);
-//                            for (int i=0; i<floatEmbedding.size(); ++i) {
-//                                floatEmbedding[i] = tsneEmbedding[i];
-//                            }
-//                            std::ofstream stream("layer5embedding.dat");
-//                            stream.write((char *)floatEmbedding.data(),floatEmbedding.size()*sizeof(float));
-//                            stream.close();
-
-                            std::ifstream stream("layer5embedding.dat");
-                            stream.read((char *)floatEmbedding.data(),floatEmbedding.size()*sizeof(float));
-                            stream.close();
-                            embeddingViz.setEmbedding((float2*)floatEmbedding.data(),testColors.data(),nTestImages);
-                        }
-                        break;
-                    case 6:
-                        multiembeddingVizActive = true;
-                        embeddingView.SetHandler(&multiEmbeddingViewHandler);
-                        break;
-                    case 7:
-                        multiembeddingVizActive = false;
-                        embeddingView.SetHandler(&embeddingViewHandler);
-                        break;
+                if (dims == 2) {
+                    multiembeddingVizActive = false;
+                    embeddingView.SetHandler(&embeddingViewHandler);
+                } else {
+                    multiembeddingVizActive = true;
+                    embeddingView.SetHandler(&multiEmbeddingViewHandler);
+                    if (embeddingBlob->width() == 1 && embeddingBlob->height() == 1) {
+                        multiEmbeddingViz.setEmbedding(embeddingBlob->cpu_data(),dims,
+                                                       testColors.data(),nTestImages);
+                    } else {
+                        multiEmbeddingViz.setEmbedding(embeddingBlob->cpu_data(),dims,
+                                                       testColors.data(),nTestImages,
+                                                       embeddingBlob->width(),embeddingBlob->height(),
+                                                       layerReceptiveFields[blobName],
+                                                       layerRelativeScales[blobName]);
+                    }
                 }
             }
         } else if (filterViewHandler.hasUnitSelection()) {

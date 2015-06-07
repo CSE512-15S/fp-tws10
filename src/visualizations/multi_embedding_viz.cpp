@@ -28,6 +28,7 @@ void MultiEmbeddingViz::setEmbedding(const float * embedding, const int embeddin
     // -=-=-=- compute axis bounds -=-=-=-
     dims_ = embeddingDimensions;
     width_ = height_ = 1;
+
     std::vector<float> viewportSizeByDim(dims_);
     std::vector<float> viewportCenterByDim(dims_);
     for (int d=0; d<dims_; ++d) {
@@ -66,23 +67,27 @@ void MultiEmbeddingViz::setEmbedding(const float * embedding, const int embeddin
         }
     }
 
+    adjustZoomLimits();
 }
 
 void MultiEmbeddingViz::setEmbedding(const float * embedding, const int embeddingDimensions,
                                      uchar3 * coloring, const int nEmbedded,
-                                     const int width, const int height, const int2 receptiveField) {
+                                     const int width, const int height,
+                                     const int2 receptiveField, const int stride) {
 
     assert(embeddingDimensions > 0);
     assert(width > 0);
     assert(height > 0);
     assert(receptiveField.x > 0);
     assert(receptiveField.y > 0);
+    assert(stride > 0);
 
     // -=-=-=- compute axis bounds -=-=-=-
     dims_ = embeddingDimensions;
     width_ = width;
     height_ = height;
     receptiveField_ = receptiveField;
+    stride_ = stride;
     std::vector<float> viewportSizeByDim(dims_);
     std::vector<float> viewportCenterByDim(dims_);
     for (int d=0; d<dims_; ++d) {
@@ -131,6 +136,8 @@ void MultiEmbeddingViz::setEmbedding(const float * embedding, const int embeddin
             embeddingVizs_.push_back(viz);
         }
     }
+
+    adjustZoomLimits();
 
 }
 
@@ -280,7 +287,7 @@ void MultiEmbeddingViz::render(const float2 windowSize) {
             std::cout << hoverPointW << ", " << hoverPointH << std::endl;
 
             const float2 receptiveFieldSize = textureSize/make_float2(imageWidth_,imageHeight_)*make_float2(receptiveField_.x,receptiveField_.y);
-            const float2 receptiveFieldOffset = textureSize/make_float2(imageWidth_,imageHeight_)*make_float2(hoverPointW,hoverPointH);
+            const float2 receptiveFieldOffset = textureSize/make_float2(imageWidth_,imageHeight_)*make_float2(stride_*hoverPointW,stride_*hoverPointH);
 
             glColor3ub(255,0,0);
             glBegin(GL_LINE_LOOP);
@@ -339,8 +346,10 @@ int MultiEmbeddingViz::getHoveredOverPoint() {
 
 }
 
-//void MultiEmbeddingViz::clampScroll() {
+void MultiEmbeddingViz::adjustZoomLimits() {
 
-//    scroll_ = fmaxf(getMinScroll(),fminf(scroll_,getMaxScroll()));
+    minZoom_ = 0.01/dims_;
+    const float maxDimsInViewZoom = maxDimsInView_/(float)dims_;
+    maxZoom_ = std::min(1.f,maxDimsInViewZoom);
 
-//}
+}

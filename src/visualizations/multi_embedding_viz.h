@@ -24,7 +24,7 @@ public:
     void setEmbedding(const float * embedding, const int embeddingDimensions,
                       uchar3 * coloring, const int nEmbedded,
                       const int width, const int height,
-                      const int2 receptiveField_);
+                      const int2 receptiveField_, const int stride);
 
     void render(const float2 windowSize);
 
@@ -46,11 +46,14 @@ private:
     // -=-=-=-=-=- methods -=-=-=-=-=-
     void clear();
 
+    void adjustZoomLimits();
+
     // -=-=-=-=-=- members -=-=-=-=-=-
     int dims_;
     int width_;
     int height_;
     int2 receptiveField_;
+    int stride_;
 
     std::vector<EmbeddingSubViz *> embeddingVizs_;
     std::vector<float2 *> partialEmbeddings_;
@@ -63,6 +66,7 @@ private:
     std::vector<float *> parallelCoordinateArrays_;
 
     static constexpr float subvizPaddingPercent_ = 0.05f;
+    static const int maxDimsInView_ = 16;
 
 };
 

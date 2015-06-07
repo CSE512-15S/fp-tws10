@@ -21,7 +21,7 @@ public:
         imageTex_(imageTex), minZoom_(minZoom),
         overviewImage_(overviewWidth*overviewHeight),
         overviewWidth_(overviewWidth), overviewHeight_(overviewHeight),
-        overviewTex_(overviewTex) { }
+        overviewTex_(overviewTex), maxZoom_(1.f) { }
 
     void render(const float2 windowSize);
 
@@ -67,6 +67,7 @@ protected:
     float2 scroll_;
 
     float minZoom_;
+    float maxZoom_;
 
     const float * images_;
     const int imageWidth_;
