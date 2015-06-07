@@ -178,6 +178,13 @@ int main(int argc, char * * argv) {
 
     pangolin::View filterView; //(filterViewAspectRatio);
 
+    pangolin::View toolView;
+    toolView.SetBounds(0,1,0,pangolin::Attach::Pix(200));
+    pangolin::GlTexture pointSelection(64,64);
+    pangolin::GlTexture lassoSelection(64,64);
+    pointSelection.LoadFromFile("../src/icons/pointSelection.png");
+    lassoSelection.LoadFromFile("../src/icons/lassoSelection.png");
+
 //    filterView.SetBounds(pangolin::Attach::Frac(0),pangolin::Attach::Frac(1),pangolin::Attach::Frac(embeddingViewWidth/(float)guiWidth),pangolin::Attach::Frac(1),true);
 
     filterView.SetLock(pangolin::LockRight,pangolin::LockCenter);
@@ -187,6 +194,7 @@ int main(int argc, char * * argv) {
     pangolin::Display("display")
             .SetBounds(0.0,1.0,0.0,1.0)
 //            .SetBounds(1.0,0.0,1.0,pangolin::Attach::Pix(panelWidth))
+            .AddDisplay(toolView)
             .AddDisplay(embeddingView)
             .AddDisplay(filterView)
             .SetLayout(pangolin::LayoutHorizontal);
@@ -355,6 +363,13 @@ int main(int argc, char * * argv) {
         CheckGlDieOnError();
 
         glClearColor(1,1,1,1);
+
+        // -=-=-=-=-=-=- tool view -=-=-=-=-=-=-
+        toolView.ActivateScissorAndClear();
+        toolView.ActivatePixelOrthographic();
+        glColor3ub(255,255,255);
+        renderTexture(pointSelection,make_float2(0,toolView.GetBounds().t() - 34),make_float2(32,32));
+        renderTexture(lassoSelection,make_float2(34,toolView.GetBounds().t() - 34),make_float2(32,32));
 
         // -=-=-=-=-=-=- embedding view -=-=-=-=-=-=-
         embeddingView.ActivateScissorAndClear();
