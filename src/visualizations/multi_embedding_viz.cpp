@@ -225,7 +225,7 @@ void MultiEmbeddingViz::render(const float2 windowSize) {
 //    std::cout << "max points on screen = " << maxPointsOnScreen << std::endl;
     const int visibleXPlots = (visibleAxisRangeX.y - visibleAxisRangeX.x);
     const int visibleYPlots = (visibleAxisRangeY.y - visibleAxisRangeY.x);
-    const int visiblePlots = visibleXPlots*visibleYPlots;
+    const int visiblePlots = std::max(1,visibleXPlots*visibleYPlots);
     const int maxPointsPerPlot = std::min(100000,maxPointsOnScreen_/visiblePlots);
 //    std::cout << "points per plot: " << maxPointsPerPlot << std::endl;
 
