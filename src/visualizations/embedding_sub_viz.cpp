@@ -33,7 +33,7 @@ void EmbeddingSubViz::setEmbedding(const float * xCoords, const float * yCoords,
     yCoords_ = yCoords;
     coloring_ = coloring;
     nEmbedded_ = nEmbedded;
-
+    hoveredPointIndex_ = -1;
 }
 
 void EmbeddingSubViz::setEmbedding(const float * xCoords, const float * yCoords, const uchar3 * coloring, const int nEmbedded, const float2 maxViewportSize, const float2 maxViewportCenter) {
@@ -45,6 +45,7 @@ void EmbeddingSubViz::setEmbedding(const float * xCoords, const float * yCoords,
     yCoords_ = yCoords;
     coloring_ = coloring;
     nEmbedded_ = nEmbedded;
+    hoveredPointIndex_ = -1;
 
 }
 
