@@ -11,8 +11,6 @@ public:
     MultiEmbeddingViz(const float aspectRatio, const float * images,
                       const int imageWidth, const int imageHeight,
                       pangolin::GlTexture & imageTex,
-                      const int overviewWidth, const int overviewHeight,
-                      pangolin::GlTexture & overviewTex,
                       ScatterPlotShader & pointShader,
                       float * selection);
 

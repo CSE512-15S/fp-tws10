@@ -14,16 +14,11 @@ public:
     EmbeddingViz(const float aspectRatio, const float minZoom,
                  const float * images,
                  const int imageWidth, const int imageHeight,
-                 pangolin::GlTexture & imageTex,
-                 const int overviewWidth, const int overviewHeight,
-                 pangolin::GlTexture & overviewTex) :
+                 pangolin::GlTexture & imageTex) :
         zoom_(1.f), scroll_(make_float2(0.f)), aspectRatio_(aspectRatio),
         images_(images), imageWidth_(imageWidth), imageHeight_(imageHeight),
-        imageTex_(imageTex), minZoom_(minZoom),
-        overviewImage_(overviewWidth*overviewHeight),
-        overviewWidth_(overviewWidth), overviewHeight_(overviewHeight),
-        overviewTex_(overviewTex), maxZoom_(1.f),
-        showOverview_(false) { }
+        imageTex_(imageTex), minZoom_(minZoom), maxZoom_(1.f)
+         { }
 
     virtual void render(const float2 windowSize);
 
@@ -52,14 +47,6 @@ public:
     inline float2 getWindowPoint(const float2 viewportPoint, const float2 windowSize) {
         return ((viewportPoint - getViewportCenter())/getViewportSize() + make_float2(0.5))*windowSize;
     }
-
-
-
-    inline uchar3 * getOverviewImage() { return overviewImage_.data(); }
-
-    inline void setOverviewImage(uchar3 * overviewImage) { std::memcpy(overviewImage_.data(),overviewImage,overviewImage_.size()*sizeof(uchar3)); }
-
-    inline void setShowOverview(const bool showOverview) { showOverview_ = showOverview; }
 
     virtual void getEnclosedPoints(std::vector<int> & enclosedPoints, const std::vector<float2> & viewportLassoPoints) = 0;
 
@@ -97,13 +84,7 @@ protected:
     const float * images_;
     const int imageWidth_;
     const int imageHeight_;
-    std::vector<uchar3> overviewImage_;
-    const int overviewWidth_;
-    const int overviewHeight_;
     pangolin::GlTexture & imageTex_;
-    pangolin::GlTexture & overviewTex_;
-
-    bool showOverview_;
 
     static constexpr float overviewSizePercent_ = 0.2;
     static constexpr float overviewZoomThreshold_ = 0.666f;

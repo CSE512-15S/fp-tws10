@@ -53,7 +53,7 @@ public:
 
     int getClass(const float2 point);
 
-    void processOverviewCentering(const float2 point);
+    void processOverviewCentering(const float2 point, const float windowWidth);
 
     inline void processZoom(const float zoomFactor) {
         activeEmbeddingViz_->setZoom(activeEmbeddingViz_->getZoom()*zoomFactor);

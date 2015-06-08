@@ -90,10 +90,10 @@ void Toolbox::render(const float2 windowSize) {
 
     // -=-=-=- overview section -=-=-=-
     if (activeEmbeddingViz_->getZoom() < overviewZoomThreshold_) {
-        const int overviewSectionBottom = windowSize.y - overviewHeight_ - sectionStarts_[OverviewSection];
-        renderTexture(overviewTex_,make_float2(0,overviewSectionBottom),make_float2(overviewWidth_,overviewHeight_),false);
+        const int overviewSectionBottom = windowSize.y - windowSize.x - sectionStarts_[OverviewSection];
+        const float2 overviewSize = make_float2(windowSize.x,windowSize.x);
+        renderTexture(overviewTex_,make_float2(0,overviewSectionBottom),overviewSize,false);
 
-        const float2 overviewSize = make_float2(overviewWidth_,overviewHeight_);
         const float2 contextUpper = (activeEmbeddingViz_->getViewportCenter() + 0.5*activeEmbeddingViz_->getViewportSize() - (activeEmbeddingViz_->getMaxViewportCenter() - 0.5*activeEmbeddingViz_->getMaxViewportSize()))/activeEmbeddingViz_->getMaxViewportSize()*overviewSize;
         const float2 contextLower = (activeEmbeddingViz_->getViewportCenter() - 0.5*activeEmbeddingViz_->getViewportSize() - (activeEmbeddingViz_->getMaxViewportCenter() - 0.5*activeEmbeddingViz_->getMaxViewportSize()))/activeEmbeddingViz_->getMaxViewportSize()*overviewSize;
 
@@ -184,10 +184,10 @@ int Toolbox::getClass(const float2 point) {
 
 }
 
-void Toolbox::processOverviewCentering(const float2 point) {
+void Toolbox::processOverviewCentering(const float2 point, const float windowWidth) {
 
     const float2 overviewPoint = make_float2(point.x, sectionStarts_[OverviewSection] + overviewHeight_ - point.y);
-    const float2 normalizedPoint = overviewPoint/make_float2(overviewWidth_,overviewHeight_);
+    const float2 normalizedPoint = overviewPoint/make_float2(windowWidth,windowWidth);
     const float2 viewportPoint = activeEmbeddingViz_->getMaxViewportSize()*(normalizedPoint - make_float2(0.5,0.5)) + activeEmbeddingViz_->getMaxViewportCenter();
     activeEmbeddingViz_->centerViewport(viewportPoint);
 

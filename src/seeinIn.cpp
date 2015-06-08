@@ -129,10 +129,10 @@ int main(int argc, char * * argv) {
     ScatterPlotShader pointShader;
 
     // -=-=-=-=- set up visualizations -=-=-=-=-
-    SingleEmbeddingViz embeddingViz(embeddingViewAspectRatio,testImages,imageWidth,imageHeight,imageTex,overviewWidth,overviewHeight,overviewTex,pointShader,selection.data());
+    SingleEmbeddingViz embeddingViz(embeddingViewAspectRatio,testImages,imageWidth,imageHeight,imageTex,pointShader,selection.data());
     embeddingViz.setEmbedding((const float2 *)outputBlob->cpu_data(),testColors.data(),nTestImages);
 
-    MultiEmbeddingViz multiEmbeddingViz(embeddingViewAspectRatio,testImages,imageWidth,imageHeight,imageTex,overviewWidth,overviewHeight,overviewTex,pointShader,selection.data());
+    MultiEmbeddingViz multiEmbeddingViz(embeddingViewAspectRatio,testImages,imageWidth,imageHeight,imageTex,pointShader,selection.data());
 
     // -=-=-=-=- set up mouse handlers -=-=-=-=-
     SingleEmbeddingViewMouseHandler embeddingViewHandler(&embeddingViz);
@@ -308,9 +308,6 @@ int main(int argc, char * * argv) {
         overviewFrameBuffer.Unbind();
 
     }
-    multiEmbeddingViz.setShowOverview(true);
-    embeddingViz.setShowOverview(true);
-    embeddingViz.setOverviewImage(overviewImages.back());
     toolboxViz.setOverviewImage(overviewImages.back());
 
     bool multiembeddingVizActive = false;
@@ -455,7 +452,6 @@ int main(int argc, char * * argv) {
                     multiEmbeddingViz.setZoom(1.f);
                 }
                 embeddingView.SetHandler(activeEmbeddingHandler);
-                activeEmbeddingViz->setOverviewImage(overviewImages[layerNum]);
                 toolboxViz.setOverviewImage(overviewImages[layerNum]);
                 toolboxViz.setActiveEmbeddingViz(activeEmbeddingViz);
             }

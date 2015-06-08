@@ -7,11 +7,9 @@
 MultiEmbeddingViz::MultiEmbeddingViz(const float aspectRatio, const float * images,
                                      const int imageWidth, const int imageHeight,
                                      pangolin::GlTexture & imageTex,
-                                     const int overviewWidth, const int overviewHeight,
-                                     pangolin::GlTexture & overviewTex,
                                      ScatterPlotShader & pointShader,
                                      float * selection) :
-    EmbeddingViz(aspectRatio,0.005f,images,imageWidth,imageHeight,imageTex,overviewWidth,overviewHeight,overviewTex),
+    EmbeddingViz(aspectRatio,0.005f,images,imageWidth,imageHeight,imageTex),
     hoveredSubvizIndex_(0), pointShader_(pointShader), selection_(selection), colorCopies_(0), selectionCopies_(0) {
 
 }

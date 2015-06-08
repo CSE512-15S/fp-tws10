@@ -31,7 +31,7 @@ void ToolViewMouseHandler::Mouse(pangolin::View & v, pangolin::MouseButton butto
                         selectedClass_ = toolbox_->getClass(toolboxPoint);
                         break;
                     case OverviewSection:
-                        toolbox_->processOverviewCentering(toolboxPoint);
+                        toolbox_->processOverviewCentering(toolboxPoint,v.GetBounds().w);
                         break;
                 }
 
@@ -53,7 +53,7 @@ void ToolViewMouseHandler::MouseMotion(pangolin::View & v, int x, int y, int but
     ToolboxSection section = toolbox_->getSection(toolboxPoint);
     switch(section) {
         case OverviewSection:
-            toolbox_->processOverviewCentering(toolboxPoint);
+            toolbox_->processOverviewCentering(toolboxPoint, v.GetBounds().w);
             break;
     }
 
