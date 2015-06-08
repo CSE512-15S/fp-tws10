@@ -2,7 +2,7 @@
 
 #include <fstream>
 
-ScatterPlotShader::ScatterPlotShader(const int nPoints, const int nDims, const float * pointData) {
+ScatterPlotShader::ScatterPlotShader() {
 
     // -=-=-=- compile program -=-=-=-
     std::ifstream fragStream("../src/shaders/scatter_plot.frag"); // TODO

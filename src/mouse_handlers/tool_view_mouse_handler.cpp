@@ -27,6 +27,8 @@ void ToolViewMouseHandler::Mouse(pangolin::View & v, pangolin::MouseButton butto
                 break;
             case LabelSection:
                 std::cout << "clicked label section" << std::endl;
+                hasClassSelection_ = true;
+                selectedClass_ = toolbox_->getClass(toolboxPoint);
                 break;
         }
 

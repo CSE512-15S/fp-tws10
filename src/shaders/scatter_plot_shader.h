@@ -7,7 +7,7 @@
 class ScatterPlotShader {
 public:
 
-    ScatterPlotShader(const int nPoints, const int nDims, const float * pointData);
+    ScatterPlotShader();
     ~ScatterPlotShader();
 
     inline void bind() {

@@ -47,7 +47,8 @@ static const float filterViewAspectRatio = filterViewWidth/(float)filterViewHeig
 static const std::string weightFile = "/home/tws10/Development/caffe/examples/siamese/mnist_siamese_iter_50000.caffemodel";
 static const std::string netFile = "../networks/mnist_siamese.prototxt";
 
-static const uchar3 digitColors[10] = {
+static const int nClasses = 10;
+static const uchar3 digitColors[nClasses] = {
     make_uchar3(166,206,227 ),
     make_uchar3(31,120,180  ),
     make_uchar3(178,223,138 ),
@@ -60,7 +61,7 @@ static const uchar3 digitColors[10] = {
     make_uchar3(106,61,154  )
 };
 
-static const std::string digitNames[10] = {
+static const std::string digitNames[nClasses] = {
     "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"
 };
 
@@ -125,7 +126,7 @@ int main(int argc, char * * argv) {
     std::cout << maxTexBufferSize << std::endl;
 
     boost::shared_ptr<caffe::Blob<float> > outputBlob = net.blobs()[net.output_blob_indices()[0]];
-    ScatterPlotShader pointShader(10000,10,outputBlob->cpu_data());
+    ScatterPlotShader pointShader;
 
     // -=-=-=-=- set up visualizations -=-=-=-=-
     SingleEmbeddingViz embeddingViz(embeddingViewAspectRatio,testImages,imageWidth,imageHeight,imageTex,overviewWidth,overviewHeight,overviewTex,pointShader,selection.data());
@@ -149,7 +150,7 @@ int main(int argc, char * * argv) {
 
     pangolin::View toolView;
     toolView.SetBounds(0,1,0,pangolin::Attach::Pix(panelWidth));
-    Toolbox toolboxViz(digitColors,digitNames,10,fontManager);
+    Toolbox toolboxViz(digitColors,digitNames,nClasses,fontManager);
     toolboxViz.setButtonActive(PointSelectionButton,true);
 
     ToolViewMouseHandler toolViewHandler(&toolboxViz);
@@ -485,6 +486,14 @@ int main(int argc, char * * argv) {
                     toolboxViz.setButtonActive(PointSelectionButton,false);
                     toolboxViz.setButtonActive(LassoSelectionButton,true);
                     break;
+            }
+        } else if (toolViewHandler.hasClassSelection()) {
+            const int selectedClass = toolViewHandler.getSelectedClass();
+            if (selectedClass >= 0 && selectedClass < nClasses) {
+                for (int i=0; i<nTestImages; ++i) {
+                    selection[i] = testLabels[i] == selectedClass ? 1.f : 0.f;
+                }
+                filterResponseViz.setSelection(selection);
             }
         }
 

@@ -119,3 +119,16 @@ ToolboxButton Toolbox::getButton(const float2 point) {
     }
 
 }
+
+int Toolbox::getClass(const float2 point) {
+
+    if (point.x >= labelPadHorizontal_ && point.x <= labelPadHorizontal_ + labelPatchWidth_) {
+        const int row = (point.y - labelPadVertical_)/labelRowHeight_;
+        const int off = (point.y - labelPadVertical_) - row*labelRowHeight_;
+        if (off >= (labelRowHeight_-labelPatchHeight_)/2 && off <= (labelRowHeight_ - (labelRowHeight_-labelPatchHeight_)/2)) {
+            return row;
+        }
+    }
+    return -1;
+
+}

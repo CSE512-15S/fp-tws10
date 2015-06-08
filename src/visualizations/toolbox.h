@@ -42,6 +42,8 @@ public:
 
     ToolboxButton getButton(const float2 point);
 
+    int getClass(const float2 point);
+
 private:
 
     std::string getIconFilename(ToolboxButton button);
