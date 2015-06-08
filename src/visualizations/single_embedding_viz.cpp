@@ -40,7 +40,7 @@ void SingleEmbeddingViz::render(const float2 windowSize) {
     const float2 scrolledCenter = getViewportCenter(); //maxViewportCenter_ + scroll_;
 
     const float subvizMult = 1.f/zoom_;
-    const float pointSizeWindow = std::max(1.f,pointSizeViewport_/subViz_.getMaxViewportSize().x*windowSize.x*sqrtf(subvizMult));
+    const float pointSizeWindow = std::max(1.f,basePointSize_*pointSizeViewport_/subViz_.getMaxViewportSize().x*windowSize.x*sqrtf(subvizMult));
 
     pointShader_.bind();
     pointShader_.setScale(pointSizeWindow);

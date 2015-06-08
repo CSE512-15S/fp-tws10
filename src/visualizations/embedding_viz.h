@@ -17,7 +17,7 @@ public:
                  pangolin::GlTexture & imageTex) :
         zoom_(1.f), scroll_(make_float2(0.f)), aspectRatio_(aspectRatio),
         images_(images), imageWidth_(imageWidth), imageHeight_(imageHeight),
-        imageTex_(imageTex), minZoom_(minZoom), maxZoom_(1.f)
+        imageTex_(imageTex), minZoom_(minZoom), maxZoom_(1.f), basePointSize_(1.f)
          { }
 
     virtual void render(const float2 windowSize);
@@ -63,6 +63,10 @@ public:
         clampScroll();
     }
 
+    inline float getBasePointSize() { return basePointSize_; }
+
+    inline void setBasePointSize(const float basePointSize) { basePointSize_ = basePointSize; }
+
 protected:
     // -=-=-=-=-=- methods -=-=-=-=-=-
     inline void clampScroll() { scroll_ = fmaxf(getMinScroll(),fminf(scroll_,getMaxScroll())); }
@@ -80,6 +84,8 @@ protected:
 
     float minZoom_;
     float maxZoom_;
+
+    float basePointSize_;
 
     const float * images_;
     const int imageWidth_;

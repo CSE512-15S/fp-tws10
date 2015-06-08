@@ -232,7 +232,7 @@ void MultiEmbeddingViz::render(const float2 windowSize) {
     const float subvizMaxZoom = (1 - 2*subvizPaddingPercent_)/dims_;
     std::cout << "subviz max zoom: " <<  subvizMaxZoom << std::endl;
     const float subvizMult = 1/(subvizMaxZoom*zoom_);
-    const float pointSizeWindow = std::max(1.f,pointSizeViewport_/embeddingVizs_[0]->getMaxViewportSize().x*subvizMaxZoom*windowSize.x*sqrtf(subvizMult));
+    const float pointSizeWindow = std::max(1.f,basePointSize_*pointSizeViewport_/embeddingVizs_[0]->getMaxViewportSize().x*subvizMaxZoom*windowSize.x*sqrtf(subvizMult));
 
     pointShader_.bind();
     pointShader_.setScale(pointSizeWindow);

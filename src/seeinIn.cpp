@@ -151,7 +151,7 @@ int main(int argc, char * * argv) {
     pangolin::View toolView;
     toolView.SetBounds(0,1,0,pangolin::Attach::Pix(panelWidth));
     Toolbox toolboxViz(digitColors,digitNames,nClasses,fontManager, overviewWidth, overviewHeight, overviewTex);
-    toolboxViz.setButtonActive(PointSelectionButton,true);
+    toolboxViz.setButtonActive(LassoSelectionButton,false);
     toolboxViz.setActiveEmbeddingViz(activeEmbeddingViz);
 
     ToolViewMouseHandler toolViewHandler(&toolboxViz);
@@ -521,6 +521,12 @@ int main(int argc, char * * argv) {
                     multiEmbeddingViewHandler.setSelectionMode(SelectionModeLasso);
                     toolboxViz.setButtonActive(PointSelectionButton,false);
                     toolboxViz.setButtonActive(LassoSelectionButton,true);
+                    break;
+                case BiggerPointButton:
+                    activeEmbeddingViz->setBasePointSize(activeEmbeddingViz->getBasePointSize()*1.25f);
+                    break;
+                case SmallerPointButton:
+                    activeEmbeddingViz->setBasePointSize(activeEmbeddingViz->getBasePointSize()/1.25f);
                     break;
             }
         } else if (toolViewHandler.hasClassSelection()) {

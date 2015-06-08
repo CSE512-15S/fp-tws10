@@ -10,7 +10,7 @@ Toolbox::Toolbox(const uchar3 * classColors,
                  const int overviewWidth,
                  const int overviewHeight,
                  pangolin::GlTexture & overviewTex) :
-    buttonActive_(NumButtons,false),
+    buttonActive_(NumButtons,true),
     nClasses_(nClasses),
     classColors_(classColors),
     classNames_(classNames),
@@ -190,6 +190,12 @@ std::string Toolbox::getIconFilename(ToolboxButton button) {
             break;
         case LassoSelectionButton:
             return "../src/icons/lassoSelection.png";
+            break;
+        case BiggerPointButton:
+            return "../src/icons/biggerPoints.png";
+            break;
+        case SmallerPointButton:
+            return "../src/icons/smallerPoints.png";
             break;
         default:
             std::cerr << "no icon image specified for button " << button << std::endl;

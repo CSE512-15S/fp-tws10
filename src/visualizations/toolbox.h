@@ -18,6 +18,8 @@ enum ToolboxSection {
 enum ToolboxButton {
     PointSelectionButton = 0,
     LassoSelectionButton,
+    BiggerPointButton,
+    SmallerPointButton,
 
     NumButtons
 };
