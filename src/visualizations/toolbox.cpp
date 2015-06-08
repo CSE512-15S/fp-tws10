@@ -89,9 +89,9 @@ void Toolbox::render(const float2 windowSize) {
     glDisable(GL_BLEND);
 
     // -=-=-=- overview section -=-=-=-
-    if (activeEmbeddingViz_->getZoom() < overviewZoomThreshold_) {
+    if (activeEmbeddingViz_->getZoom() < showOverviewZoomThreshold_) {
 
-        int nZooms = std::min(1 - log(activeEmbeddingViz_->getZoom())/log(20),3.);
+        int nZooms = std::min(1 - log(activeEmbeddingViz_->getZoom())/log(20),1.);
         std::cout << "showing " << nZooms << " zooms" << std::endl;
 
         const int overviewSectionBottom = windowSize.y - windowSize.x - sectionStarts_[OverviewSection];
@@ -102,41 +102,81 @@ void Toolbox::render(const float2 windowSize) {
 
             renderTexture(overviewTex_,make_float2(0,zoomBottom),overviewSize,false);
 
-            const float2 contextUpper = (activeEmbeddingViz_->getViewportCenter() + 0.5*activeEmbeddingViz_->getViewportSize() - (activeEmbeddingViz_->getMaxViewportCenter() - 0.5*activeEmbeddingViz_->getMaxViewportSize()))/activeEmbeddingViz_->getMaxViewportSize()*overviewSize;
-            const float2 contextLower = (activeEmbeddingViz_->getViewportCenter() - 0.5*activeEmbeddingViz_->getViewportSize() - (activeEmbeddingViz_->getMaxViewportCenter() - 0.5*activeEmbeddingViz_->getMaxViewportSize()))/activeEmbeddingViz_->getMaxViewportSize()*overviewSize;
+            if (activeEmbeddingViz_->getZoom() < switchToCrosshairZoomThreshold_) {
+                // show crosshairs
+                const float2 contextCenter = (activeEmbeddingViz_->getViewportCenter() - (activeEmbeddingViz_->getMaxViewportCenter() - 0.5*activeEmbeddingViz_->getMaxViewportSize()))/activeEmbeddingViz_->getMaxViewportSize()*overviewSize;
 
-            // draw context box
-            float contextCorners[8] = {
-                contextUpper.x,zoomBottom + contextUpper.y,
-                contextUpper.x,zoomBottom + contextLower.y,
-                contextLower.x,zoomBottom + contextLower.y,
-                contextLower.x,zoomBottom + contextUpper.y
-            };
+                float crosshairPoints[8] = {
+                    contextCenter.x + crosshairSize_/2, zoomBottom + contextCenter.y,
+                    contextCenter.x - crosshairSize_/2, zoomBottom + contextCenter.y,
+                    contextCenter.x                   , zoomBottom + contextCenter.y + crosshairSize_/2,
+                    contextCenter.x                   , zoomBottom + contextCenter.y - crosshairSize_/2
+                };
 
-            glColor3ub(32,32,32);
-            glLineWidth(5);
-            glPointSize(5);
-            glEnableClientState(GL_VERTEX_ARRAY);
-            glVertexPointer( 2, GL_FLOAT, 0, contextCorners);
-            glDrawArrays(GL_LINE_LOOP, 0, 4);
+                glColor3ub(32,32,32);
+                glLineWidth(5);
+                glPointSize(5);
+                glEnableClientState(GL_VERTEX_ARRAY);
+                glVertexPointer( 2, GL_FLOAT, 0, crosshairPoints);
+                glDrawArrays(GL_LINES, 0, 4);
 
-            glVertexPointer( 2, GL_FLOAT, 0, contextCorners);
-            glDrawArrays(GL_POINTS, 0, 4);
+                glVertexPointer( 2, GL_FLOAT, 0, crosshairPoints);
+                glDrawArrays(GL_POINTS, 0, 4);
 
-            glDisableClientState(GL_VERTEX_ARRAY);
+                glDisableClientState(GL_VERTEX_ARRAY);
 
-            glColor3ub(224,224,224);
-            glLineWidth(2);
-            glPointSize(2);
-            glEnableClientState(GL_VERTEX_ARRAY);
+                glColor3ub(224,224,224);
+                glLineWidth(2);
+                glPointSize(2);
+                glEnableClientState(GL_VERTEX_ARRAY);
 
-            glVertexPointer( 2, GL_FLOAT, 0, contextCorners);
-            glDrawArrays(GL_LINE_LOOP, 0, 4);
+                glVertexPointer( 2, GL_FLOAT, 0, crosshairPoints);
+                glDrawArrays(GL_LINES, 0, 4);
 
-            glVertexPointer( 2, GL_FLOAT, 0, contextCorners);
-            glDrawArrays(GL_POINTS, 0, 4);
+                glVertexPointer( 2, GL_FLOAT, 0, crosshairPoints);
+                glDrawArrays(GL_POINTS, 0, 4);
 
-            glDisableClientState(GL_VERTEX_ARRAY);
+                glDisableClientState(GL_VERTEX_ARRAY);
+
+            } else {
+                // show box
+                const float2 contextUpper = (activeEmbeddingViz_->getViewportCenter() + 0.5*activeEmbeddingViz_->getViewportSize() - (activeEmbeddingViz_->getMaxViewportCenter() - 0.5*activeEmbeddingViz_->getMaxViewportSize()))/activeEmbeddingViz_->getMaxViewportSize()*overviewSize;
+                const float2 contextLower = (activeEmbeddingViz_->getViewportCenter() - 0.5*activeEmbeddingViz_->getViewportSize() - (activeEmbeddingViz_->getMaxViewportCenter() - 0.5*activeEmbeddingViz_->getMaxViewportSize()))/activeEmbeddingViz_->getMaxViewportSize()*overviewSize;
+
+                // draw context box
+                float contextCorners[8] = {
+                    contextUpper.x,zoomBottom + contextUpper.y,
+                    contextUpper.x,zoomBottom + contextLower.y,
+                    contextLower.x,zoomBottom + contextLower.y,
+                    contextLower.x,zoomBottom + contextUpper.y
+                };
+
+                glColor3ub(32,32,32);
+                glLineWidth(5);
+                glPointSize(5);
+                glEnableClientState(GL_VERTEX_ARRAY);
+                glVertexPointer( 2, GL_FLOAT, 0, contextCorners);
+                glDrawArrays(GL_LINE_LOOP, 0, 4);
+
+                glVertexPointer( 2, GL_FLOAT, 0, contextCorners);
+                glDrawArrays(GL_POINTS, 0, 4);
+
+                glDisableClientState(GL_VERTEX_ARRAY);
+
+                glColor3ub(224,224,224);
+                glLineWidth(2);
+                glPointSize(2);
+                glEnableClientState(GL_VERTEX_ARRAY);
+
+                glVertexPointer( 2, GL_FLOAT, 0, contextCorners);
+                glDrawArrays(GL_LINE_LOOP, 0, 4);
+
+                glVertexPointer( 2, GL_FLOAT, 0, contextCorners);
+                glDrawArrays(GL_POINTS, 0, 4);
+
+                glDisableClientState(GL_VERTEX_ARRAY);
+            }
+
         }
 
     }

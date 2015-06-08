@@ -94,7 +94,9 @@ private:
     static const int iconImageSize_ = 64;
     static const int inactiveAlpha_ = 96;
 
-    static constexpr float overviewZoomThreshold_ = 0.8f;
+    static constexpr float showOverviewZoomThreshold_ = 0.8f;
+    static constexpr float switchToCrosshairZoomThreshold_ = 0.05f;
+    static const int crosshairSize_ = 10;
 
 };
 
