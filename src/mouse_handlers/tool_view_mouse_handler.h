@@ -13,13 +13,21 @@ public:
 
     inline bool hasButtonSelection() { const bool retval = hasButtonSelection_; hasButtonSelection_ = false; return retval; }
 
-    inline int getSelectedButton() { return selectedButton_; }
+    inline ToolboxButton getSelectedButton() { return selectedButton_; }
+
+    inline bool hasClassSelection() { const bool retval = hasClassSelection_; hasClassSelection_ = false; return retval; }
+
+    inline int getSelectedClass() { return selectedClass_; }
+
 private:
 
     Toolbox * toolbox_;
 
+    bool hasClassSelection_;
+    int selectedClass_;
+
     bool hasButtonSelection_;
-    int selectedButton_;
+    ToolboxButton selectedButton_;
 
     const int buttonSize_;
     const int buttonSpacing_;

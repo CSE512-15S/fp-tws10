@@ -33,7 +33,7 @@
 
 static const int guiWidth = 1920;
 static const int guiHeight = 1080;
-static const int panelWidth = 274;
+static const int panelWidth = 256;
 static const float aspectRatio = guiWidth/(float)guiHeight;
 
 static const int embeddingViewWidth = guiHeight;
@@ -58,6 +58,10 @@ static const uchar3 digitColors[10] = {
     make_uchar3(255,127,0   ),
     make_uchar3(202,178,214 ),
     make_uchar3(106,61,154  )
+};
+
+static const std::string digitNames[10] = {
+    "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"
 };
 
 inline void printBlobSize(boost::shared_ptr<caffe::Blob<float> > blob) {
@@ -112,6 +116,9 @@ int main(int argc, char * * argv) {
     const int overviewHeight = overviewWidth*embeddingViewAspectRatio;
     pangolin::GlTexture overviewTex(overviewWidth,overviewHeight);
 
+    // -=-=-=-=- set up font management -=-=-=-=-
+    FontManager fontManager("GaramondNo8");
+
     // -=-=-=-=- set up point shader -=-=-=-=-
     int maxTexBufferSize;
     glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE,&maxTexBufferSize);
@@ -142,7 +149,7 @@ int main(int argc, char * * argv) {
 
     pangolin::View toolView;
     toolView.SetBounds(0,1,0,pangolin::Attach::Pix(panelWidth));
-    Toolbox toolboxViz;
+    Toolbox toolboxViz(digitColors,digitNames,10,fontManager);
     toolboxViz.setButtonActive(PointSelectionButton,true);
 
     ToolViewMouseHandler toolViewHandler(&toolboxViz);
@@ -168,10 +175,6 @@ int main(int argc, char * * argv) {
     std::cout << filterView.GetBounds().w << " x " << filterView.GetBounds().h << std::endl;
 
     bool hasSelection = false;
-
-
-    // -=-=-=-=- set up font management -=-=-=-=-
-    FontManager fontManager("GaramondNo8");
 
     // -=-=-=-=- set up layer visualizations -=-=-=-=-
     std::vector<std::string> filterResponsesToVisualize;
@@ -354,11 +357,6 @@ int main(int argc, char * * argv) {
                 {
                     std::vector<float2> lassoPoints = activeEmbeddingHandler->getLassoPoints();
                     if (lassoPoints.size() > 0) {
-                        std::cout << "drawing lasso" << std::endl;
-                        if (activeEmbeddingViz == &multiEmbeddingViz) {
-                            std::cout << " on multi" << std::endl;
-                        }
-
                         glPushMatrix();
                         setUpViewport(windowSize,activeEmbeddingViz->getViewportSize(),activeEmbeddingViz->getViewportCenter());
 
