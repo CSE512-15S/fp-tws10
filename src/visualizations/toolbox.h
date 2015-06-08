@@ -5,10 +5,12 @@
 #include <string>
 #include <vector_types.h>
 #include "fonts/font_manager.h"
+#include "embedding_viz.h"
 
 enum ToolboxSection {
     LabelSection = 0,
-    ButtonSection = 1,
+    ButtonSection,
+    OverviewSection,
 
     NumSections
 };
@@ -26,7 +28,10 @@ public:
     Toolbox(const uchar3 * classColors,
             const std::string * classNames,
             const int nClasses,
-            FontManager & fontManager);
+            FontManager & fontManager,
+            const int overviewWidth,
+            const int overviewHeight,
+            pangolin::GlTexture & overviewTex);
 
     ~Toolbox();
 
@@ -34,9 +39,13 @@ public:
 
     inline void setButtonActive(ToolboxButton button, bool active) { assert(button != NumButtons); buttonActive_[button] = active; }
 
+    inline void setOverviewImage(uchar3 * overviewImage) { overviewTex_.Upload(overviewImage,GL_RGB,GL_UNSIGNED_BYTE); }
+
     inline int getButtonSize() { return iconRenderSize_; }
 
     inline int getButtonSpacing() { return iconRenderSpacing_; }
+
+    inline void setActiveEmbeddingViz(EmbeddingViz * viz) { activeEmbeddingViz_ = viz; }
 
     ToolboxSection getSection(const float2 point);
 
@@ -60,6 +69,12 @@ private:
 
     FontManager & fontManager_;
 
+    const int overviewWidth_;
+    const int overviewHeight_;
+    pangolin::GlTexture & overviewTex_;
+
+    EmbeddingViz * activeEmbeddingViz_;
+
     static const int labelRowHeight_ = 20;
     static const int labelPadHorizontal_ = 16;
     static const int labelPadVertical_ = 8;
@@ -72,6 +87,8 @@ private:
 
     static const int iconImageSize_ = 64;
     static const int inactiveAlpha_ = 96;
+
+    static constexpr float overviewZoomThreshold_ = 0.666f;
 
 };
 

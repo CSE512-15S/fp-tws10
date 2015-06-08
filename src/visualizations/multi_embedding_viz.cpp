@@ -83,7 +83,7 @@ void MultiEmbeddingViz::setEmbedding(const float * embedding, const int embeddin
     assert(receptiveField.x > 0);
     assert(receptiveField.y > 0);
     assert(stride > 0);
-    assert(nEmbedded_ > 0);
+    assert(nEmbedded > 0);
 
     // -=-=-=- compute axis bounds -=-=-=-
     dims_ = embeddingDimensions;
@@ -218,7 +218,7 @@ void MultiEmbeddingViz::render(const float2 windowSize) {
         const float2 hoveredWindowPoint = getWindowPoint(getViewportPointOfSubvizPoint(hoverViz->getNormalizedPoint(hoveredViewportPoint),hoveredSubvizRow,hoveredSubvizCol),windowSize);
 
         static const float2 hoverOffset = make_float2(imageWidth_/4,imageHeight_/4);
-        static const float2 textureSize = make_float2(8*imageWidth_,8*imageHeight_);
+        static const float2 textureSize = make_float2(4*imageWidth_,4*imageHeight_);
 
         const float2 quad1HoverExtent = hoveredWindowPoint + hoverOffset + textureSize;
 
@@ -294,7 +294,6 @@ void MultiEmbeddingViz::render(const float2 windowSize) {
         renderTexture(imageTex_,
                       textureLocation,
                       textureSize);
-        glLineWidth(1);
 
         if (width_ > 1 && height_ > 1) {
             const int hoverPointW = hoveredPointIndex % width_;
@@ -304,7 +303,8 @@ void MultiEmbeddingViz::render(const float2 windowSize) {
             const float2 receptiveFieldSize = textureSize/make_float2(imageWidth_,imageHeight_)*make_float2(receptiveField_.x,receptiveField_.y);
             const float2 receptiveFieldOffset = textureSize/make_float2(imageWidth_,imageHeight_)*make_float2(stride_*hoverPointW,stride_*(height_ - 1 - hoverPointH));
 
-            glColor3ub(255,0,0);
+            glColor3ub(0x6f,0xb9,0xa5);
+            glLineWidth(2);
             glBegin(GL_LINE_LOOP);
             glVertex2f(textureLocation.x + receptiveFieldOffset.x + receptiveFieldSize.x, textureLocation.y + receptiveFieldOffset.y + receptiveFieldSize.y);
             glVertex2f(textureLocation.x + receptiveFieldOffset.x                       , textureLocation.y + receptiveFieldOffset.y + receptiveFieldSize.y);
@@ -312,6 +312,7 @@ void MultiEmbeddingViz::render(const float2 windowSize) {
             glVertex2f(textureLocation.x + receptiveFieldOffset.x + receptiveFieldSize.x, textureLocation.y + receptiveFieldOffset.y                        );
             glEnd();
         }
+        glLineWidth(1);
 
     }
 

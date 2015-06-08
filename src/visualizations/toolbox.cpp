@@ -6,14 +6,20 @@
 Toolbox::Toolbox(const uchar3 * classColors,
                  const std::string * classNames,
                  const int nClasses,
-                 FontManager & fontManager) :
+                 FontManager & fontManager,
+                 const int overviewWidth,
+                 const int overviewHeight,
+                 pangolin::GlTexture & overviewTex) :
     buttonActive_(NumButtons,false),
     nClasses_(nClasses),
     classColors_(classColors),
     classNames_(classNames),
     fontManager_(fontManager),
     sectionHeights_(NumSections),
-    sectionStarts_(NumSections+1) {
+    sectionStarts_(NumSections+1),
+    overviewWidth_(overviewWidth),
+    overviewHeight_(overviewHeight),
+    overviewTex_(overviewTex) {
 
     for (int i=0; i<NumButtons; ++i) {
         pangolin::GlTexture * icon = new pangolin::GlTexture(iconImageSize_,iconImageSize_);
@@ -23,6 +29,7 @@ Toolbox::Toolbox(const uchar3 * classColors,
 
     sectionHeights_[LabelSection] = nClasses_*labelRowHeight_ + 2*labelPadVertical_;
     sectionHeights_[ButtonSection] = iconRenderSize_ + 2*iconRenderSpacing_;
+    sectionHeights_[OverviewSection] = overviewHeight_;
 
     int runningTotal = 0;
     for (int i=0; i<NumSections; ++i) {
@@ -70,7 +77,7 @@ void Toolbox::render(const float2 windowSize) {
     glDisableClientState(GL_COLOR_ARRAY);
     glDisableClientState(GL_VERTEX_ARRAY);
 
-    // -=-=-=- button section
+    // -=-=-=- button section -=-=-=-
     const int buttonSectionStart = sectionStarts_[ButtonSection];
     glEnable(GL_BLEND);
     for (int i=0; i<NumButtons; ++i) {
@@ -80,6 +87,50 @@ void Toolbox::render(const float2 windowSize) {
         renderTexture(*buttonIcons_[i],iconLocation,make_float2(iconRenderSize_));
     }
     glDisable(GL_BLEND);
+
+    // -=-=-=- overview section -=-=-=-
+    if (activeEmbeddingViz_->getZoom() < overviewZoomThreshold_) {
+        const int overviewSectionBottom = windowSize.y - overviewHeight_ - sectionStarts_[OverviewSection];
+        renderTexture(overviewTex_,make_float2(0,overviewSectionBottom),make_float2(overviewWidth_,overviewHeight_),false);
+
+        const float2 overviewSize = make_float2(overviewWidth_,overviewHeight_);
+        const float2 contextUpper = (activeEmbeddingViz_->getViewportCenter() + 0.5*activeEmbeddingViz_->getViewportSize() - (activeEmbeddingViz_->getMaxViewportCenter() - 0.5*activeEmbeddingViz_->getMaxViewportSize()))/activeEmbeddingViz_->getMaxViewportSize()*overviewSize;
+        const float2 contextLower = (activeEmbeddingViz_->getViewportCenter() - 0.5*activeEmbeddingViz_->getViewportSize() - (activeEmbeddingViz_->getMaxViewportCenter() - 0.5*activeEmbeddingViz_->getMaxViewportSize()))/activeEmbeddingViz_->getMaxViewportSize()*overviewSize;
+
+        // draw context box
+        float contextCorners[8] = {
+            contextUpper.x,overviewSectionBottom + contextUpper.y,
+            contextUpper.x,overviewSectionBottom + contextLower.y,
+            contextLower.x,overviewSectionBottom + contextLower.y,
+            contextLower.x,overviewSectionBottom + contextUpper.y
+        };
+
+        glColor3ub(32,32,32);
+        glLineWidth(5);
+        glPointSize(5);
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glVertexPointer( 2, GL_FLOAT, 0, contextCorners);
+        glDrawArrays(GL_LINE_LOOP, 0, 4);
+
+        glVertexPointer( 2, GL_FLOAT, 0, contextCorners);
+        glDrawArrays(GL_POINTS, 0, 4);
+
+        glDisableClientState(GL_VERTEX_ARRAY);
+
+        glColor3ub(224,224,224);
+        glLineWidth(2);
+        glPointSize(2);
+        glEnableClientState(GL_VERTEX_ARRAY);
+
+        glVertexPointer( 2, GL_FLOAT, 0, contextCorners);
+        glDrawArrays(GL_LINE_LOOP, 0, 4);
+
+        glVertexPointer( 2, GL_FLOAT, 0, contextCorners);
+        glDrawArrays(GL_POINTS, 0, 4);
+
+        glDisableClientState(GL_VERTEX_ARRAY);
+
+    }
 
 }
 

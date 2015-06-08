@@ -151,6 +151,7 @@ void FilterResponseViz::render() {
         glDisable(GL_BLEND);
         glDisable(GL_TEXTURE_2D);
 
+        glLineWidth(1);
         glColor3ub(128,128,128);
         glBegin(GL_LINES);
         glVertex2f(0,-fontSize_/2-textMarginVert_);

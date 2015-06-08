@@ -150,8 +150,9 @@ int main(int argc, char * * argv) {
 
     pangolin::View toolView;
     toolView.SetBounds(0,1,0,pangolin::Attach::Pix(panelWidth));
-    Toolbox toolboxViz(digitColors,digitNames,nClasses,fontManager);
+    Toolbox toolboxViz(digitColors,digitNames,nClasses,fontManager, overviewWidth, overviewHeight, overviewTex);
     toolboxViz.setButtonActive(PointSelectionButton,true);
+    toolboxViz.setActiveEmbeddingViz(activeEmbeddingViz);
 
     ToolViewMouseHandler toolViewHandler(&toolboxViz);
     toolView.SetHandler(&toolViewHandler);
@@ -310,6 +311,7 @@ int main(int argc, char * * argv) {
     multiEmbeddingViz.setShowOverview(true);
     embeddingViz.setShowOverview(true);
     embeddingViz.setOverviewImage(overviewImages.back());
+    toolboxViz.setOverviewImage(overviewImages.back());
 
     bool multiembeddingVizActive = false;
 
@@ -454,7 +456,8 @@ int main(int argc, char * * argv) {
                 }
                 embeddingView.SetHandler(activeEmbeddingHandler);
                 activeEmbeddingViz->setOverviewImage(overviewImages[layerNum]);
-
+                toolboxViz.setOverviewImage(overviewImages[layerNum]);
+                toolboxViz.setActiveEmbeddingViz(activeEmbeddingViz);
             }
         } else if (filterViewHandler.hasUnitSelection()) {
             std::cout << "selected unit " << filterViewHandler.getSelectedUnit() << " in layer " << filterViewHandler.getSelectedLayer() << std::endl;

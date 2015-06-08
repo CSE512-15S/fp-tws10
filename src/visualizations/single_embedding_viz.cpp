@@ -57,7 +57,7 @@ void SingleEmbeddingViz::render(const float2 windowSize) {
 //        std::cout << hoveredViewportPoint.x << ", " << hoveredViewportPoint.y << " -> " <<  hoveredWindowPoint.x << ", " << hoveredWindowPoint.y << std::endl;
 
         static const float2 hoverOffset = make_float2(imageWidth_/4,imageHeight_/4);
-        static const float2 textureSize = make_float2(2*imageWidth_,2*imageHeight_);
+        static const float2 textureSize = make_float2(4*imageWidth_,4*imageHeight_);
 
         const float2 quad1HoverExtent = hoveredWindowPoint + hoverOffset + textureSize;
 
