@@ -29,7 +29,7 @@ void main(){
         }
     } else {
         //gl_FrontColor = gl_Color + 0.75*(vec4(1,1,1,1) - gl_Color);
-        gl_FrontColor = 0.2*gl_Color + 0.8*vec4(1.f,1.f,1.f,1.f);
+        gl_FrontColor = 0.334*gl_Color + 0.666*vec4(1.f,1.f,1.f,1.f);
         gl_Position.z = 0.5;
         gl_PointSize = scale*0.666f;
     }
