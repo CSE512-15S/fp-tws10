@@ -83,6 +83,8 @@ set(sources
     src/shaders/scatter_plot_shader.h
     src/shaders/scatter_plot_shader.cpp
 
+    src/util/caffe_helpers.h
+    src/util/caffe_helpers.cpp
     src/util/geometry.h
     src/util/geometry.cpp
     src/util/gl_helpers.h

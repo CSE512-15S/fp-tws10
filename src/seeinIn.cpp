@@ -23,6 +23,7 @@
 #include "mouse_handlers/filter_view_mouse_handler.h"
 #include "mouse_handlers/multi_embedding_view_mouse_handler.h"
 #include "mouse_handlers/tool_view_mouse_handler.h"
+#include "util/caffe_helpers.h"
 #include "util/gl_helpers.h"
 #include "util/image_io.h"
 #include "util/string_format.h"
@@ -113,7 +114,7 @@ int main(int argc, char * * argv) {
     pangolin::GlTexture imageTex(imageWidth,imageHeight);
     imageTex.SetNearestNeighbour();
 
-    const int overviewWidth = 8192; //256;
+    const int overviewWidth = 4096; //256;
     const int overviewHeight = overviewWidth*embeddingViewAspectRatio;
     pangolin::GlTexture overviewTex(overviewWidth,overviewHeight);
 
@@ -179,15 +180,25 @@ int main(int argc, char * * argv) {
     bool hasSelection = false;
 
     // -=-=-=-=- set up layer visualizations -=-=-=-=-
-    std::vector<std::string> filterResponsesToVisualize;
-    filterResponsesToVisualize.push_back("data");
-    filterResponsesToVisualize.push_back("conv1");
-    filterResponsesToVisualize.push_back("pool1");
-    filterResponsesToVisualize.push_back("conv2");
-    filterResponsesToVisualize.push_back("pool2");
-    filterResponsesToVisualize.push_back("ip1");
-    filterResponsesToVisualize.push_back("ip2");
-    filterResponsesToVisualize.push_back("feat");
+    {
+        std::vector<std::string> blobsToVisualize;
+        getBlobsToVisualize(net,blobsToVisualize);
+        for (std::string blobName : blobsToVisualize) {
+            std::cout << blobName << std::endl;
+        }
+    }
+
+    std::vector<std::string> blobsToVisualize;
+    getBlobsToVisualize(net,blobsToVisualize);
+
+//    filterResponsesToVisualize.push_back("data");
+//    filterResponsesToVisualize.push_back("conv1");
+//    filterResponsesToVisualize.push_back("pool1");
+//    filterResponsesToVisualize.push_back("conv2");
+//    filterResponsesToVisualize.push_back("pool2");
+//    filterResponsesToVisualize.push_back("ip1");
+//    filterResponsesToVisualize.push_back("ip2");
+//    filterResponsesToVisualize.push_back("feat");
 
     std::map<std::string,int> layerRelativeScales;
     layerRelativeScales["data"] = 1;
@@ -211,7 +222,7 @@ int main(int argc, char * * argv) {
 
 //    std::map<std::string,pangolin::GlTexture*> layerResponseTextures;
     float filterVizZoom = 2.f;
-    FilterResponseViz filterResponseViz(net,filterResponsesToVisualize,
+    FilterResponseViz filterResponseViz(net,blobsToVisualize,
                                         layerRelativeScales,filterView.GetBounds().w,filterView.GetBounds().h,fontManager,
                                         filterVizZoom,16);
     filterResponseViz.setSelection(selection);
@@ -247,8 +258,8 @@ int main(int argc, char * * argv) {
         glScissor(0,0,overviewWidth,overviewHeight);
         glClearColor(1,1,1,1);
 
-        for (int i=0; i<filterResponsesToVisualize.size(); ++i) {
-            std::string blobName = filterResponsesToVisualize[i];
+        for (int i=0; i<blobsToVisualize.size(); ++i) {
+            std::string blobName = blobsToVisualize[i];
             std::string cachedFilename = stringFormat("/tmp/seeinIn.overview%02d.png",i);
             if (fileExists(cachedFilename)) {
 
@@ -446,7 +457,7 @@ int main(int argc, char * * argv) {
             static int lastLayerNum = -1;
             if (layerNum >= 0 && layerNum != lastLayerNum ) {
                 filterResponseViz.setEmbeddingLayer(filterViewHandler.getSelectedLayer());
-                std::string blobName = filterResponsesToVisualize[layerNum];
+                std::string blobName = blobsToVisualize[layerNum];
                 std::cout << "opening embedding " << blobName << std::endl;
                 boost::shared_ptr<caffe::Blob<float> > embeddingBlob = net.blob_by_name(blobName);
                 const int dims = embeddingBlob->channels();
