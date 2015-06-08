@@ -182,14 +182,14 @@ void MultiEmbeddingViz::updateSelectionFineToCoarse() {
 
 void MultiEmbeddingViz::setSubselection(const int selectedPoint) {
 
-    std::memset(selectionCopies_,0,nEmbedded_*width_*height_);
+    std::memset(selectionCopies_,0,nEmbedded_*width_*height_*sizeof(float));
     selectionCopies_[selectedPoint] = 1.f;
 
 }
 
 void MultiEmbeddingViz::setSubselection(std::vector<int> selectedPoints) {
 
-    std::memset(selectionCopies_,0,nEmbedded_*width_*height_);
+    std::memset(selectionCopies_,0,nEmbedded_*width_*height_*sizeof(float));
     for (int i=0; i<selectedPoints.size(); ++i) {
         selectionCopies_[selectedPoints[i]] = 1.f;
     }
