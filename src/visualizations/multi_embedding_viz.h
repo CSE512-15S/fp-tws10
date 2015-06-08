@@ -49,9 +49,17 @@ public:
 
     void centerOnFeature(const int unitNum);
 
-    void updateSelection();
+    void updateSelectionCoarseToFine();
+
+    void updateSelectionFineToCoarse();
+
+    void setSubselection(const int selectedPoint);
+
+    void setSubselection(std::vector<int> selectedPoints);
 
     inline int getPointImage(const int point) { return point/(width_*height_); }
+
+    inline bool hasSubselection() { return width_ != 1 || height_ != 1; }
 
 private:
     // -=-=-=-=-=- methods -=-=-=-=-=-

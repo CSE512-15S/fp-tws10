@@ -154,8 +154,9 @@ void MultiEmbeddingViz::setEmbedding(const float * embedding, const int embeddin
 
 }
 
-void MultiEmbeddingViz::updateSelection() {
+void MultiEmbeddingViz::updateSelectionCoarseToFine() {
     if (width_ == 1 && height_ == 1) { return; }
+    std::cout << "updating coarse to fine" << std::endl;
     for (int i=0; i<nEmbedded_; ++i) {
         for (int j=0; j<width_*height_; ++j) {
             selectionCopies_[j + i*width_*height_] = selection_[i];
@@ -163,6 +164,36 @@ void MultiEmbeddingViz::updateSelection() {
     }
 }
 
+void MultiEmbeddingViz::updateSelectionFineToCoarse() {
+    if (width_ == 1 && height_ == 1) { return; }
+    if (selectionCopies_[0] == 0.5f) { return; }
+    std::cout << "updating fine to coarse" << std::endl;
+    for (int i=0; i<nEmbedded_; ++i) {
+        bool selected = false;
+        for (int j=0; j<width_*height_; ++j) {
+            if (selectionCopies_[j + i*width_*height_] == 1.f) {
+                selected = true;
+                break;
+            }
+        }
+        selection_[i] = selected ? 1.f : 0.f;
+    }
+}
+
+void MultiEmbeddingViz::setSubselection(const int selectedPoint) {
+
+    std::memset(selectionCopies_,0,nEmbedded_*width_*height_);
+    selectionCopies_[selectedPoint] = 1.f;
+
+}
+
+void MultiEmbeddingViz::setSubselection(std::vector<int> selectedPoints) {
+
+    std::memset(selectionCopies_,0,nEmbedded_*width_*height_);
+    for (int i=0; i<selectedPoints.size(); ++i) {
+        selectionCopies_[selectedPoints[i]] = 1.f;
+    }
+}
 
 void MultiEmbeddingViz::render(const float2 windowSize) {
 

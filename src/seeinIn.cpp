@@ -214,11 +214,12 @@ int main(int argc, char * * argv) {
     FilterResponseViz filterResponseViz(net,filterResponsesToVisualize,
                                         layerRelativeScales,filterView.GetBounds().w,filterView.GetBounds().h,fontManager,
                                         filterVizZoom,16);
+    filterResponseViz.setSelection(selection);
 
     FilterViewMouseHandler filterViewHandler(&filterResponseViz);
     filterView.SetHandler(&filterViewHandler);
 
-    FeatureProjector featProjector(net,filterResponsesToVisualize); //"feat");
+//    FeatureProjector featProjector(net,filterResponsesToVisualize); //"feat");
 
 //    pangolin::RegisterKeyPressCallback(' ',[&embeddingViewHandler, &hasSelection](){ embeddingViewHandler.setSelectionMode(embeddingViewHandler.getSelectionMode() == SelectionModeSingle ? SelectionModeLasso : SelectionModeSingle); hasSelection = false;} );
     pangolin::RegisterKeyPressCallback('+',[&filterResponseViz, &filterVizZoom, &filterView](){
@@ -397,7 +398,7 @@ int main(int argc, char * * argv) {
                         if (selectedPoint == -1) {
                             std::fill(selection.begin(),selection.end(),0.5f);
                             if (multiembeddingVizActive) {
-                                multiEmbeddingViz.updateSelection();
+                                multiEmbeddingViz.updateSelectionCoarseToFine();
                             }
                         }
                     } break;
@@ -407,9 +408,14 @@ int main(int argc, char * * argv) {
                         std::vector<int> enclosedPoints;
                         activeEmbeddingViz->getEnclosedPoints(enclosedPoints,lassoPoints);
                         std::cout << enclosedPoints.size() << " points enclosed" << std::endl;
-                        std::fill(selection.begin(),selection.end(),0.0f);
-                        for (int i=0; i<enclosedPoints.size(); ++i) {
-                            selection[enclosedPoints[i]] = 1.f;
+                        if (multiembeddingVizActive && multiEmbeddingViz.hasSubselection()) {
+                            multiEmbeddingViz.setSubselection(enclosedPoints);
+                            multiEmbeddingViz.updateSelectionFineToCoarse();
+                        } else {
+                            std::fill(selection.begin(),selection.end(),0.0f);
+                            for (int i=0; i<enclosedPoints.size(); ++i) {
+                                selection[enclosedPoints[i]] = 1.f;
+                            }
                         }
                         filterResponseViz.setSelection(selection);
                         activeEmbeddingHandler->clearLassoPoints();
@@ -424,10 +430,11 @@ int main(int argc, char * * argv) {
             }
             filterResponseViz.setSelection(selectedImage);
             hasSelection = true;
-            std::memset(selection.data(),0.f,selection.size()*sizeof(float));
-            selection[selectedImage] = 1.f;
-            if (multiembeddingVizActive) {
-                multiEmbeddingViz.updateSelection();
+            if (multiembeddingVizActive && multiEmbeddingViz.hasSubselection()) {
+                multiEmbeddingViz.setSubselection(selectedPoint);
+            } else {
+                std::memset(selection.data(),0.f,selection.size()*sizeof(float));
+                selection[selectedImage] = 1.f;
             }
         }
 
@@ -436,12 +443,16 @@ int main(int argc, char * * argv) {
         if ( layerSelection || unitSelection) {
             std::cout << "selected layer " << filterViewHandler.getSelectedLayer() << std::endl;
             const int layerNum = filterViewHandler.getSelectedLayer();
-            if (layerNum >= 0) {
+            static int lastLayerNum = -1;
+            if (layerNum >= 0 && layerNum != lastLayerNum ) {
                 filterResponseViz.setEmbeddingLayer(filterViewHandler.getSelectedLayer());
                 std::string blobName = filterResponsesToVisualize[layerNum];
                 std::cout << "opening embedding " << blobName << std::endl;
                 boost::shared_ptr<caffe::Blob<float> > embeddingBlob = net.blob_by_name(blobName);
                 const int dims = embeddingBlob->channels();
+                if (multiembeddingVizActive && multiEmbeddingViz.hasSubselection() ) {
+                    multiEmbeddingViz.updateSelectionFineToCoarse();
+                }
                 if (dims == 2) {
                     multiembeddingVizActive = false;
                     activeEmbeddingHandler = &embeddingViewHandler;
@@ -474,7 +485,11 @@ int main(int argc, char * * argv) {
                 toolboxViz.setOverviewImage(overviewImages[layerNum]);
                 toolboxViz.setActiveEmbeddingViz(activeEmbeddingViz);
 
+            } else if (unitSelection && multiembeddingVizActive) {
+                const int selectedUnit = filterViewHandler.getSelectedUnit();
+                multiEmbeddingViz.centerOnFeature(selectedUnit);
             }
+            lastLayerNum = layerNum;
 
         }
 //        else if (filterViewHandler.hasUnitSelection()) {
@@ -516,7 +531,7 @@ int main(int argc, char * * argv) {
                 }
                 filterResponseViz.setSelection(selection);
                 if (multiembeddingVizActive) {
-                    multiEmbeddingViz.updateSelection();
+                    multiEmbeddingViz.updateSelectionCoarseToFine();
                 }
             }
         }
