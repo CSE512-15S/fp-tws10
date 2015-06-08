@@ -90,45 +90,54 @@ void Toolbox::render(const float2 windowSize) {
 
     // -=-=-=- overview section -=-=-=-
     if (activeEmbeddingViz_->getZoom() < overviewZoomThreshold_) {
+
+        int nZooms = std::min(1 - log(activeEmbeddingViz_->getZoom())/log(20),3.);
+        std::cout << "showing " << nZooms << " zooms" << std::endl;
+
         const int overviewSectionBottom = windowSize.y - windowSize.x - sectionStarts_[OverviewSection];
         const float2 overviewSize = make_float2(windowSize.x,windowSize.x);
-        renderTexture(overviewTex_,make_float2(0,overviewSectionBottom),overviewSize,false);
 
-        const float2 contextUpper = (activeEmbeddingViz_->getViewportCenter() + 0.5*activeEmbeddingViz_->getViewportSize() - (activeEmbeddingViz_->getMaxViewportCenter() - 0.5*activeEmbeddingViz_->getMaxViewportSize()))/activeEmbeddingViz_->getMaxViewportSize()*overviewSize;
-        const float2 contextLower = (activeEmbeddingViz_->getViewportCenter() - 0.5*activeEmbeddingViz_->getViewportSize() - (activeEmbeddingViz_->getMaxViewportCenter() - 0.5*activeEmbeddingViz_->getMaxViewportSize()))/activeEmbeddingViz_->getMaxViewportSize()*overviewSize;
+        for (int z=0; z<nZooms; ++z) {
+            const int zoomBottom = overviewSectionBottom - z*windowSize.x;
 
-        // draw context box
-        float contextCorners[8] = {
-            contextUpper.x,overviewSectionBottom + contextUpper.y,
-            contextUpper.x,overviewSectionBottom + contextLower.y,
-            contextLower.x,overviewSectionBottom + contextLower.y,
-            contextLower.x,overviewSectionBottom + contextUpper.y
-        };
+            renderTexture(overviewTex_,make_float2(0,zoomBottom),overviewSize,false);
 
-        glColor3ub(32,32,32);
-        glLineWidth(5);
-        glPointSize(5);
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glVertexPointer( 2, GL_FLOAT, 0, contextCorners);
-        glDrawArrays(GL_LINE_LOOP, 0, 4);
+            const float2 contextUpper = (activeEmbeddingViz_->getViewportCenter() + 0.5*activeEmbeddingViz_->getViewportSize() - (activeEmbeddingViz_->getMaxViewportCenter() - 0.5*activeEmbeddingViz_->getMaxViewportSize()))/activeEmbeddingViz_->getMaxViewportSize()*overviewSize;
+            const float2 contextLower = (activeEmbeddingViz_->getViewportCenter() - 0.5*activeEmbeddingViz_->getViewportSize() - (activeEmbeddingViz_->getMaxViewportCenter() - 0.5*activeEmbeddingViz_->getMaxViewportSize()))/activeEmbeddingViz_->getMaxViewportSize()*overviewSize;
 
-        glVertexPointer( 2, GL_FLOAT, 0, contextCorners);
-        glDrawArrays(GL_POINTS, 0, 4);
+            // draw context box
+            float contextCorners[8] = {
+                contextUpper.x,zoomBottom + contextUpper.y,
+                contextUpper.x,zoomBottom + contextLower.y,
+                contextLower.x,zoomBottom + contextLower.y,
+                contextLower.x,zoomBottom + contextUpper.y
+            };
 
-        glDisableClientState(GL_VERTEX_ARRAY);
+            glColor3ub(32,32,32);
+            glLineWidth(5);
+            glPointSize(5);
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glVertexPointer( 2, GL_FLOAT, 0, contextCorners);
+            glDrawArrays(GL_LINE_LOOP, 0, 4);
 
-        glColor3ub(224,224,224);
-        glLineWidth(2);
-        glPointSize(2);
-        glEnableClientState(GL_VERTEX_ARRAY);
+            glVertexPointer( 2, GL_FLOAT, 0, contextCorners);
+            glDrawArrays(GL_POINTS, 0, 4);
 
-        glVertexPointer( 2, GL_FLOAT, 0, contextCorners);
-        glDrawArrays(GL_LINE_LOOP, 0, 4);
+            glDisableClientState(GL_VERTEX_ARRAY);
 
-        glVertexPointer( 2, GL_FLOAT, 0, contextCorners);
-        glDrawArrays(GL_POINTS, 0, 4);
+            glColor3ub(224,224,224);
+            glLineWidth(2);
+            glPointSize(2);
+            glEnableClientState(GL_VERTEX_ARRAY);
 
-        glDisableClientState(GL_VERTEX_ARRAY);
+            glVertexPointer( 2, GL_FLOAT, 0, contextCorners);
+            glDrawArrays(GL_LINE_LOOP, 0, 4);
+
+            glVertexPointer( 2, GL_FLOAT, 0, contextCorners);
+            glDrawArrays(GL_POINTS, 0, 4);
+
+            glDisableClientState(GL_VERTEX_ARRAY);
+        }
 
     }
 

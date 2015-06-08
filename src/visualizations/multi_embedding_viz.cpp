@@ -61,7 +61,7 @@ void MultiEmbeddingViz::setEmbedding(const float * embedding, const int embeddin
     // -=-=-=- set up subvizs -=-=-=-
     for (int yDim = 0; yDim < dims_; ++yDim) {
         for (int xDim = 0; xDim < dims_; ++xDim) {
-            EmbeddingSubViz * viz = new EmbeddingSubViz(aspectRatio_,pointShader_,selection_);
+            EmbeddingSubViz * viz = new EmbeddingSubViz(aspectRatio_,pointShader_,selection_,embedding);
             viz->setEmbedding(parallelCoordinateArrays_[xDim],parallelCoordinateArrays_[yDim],coloring,nEmbedded,make_float2(maxViewportSize,maxViewportSize),make_float2(viewportCenterByDim[xDim],viewportCenterByDim[yDim]));
             embeddingVizs_.push_back(viz);
         }
@@ -144,7 +144,7 @@ void MultiEmbeddingViz::setEmbedding(const float * embedding, const int embeddin
     // -=-=-=- set up subvizs -=-=-=-
     for (int yDim = 0; yDim < dims_; ++yDim) {
         for (int xDim = 0; xDim < dims_; ++xDim) {
-            EmbeddingSubViz * viz = new EmbeddingSubViz(aspectRatio_,pointShader_,selectionCopies_);
+            EmbeddingSubViz * viz = new EmbeddingSubViz(aspectRatio_,pointShader_,selectionCopies_,embedding);
             viz->setEmbedding(parallelCoordinateArrays_[xDim],parallelCoordinateArrays_[yDim],colorCopies_,nEmbedded_*width_*height_,make_float2(maxViewportSize,maxViewportSize),make_float2(viewportCenterByDim[xDim],viewportCenterByDim[yDim]));
             embeddingVizs_.push_back(viz);
         }
@@ -227,7 +227,7 @@ void MultiEmbeddingViz::render(const float2 windowSize) {
     const int visibleYPlots = (visibleAxisRangeY.y - visibleAxisRangeY.x);
     const int visiblePlots = visibleXPlots*visibleYPlots;
     const int maxPointsPerPlot = std::min(100000,maxPointsOnScreen_/visiblePlots);
-    std::cout << "points per plot: " << maxPointsPerPlot << std::endl;
+//    std::cout << "points per plot: " << maxPointsPerPlot << std::endl;
 
     const float pointSizeWindow = std::max(1.f,pointSizeViewport_*((1 - 2*subvizPaddingPercent_)/dims_)*windowSize.x*sqrtf(1.f/zoom_));
 

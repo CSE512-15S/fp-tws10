@@ -10,8 +10,9 @@
 class EmbeddingSubViz {
 public:
 
-    EmbeddingSubViz(float aspectRatio, ScatterPlotShader & pointShader, float * selection) :
-        aspectRatio_(aspectRatio), pointShader_(pointShader), selection_(selection), hoveredPointIndex_(-1) { }
+    EmbeddingSubViz(float aspectRatio, ScatterPlotShader & pointShader, float * selection, const float * sufficientlyLongArray) :
+        aspectRatio_(aspectRatio), pointShader_(pointShader), selection_(selection), hoveredPointIndex_(-1),
+        sufficientlyLongArray_(sufficientlyLongArray) { }
 
     void setEmbedding(const float * xCoords, const float * yCoords, const uchar3 * coloring, const int nEmbedded);
 
@@ -43,6 +44,8 @@ public:
 
     void getEnclosedPoints(std::vector<int> & enclosedPoints, const std::vector<float2> & viewportLassoPoints);
 
+    inline void setSufficientlyLongArray(const float * sufficientlyLongArray) { sufficientlyLongArray_ = sufficientlyLongArray; }
+
 private:
     float aspectRatio_;
 
@@ -57,6 +60,8 @@ private:
 
     int hoveredPointIndex_;
     int nLastRendered_;
+
+    const float * sufficientlyLongArray_;
 
     ScatterPlotShader & pointShader_;
 };

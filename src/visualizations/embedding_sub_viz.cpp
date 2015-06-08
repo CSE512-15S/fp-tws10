@@ -74,7 +74,7 @@ void EmbeddingSubViz::render(const float2 windowSize, const float2 viewportSize,
     glEnable(GL_DEPTH_TEST);
 
     glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(2,GL_FLOAT,0,xCoords_); // TODO
+    glVertexPointer(2,GL_FLOAT,0,sufficientlyLongArray_); //xCoords_); // TODO
 
     glEnableVertexAttribArray(pointShader_.getXCoordLocation());
     glVertexAttribPointer(pointShader_.getXCoordLocation(),1,GL_FLOAT,false,0,xCoords_);

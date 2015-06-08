@@ -7,7 +7,7 @@ SingleEmbeddingViz::SingleEmbeddingViz(const float aspectRatio, const float * im
                                        ScatterPlotShader & pointShader,
                                        float * selection) :
     EmbeddingViz(aspectRatio,0.1f,images,imageWidth,imageHeight,imageTex),
-    subViz_(aspectRatio,pointShader,selection), pointShader_(pointShader), xCoords_(0), yCoords_(0) {
+    subViz_(aspectRatio,pointShader,selection,0), pointShader_(pointShader), xCoords_(0), yCoords_(0) {
 
 }
 
@@ -29,6 +29,7 @@ void SingleEmbeddingViz::setEmbedding(const float2 * embedding,
         yCoords_[i] = embedding[i].y;
     }
 
+    subViz_.setSufficientlyLongArray((const float*)embedding);
     subViz_.setEmbedding(xCoords_,yCoords_,coloring,nEmbedded);
 
 }
