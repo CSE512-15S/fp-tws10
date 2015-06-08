@@ -145,7 +145,7 @@ void MultiEmbeddingViz::setEmbedding(const float * embedding, const int embeddin
     for (int yDim = 0; yDim < dims_; ++yDim) {
         for (int xDim = 0; xDim < dims_; ++xDim) {
             EmbeddingSubViz * viz = new EmbeddingSubViz(aspectRatio_,pointShader_,selectionCopies_);
-            viz->setEmbedding(parallelCoordinateArrays_[xDim],parallelCoordinateArrays_[yDim],colorCopies_,nEmbedded,make_float2(maxViewportSize,maxViewportSize),make_float2(viewportCenterByDim[xDim],viewportCenterByDim[yDim]));
+            viz->setEmbedding(parallelCoordinateArrays_[xDim],parallelCoordinateArrays_[yDim],colorCopies_,nEmbedded_*width_*height_,make_float2(maxViewportSize,maxViewportSize),make_float2(viewportCenterByDim[xDim],viewportCenterByDim[yDim]));
             embeddingVizs_.push_back(viz);
         }
     }
@@ -219,6 +219,16 @@ void MultiEmbeddingViz::render(const float2 windowSize) {
 //    glScalef(1.f/zoom_,1.f/zoom_,1.f/zoom_);
 //    glTranslatef(-scroll_.x,-scroll_.y+subvizPaddingPercent_,0);
 
+//    static int maxPointsOnScreen = 0;
+//    const int pointsOnScreen = nEmbedded_*(visibleAxisRangeX.y - 1 - visibleAxisRangeX.x)*(visibleAxisRangeY.y - 1 - visibleAxisRangeY.x);
+//    maxPointsOnScreen = std::max(pointsOnScreen,maxPointsOnScreen);
+//    std::cout << "max points on screen = " << maxPointsOnScreen << std::endl;
+    const int visibleXPlots = (visibleAxisRangeX.y - visibleAxisRangeX.x);
+    const int visibleYPlots = (visibleAxisRangeY.y - visibleAxisRangeY.x);
+    const int visiblePlots = visibleXPlots*visibleYPlots;
+    const int maxPointsPerPlot = std::min(100000,maxPointsOnScreen_/visiblePlots);
+    std::cout << "points per plot: " << maxPointsPerPlot << std::endl;
+
     const float pointSizeWindow = std::max(1.f,pointSizeViewport_*((1 - 2*subvizPaddingPercent_)/dims_)*windowSize.x*sqrtf(1.f/zoom_));
 
     pointShader_.bind();
@@ -234,7 +244,7 @@ void MultiEmbeddingViz::render(const float2 windowSize) {
         for (int xDim = visibleAxisRangeX.x; xDim < visibleAxisRangeX.y; ++xDim) {
             EmbeddingSubViz * viz = embeddingVizs_[xDim + yDim*dims_];
 //            viz->render(make_float2(vizWidth,vizHeight));
-            viz->render(make_float2(1.f-2*subvizPaddingPercent_),viz->getMaxViewportSize(),viz->getMaxViewportCenter());
+            viz->render(make_float2(1.f-2*subvizPaddingPercent_),viz->getMaxViewportSize(),viz->getMaxViewportCenter(),maxPointsPerPlot);
             //glTranslatef(vizWidth,0,0);
             glTranslatef(1,0,0);
         }

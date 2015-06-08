@@ -17,7 +17,7 @@ public:
 
     void setEmbedding(const float * xCoords, const float * yCoords, const uchar3 * coloring, const int nEmbedded, const float2 maxViewportSize, const float2 maxViewportCenter);
 
-    void render(const float2 window, const float2 viewportSize, const float2 viewportCenter);
+    void render(const float2 window, const float2 viewportSize, const float2 viewportCenter, int maxPoints = -1);
 
     inline int getNumEmbeddedPoints() { return nEmbedded_; }
 
@@ -56,6 +56,7 @@ private:
     const float * selection_;
 
     int hoveredPointIndex_;
+    int nLastRendered_;
 
     ScatterPlotShader & pointShader_;
 };

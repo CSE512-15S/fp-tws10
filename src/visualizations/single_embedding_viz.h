@@ -29,8 +29,6 @@ public:
 
     inline float2 getMaxViewportCenter() { return subViz_.getMaxViewportCenter(); }
 
-    inline int getNumEmbeddedPoints() { return subViz_.getNumEmbeddedPoints(); }
-
     inline const float2 getEmbeddedPoint(const int index) { return subViz_.getEmbeddedPoint(index); }
 
     inline int getHoveredOverPoint() { return subViz_.getHoveredOverPoint(); }

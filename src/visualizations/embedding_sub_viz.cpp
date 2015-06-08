@@ -49,7 +49,7 @@ void EmbeddingSubViz::setEmbedding(const float * xCoords, const float * yCoords,
 }
 
 
-void EmbeddingSubViz::render(const float2 windowSize, const float2 viewportSize, const float2 viewportCenter) {
+void EmbeddingSubViz::render(const float2 windowSize, const float2 viewportSize, const float2 viewportCenter, int maxPoints) {
 
     glPushMatrix();
 
@@ -92,11 +92,13 @@ void EmbeddingSubViz::render(const float2 windowSize, const float2 viewportSize,
     glEnableVertexAttribArray(pointShader_.getSelectionLocation());
     glVertexAttribPointer(pointShader_.getSelectionLocation(),1,GL_FLOAT,false,0,selection_);
 
-    int maxArrayElements;
-    glGetIntegerv(GL_MAX_ELEMENTS_VERTICES,&maxArrayElements);
+    if (maxPoints == -1) {
+        glGetIntegerv(GL_MAX_ELEMENTS_VERTICES,&maxPoints);
+    }
 //    std::cout << "max array elements " << maxArrayElements << std::endl;
+    const int pointsToRender = std::min(nEmbedded_,maxPoints);
 
-    glDrawArrays(GL_POINTS, 0, std::min(nEmbedded_,maxArrayElements));
+    glDrawArrays(GL_POINTS, 0, pointsToRender);
 
 
     glDisableVertexAttribArray(pointShader_.getYCoordLocation());
@@ -127,13 +129,15 @@ void EmbeddingSubViz::render(const float2 windowSize, const float2 viewportSize,
 //    }
 
     glPopMatrix();
+
+    nLastRendered_ = pointsToRender;
 }
 
 void EmbeddingSubViz::setHoveredOverPoint(const float2 viewportPoint, const float maxDist) {
 
     int closestPoint = -1;
     float closestDist = std::numeric_limits<float>::infinity();
-    for (int i=0; i<getNumEmbeddedPoints(); ++i) {
+    for (int i=0; i<nLastRendered_; ++i) {
         float dist = length(viewportPoint - make_float2(xCoords_[i],yCoords_[i]));
         if (dist < closestDist) {
             closestDist = dist;
@@ -147,7 +151,7 @@ void EmbeddingSubViz::setHoveredOverPoint(const float2 viewportPoint, const floa
 
 void EmbeddingSubViz::getEnclosedPoints(std::vector<int> & enclosedPoints, const std::vector<float2> & viewportLassoPoints) {
 
-    for (int i=0; i<nEmbedded_; ++i) {
+    for (int i=0; i<nLastRendered_; ++i) {
         if (isInPolygon(getEmbeddedPoint(i),viewportLassoPoints)) {
             enclosedPoints.push_back(i);
         }

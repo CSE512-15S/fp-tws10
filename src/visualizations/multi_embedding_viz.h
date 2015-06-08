@@ -90,6 +90,9 @@ private:
     static constexpr float subvizPaddingPercent_ = 0.05f;
     static const int maxDimsInView_ = 40;
 
+    static const int maxPointsOnScreen_ = 4000000;
+    static const int maxPointsPerScatterPlot_ = 100000;
+
 };
 
 #endif // MULTI_EMBEDDING_VIZ_H
