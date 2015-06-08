@@ -11,6 +11,8 @@ public:
 
     void Mouse(pangolin::View & v, pangolin::MouseButton button, int x, int y, bool pressed, int button_state);
 
+    void MouseMotion(pangolin::View & v, int x, int y, int button_state);
+
     inline bool hasButtonSelection() { const bool retval = hasButtonSelection_; hasButtonSelection_ = false; return retval; }
 
     inline ToolboxButton getSelectedButton() { return selectedButton_; }
@@ -34,6 +36,8 @@ private:
     const int nButtons_;
     const int nButtonCols_;
     const int nButtonRows_;
+
+    static constexpr float zoomSpeed_ = 1.1f;
 
 };
 

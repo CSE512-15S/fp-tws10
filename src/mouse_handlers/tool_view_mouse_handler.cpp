@@ -14,34 +14,47 @@ ToolViewMouseHandler::ToolViewMouseHandler(Toolbox * toolbox) :
 void ToolViewMouseHandler::Mouse(pangolin::View & v, pangolin::MouseButton button, int x, int y, bool pressed, int button_state) {
     pangolin::Handler::Mouse(v,button,x,y,pressed,button_state);
 
-    if (button == pangolin::MouseButtonLeft && !pressed) {
+    switch(button) {
+        case pangolin::MouseButtonLeft:
+            if (!pressed) {
 
-        const float2 toolboxPoint = make_float2(x - v.GetBounds().l,v.GetBounds().t() - y);
-        ToolboxSection section = toolbox_->getSection(toolboxPoint);
+                const float2 toolboxPoint = make_float2(x - v.GetBounds().l,v.GetBounds().t() - y);
+                ToolboxSection section = toolbox_->getSection(toolboxPoint);
 
-        switch(section) {
-            case ButtonSection:
-                std::cout << "clicked button section" << std::endl;
-                hasButtonSelection_ = true;
-                selectedButton_ = toolbox_->getButton(toolboxPoint);
-                break;
-            case LabelSection:
-                std::cout << "clicked label section" << std::endl;
-                hasClassSelection_ = true;
-                selectedClass_ = toolbox_->getClass(toolboxPoint);
-                break;
-        }
+                switch(section) {
+                    case ButtonSection:
+                        hasButtonSelection_ = true;
+                        selectedButton_ = toolbox_->getButton(toolboxPoint);
+                        break;
+                    case LabelSection:
+                        hasClassSelection_ = true;
+                        selectedClass_ = toolbox_->getClass(toolboxPoint);
+                        break;
+                    case OverviewSection:
+                        toolbox_->processOverviewCentering(toolboxPoint);
+                        break;
+                }
 
-//        hasButtonSelection_ = true;
-//        selectedButton_ = -1;
+            }
+            break;
+        case pangolin::MouseWheelUp:
+            toolbox_->processZoom(1.f/zoomSpeed_);
+            break;
+        case pangolin::MouseWheelDown:
+            toolbox_->processZoom(zoomSpeed_);
+            break;
+    }
 
-//        const int buttonCol = (x - v.GetBounds().l - buttonSpacing_) / (buttonSize_ + buttonSpacing_);
-//        const int buttonRow = (v.GetBounds().t() - buttonSpacing_ - y) / (buttonSize_ + buttonSpacing_);
-//        if (buttonCol >= 0 && buttonCol < nButtonCols_ && buttonRow >= 0 && buttonRow < nButtonRows_) {
-//            selectedButton_ = buttonCol + buttonRow*nButtonCols_;
-//            std::cout << "clicked " << buttonRow << ", " << buttonCol << std::endl;
-//        }
+}
 
+void ToolViewMouseHandler::MouseMotion(pangolin::View & v, int x, int y, int button_state) {
+
+    const float2 toolboxPoint = make_float2(x - v.GetBounds().l,v.GetBounds().t() - y);
+    ToolboxSection section = toolbox_->getSection(toolboxPoint);
+    switch(section) {
+        case OverviewSection:
+            toolbox_->processOverviewCentering(toolboxPoint);
+            break;
     }
 
 }

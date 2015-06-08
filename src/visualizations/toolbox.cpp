@@ -183,3 +183,12 @@ int Toolbox::getClass(const float2 point) {
     return -1;
 
 }
+
+void Toolbox::processOverviewCentering(const float2 point) {
+
+    const float2 overviewPoint = make_float2(point.x, sectionStarts_[OverviewSection] + overviewHeight_ - point.y);
+    const float2 normalizedPoint = overviewPoint/make_float2(overviewWidth_,overviewHeight_);
+    const float2 viewportPoint = activeEmbeddingViz_->getMaxViewportSize()*(normalizedPoint - make_float2(0.5,0.5)) + activeEmbeddingViz_->getMaxViewportCenter();
+    activeEmbeddingViz_->centerViewport(viewportPoint);
+
+}

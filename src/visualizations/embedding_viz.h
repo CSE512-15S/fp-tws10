@@ -6,6 +6,7 @@
 #include <vector_functions.h>
 #include <helper_math.h>
 #include <vector>
+#include <iostream>
 
 class EmbeddingViz {
 public:
@@ -52,6 +53,8 @@ public:
         return ((viewportPoint - getViewportCenter())/getViewportSize() + make_float2(0.5))*windowSize;
     }
 
+
+
     inline uchar3 * getOverviewImage() { return overviewImage_.data(); }
 
     inline void setOverviewImage(uchar3 * overviewImage) { std::memcpy(overviewImage_.data(),overviewImage,overviewImage_.size()*sizeof(uchar3)); }
@@ -66,6 +69,11 @@ public:
 
     inline float2 getViewportUnitsPerPixel(const float2 windowSize) {
         return getViewportSize()/windowSize;
+    }
+
+    inline void centerViewport(const float2 viewportCenter) {
+        scroll_ = viewportCenter - getMaxViewportCenter();
+        clampScroll();
     }
 
 protected:

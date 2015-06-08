@@ -53,6 +53,12 @@ public:
 
     int getClass(const float2 point);
 
+    void processOverviewCentering(const float2 point);
+
+    inline void processZoom(const float zoomFactor) {
+        activeEmbeddingViz_->setZoom(activeEmbeddingViz_->getZoom()*zoomFactor);
+    }
+
 private:
 
     std::string getIconFilename(ToolboxButton button);
@@ -88,7 +94,7 @@ private:
     static const int iconImageSize_ = 64;
     static const int inactiveAlpha_ = 96;
 
-    static constexpr float overviewZoomThreshold_ = 0.666f;
+    static constexpr float overviewZoomThreshold_ = 0.8f;
 
 };
 
