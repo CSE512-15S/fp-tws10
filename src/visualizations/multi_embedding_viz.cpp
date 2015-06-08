@@ -131,7 +131,7 @@ void MultiEmbeddingViz::setEmbedding(const float * embedding, const int embeddin
         }
     }
 
-    // -=-=-=- copy the color array -=-=-=-
+    // -=-=-=- copy the color and selection array -=-=-=-
     colorCopies_ = new uchar3[width_*height_*nEmbedded];
     selectionCopies_ = new float[width_*height_*nEmbedded];
     for (int i=0; i<nEmbedded_; ++i) {
@@ -152,6 +152,15 @@ void MultiEmbeddingViz::setEmbedding(const float * embedding, const int embeddin
 
     adjustZoomLimits();
 
+}
+
+void MultiEmbeddingViz::updateSelection() {
+    if (width_ == 1 && height_ == 1) { return; }
+    for (int i=0; i<nEmbedded_; ++i) {
+        for (int j=0; j<width_*height_; ++j) {
+            selectionCopies_[j + i*width_*height_] = selection_[i];
+        }
+    }
 }
 
 
@@ -309,7 +318,7 @@ void MultiEmbeddingViz::render(const float2 windowSize) {
         if (width_ > 1 && height_ > 1) {
             const int hoverPointW = hoveredPointIndex % width_;
             const int hoverPointH = (hoveredPointIndex / width_) % height_;
-            std::cout << hoverPointW << ", " << hoverPointH << std::endl;
+//            std::cout << hoverPointW << ", " << hoverPointH << std::endl;
 
             const float2 receptiveFieldSize = textureSize/make_float2(imageWidth_,imageHeight_)*make_float2(receptiveField_.x,receptiveField_.y);
             const float2 receptiveFieldOffset = textureSize/make_float2(imageWidth_,imageHeight_)*make_float2(stride_*hoverPointW,stride_*(height_ - 1 - hoverPointH));

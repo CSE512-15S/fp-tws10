@@ -382,20 +382,23 @@ int main(int argc, char * * argv) {
 
         CheckGlDieOnError();
 
-        if (hasSelection) {
+//        if (hasSelection) {
             filterResponseViz.render();
             CheckGlDieOnError();
-        }
+//        }
 
         // -=-=-=-=-=-=- input handling -=-=-=-=-=-=-
-        int selectedImage = -1;
+        int selectedPoint = -1;
         if (activeEmbeddingHandler->hasSelection()) {
             switch (activeEmbeddingHandler->getSelectionMode()) {
                 case SelectionModeSingle:
                     {
-                        selectedImage = activeEmbeddingHandler->getHoveredOverPoint();
-                        if (selectedImage == -1) {
+                        selectedPoint = activeEmbeddingHandler->getHoveredOverPoint();
+                        if (selectedPoint == -1) {
                             std::fill(selection.begin(),selection.end(),0.5f);
+                            if (multiembeddingVizActive) {
+                                multiEmbeddingViz.updateSelection();
+                            }
                         }
                     } break;
                 case SelectionModeLasso:
@@ -414,11 +417,18 @@ int main(int argc, char * * argv) {
                     } break;
             }
         }
-        if (selectedImage >= 0) {
+        if (selectedPoint >= 0) {
+            int selectedImage = selectedPoint;
+            if (multiembeddingVizActive) {
+                selectedImage = multiEmbeddingViz.getPointImage(selectedPoint);
+            }
             filterResponseViz.setSelection(selectedImage);
             hasSelection = true;
             std::memset(selection.data(),0.f,selection.size()*sizeof(float));
             selection[selectedImage] = 1.f;
+            if (multiembeddingVizActive) {
+                multiEmbeddingViz.updateSelection();
+            }
         }
 
         const bool layerSelection = filterViewHandler.hasLayerSelection();
@@ -505,6 +515,9 @@ int main(int argc, char * * argv) {
                     selection[i] = testLabels[i] == selectedClass ? 1.f : 0.f;
                 }
                 filterResponseViz.setSelection(selection);
+                if (multiembeddingVizActive) {
+                    multiEmbeddingViz.updateSelection();
+                }
             }
         }
 

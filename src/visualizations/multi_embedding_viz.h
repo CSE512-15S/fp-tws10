@@ -49,6 +49,10 @@ public:
 
     void centerOnFeature(const int unitNum);
 
+    void updateSelection();
+
+    inline int getPointImage(const int point) { return point/(width_*height_); }
+
 private:
     // -=-=-=-=-=- methods -=-=-=-=-=-
     void clear();
