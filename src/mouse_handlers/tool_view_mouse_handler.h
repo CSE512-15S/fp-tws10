@@ -2,20 +2,23 @@
 #define TOOL_VIEW_MOUSE_HANDLER_H
 
 #include <pangolin/pangolin.h>
+#include "visualizations/toolbox.h"
 
 class ToolViewMouseHandler : public pangolin::Handler {
 public:
 
-    ToolViewMouseHandler(const int nButtons, const int nButtonCols, const int nButtonRows);
+    ToolViewMouseHandler(Toolbox * toolbox);
 
     void Mouse(pangolin::View & v, pangolin::MouseButton button, int x, int y, bool pressed, int button_state);
 
-    inline bool hasSelection() { const bool retval = hasSelection_; hasSelection_ = false; return retval; }
+    inline bool hasButtonSelection() { const bool retval = hasButtonSelection_; hasButtonSelection_ = false; return retval; }
 
     inline int getSelectedButton() { return selectedButton_; }
 private:
 
-    bool hasSelection_;
+    Toolbox * toolbox_;
+
+    bool hasButtonSelection_;
     int selectedButton_;
 
     const int buttonSize_;

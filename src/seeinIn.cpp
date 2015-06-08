@@ -26,9 +26,10 @@
 #include "util/gl_helpers.h"
 #include "util/image_io.h"
 #include "util/string_format.h"
-#include "visualizations/single_embedding_viz.h"
 #include "visualizations/filter_response_viz.h"
 #include "visualizations/multi_embedding_viz.h"
+#include "visualizations/single_embedding_viz.h"
+#include "visualizations/toolbox.h"
 
 static const int guiWidth = 1920;
 static const int guiHeight = 1080;
@@ -137,16 +138,14 @@ int main(int argc, char * * argv) {
 //    embeddingView.SetBounds(pangolin::Attach::Pixel(0),pangolin::Attach::ReversePix(0),pangolin::Attach::Pix(0),pangolin::Attach::Frac(embeddingViewWidth/(float)guiWidth),true);
     embeddingView.SetLock(pangolin::LockLeft,pangolin::LockCenter);
 
-
     pangolin::View filterView; //(filterViewAspectRatio);
 
     pangolin::View toolView;
     toolView.SetBounds(0,1,0,pangolin::Attach::Pix(panelWidth));
-    pangolin::GlTexture pointSelection(64,64);
-    pangolin::GlTexture lassoSelection(64,64);
-    pointSelection.LoadFromFile("../src/icons/pointSelection.png");
-    lassoSelection.LoadFromFile("../src/icons/lassoSelection.png");
-    ToolViewMouseHandler toolViewHandler(2,2,1);
+    Toolbox toolboxViz;
+    toolboxViz.setButtonActive(PointSelectionButton,true);
+
+    ToolViewMouseHandler toolViewHandler(&toolboxViz);
     toolView.SetHandler(&toolViewHandler);
 
 //    filterView.SetBounds(pangolin::Attach::Frac(0),pangolin::Attach::Frac(1),pangolin::Attach::Frac(embeddingViewWidth/(float)guiWidth),pangolin::Attach::Frac(1),true);
@@ -333,24 +332,7 @@ int main(int argc, char * * argv) {
         // -=-=-=-=-=-=- tool view -=-=-=-=-=-=-
         toolView.ActivateScissorAndClear();
         toolView.ActivatePixelOrthographic();
-        {
-            uchar4 pointColor, lassoColor;
-            if (activeEmbeddingHandler->getSelectionMode() == SelectionModeSingle) {
-                pointColor = make_uchar4(255,255,255,255);
-                lassoColor = make_uchar4(255,255,255,128);
-            } else {
-                pointColor = make_uchar4(255,255,255,128);
-                lassoColor = make_uchar4(255,255,255,255);
-            }
-
-            glEnable(GL_BLEND);
-            glColor(pointColor);
-            renderTexture(pointSelection,make_float2(0,toolView.GetBounds().t() - 34),make_float2(32,32));
-            glColor(lassoColor);
-            renderTexture(lassoSelection,make_float2(34,toolView.GetBounds().t() - 34),make_float2(32,32));
-            glDisable(GL_BLEND);
-        }
-
+        toolboxViz.render(make_float2(toolView.GetBounds().w,toolView.GetBounds().h));
 
         // -=-=-=-=-=-=- embedding view -=-=-=-=-=-=-
         embeddingView.ActivateScissorAndClear();
@@ -489,17 +471,21 @@ int main(int argc, char * * argv) {
                 filterResponseViz.setResponse(featProjector);
             }
         }
-        if (toolViewHandler.hasSelection()) {
-            int selectedButton = toolViewHandler.getSelectedButton();
+        if (toolViewHandler.hasButtonSelection()) {
+            ToolboxButton selectedButton = (ToolboxButton)toolViewHandler.getSelectedButton();
             switch (selectedButton) {
-                case 0:
+                case PointSelectionButton:
                     embeddingViewHandler.setSelectionMode(SelectionModeSingle);
                     multiEmbeddingViewHandler.setSelectionMode(SelectionModeSingle);
                     activeEmbeddingHandler->clearLassoPoints();
+                    toolboxViz.setButtonActive(PointSelectionButton,true);
+                    toolboxViz.setButtonActive(LassoSelectionButton,false);
                     break;
-                case 1:
+                case LassoSelectionButton:
                     embeddingViewHandler.setSelectionMode(SelectionModeLasso);
                     multiEmbeddingViewHandler.setSelectionMode(SelectionModeLasso);
+                    toolboxViz.setButtonActive(PointSelectionButton,false);
+                    toolboxViz.setButtonActive(LassoSelectionButton,true);
                     break;
             }
         }

@@ -102,6 +102,8 @@ set(sources
     src/visualizations/multi_embedding_viz.cpp
     src/visualizations/single_embedding_viz.h
     src/visualizations/single_embedding_viz.cpp
+    src/visualizations/toolbox.h
+    src/visualizations/toolbox.cpp
 )
 
 include_directories(${PROJECT_SOURCE_DIR}/src)

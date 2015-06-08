@@ -1,14 +1,19 @@
 #include "tool_view_mouse_handler.h"
 
-ToolViewMouseHandler::ToolViewMouseHandler(const int nButtons, const int nButtonCols, const int nButtonRows) : hasSelection_(false), selectedButton_(-1),
-    buttonSize_(32), buttonSpacing_(2), nButtons_(nButtons), nButtonCols_(nButtonCols), nButtonRows_(nButtonRows) { }
+ToolViewMouseHandler::ToolViewMouseHandler(Toolbox * toolbox) :
+        toolbox_(toolbox),
+        hasButtonSelection_(false), selectedButton_(-1),
+        buttonSize_(toolbox->getButtonSize()),
+        buttonSpacing_(toolbox->getButtonSpacing()),
+        nButtons_(NumButtons),
+        nButtonCols_(NumButtons), nButtonRows_(1) { }
 
 void ToolViewMouseHandler::Mouse(pangolin::View & v, pangolin::MouseButton button, int x, int y, bool pressed, int button_state) {
     pangolin::Handler::Mouse(v,button,x,y,pressed,button_state);
 
     if (button == pangolin::MouseButtonLeft && !pressed) {
 
-        hasSelection_ = true;
+        hasButtonSelection_ = true;
         selectedButton_ = -1;
 
         const int buttonCol = (x - v.GetBounds().l - buttonSpacing_) / (buttonSize_ + buttonSpacing_);
