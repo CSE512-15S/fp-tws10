@@ -392,3 +392,12 @@ void MultiEmbeddingViz::getEnclosedPoints(std::vector<int> & enclosedPoints, con
     subviz->getEnclosedPoints(enclosedPoints,subviewportLassoPoints);
 
 }
+
+void MultiEmbeddingViz::centerOnFeature(const int unitNum) {
+
+    int featureNum = unitNum / (width_*height_);
+
+    setZoom(2.f/dims_);
+    centerViewport(make_float2(featureNum+0.5,featureNum+0.5));
+
+}

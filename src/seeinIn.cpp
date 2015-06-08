@@ -113,7 +113,7 @@ int main(int argc, char * * argv) {
     pangolin::GlTexture imageTex(imageWidth,imageHeight);
     imageTex.SetNearestNeighbour();
 
-    const int overviewWidth = 256;
+    const int overviewWidth = 8192; //256;
     const int overviewHeight = overviewWidth*embeddingViewAspectRatio;
     pangolin::GlTexture overviewTex(overviewWidth,overviewHeight);
 
@@ -421,7 +421,9 @@ int main(int argc, char * * argv) {
             selection[selectedImage] = 1.f;
         }
 
-        if (filterViewHandler.hasLayerSelection()) {
+        const bool layerSelection = filterViewHandler.hasLayerSelection();
+        const bool unitSelection = filterViewHandler.hasUnitSelection();
+        if ( layerSelection || unitSelection) {
             std::cout << "selected layer " << filterViewHandler.getSelectedLayer() << std::endl;
             const int layerNum = filterViewHandler.getSelectedLayer();
             if (layerNum >= 0) {
@@ -450,25 +452,35 @@ int main(int argc, char * * argv) {
                                                        layerRelativeScales[blobName]);
                     }
                     multiEmbeddingViz.setZoom(1.f);
+
+                    if (unitSelection) {
+                        // navigate to the unit
+                        const int selectedUnit = filterViewHandler.getSelectedUnit();
+                        multiEmbeddingViz.centerOnFeature(selectedUnit);
+                    }
+
                 }
                 embeddingView.SetHandler(activeEmbeddingHandler);
                 toolboxViz.setOverviewImage(overviewImages[layerNum]);
                 toolboxViz.setActiveEmbeddingViz(activeEmbeddingViz);
+
             }
-        } else if (filterViewHandler.hasUnitSelection()) {
-            std::cout << "selected unit " << filterViewHandler.getSelectedUnit() << " in layer " << filterViewHandler.getSelectedLayer() << std::endl;
-            int selectedImage = filterResponseViz.getSelection();
-            if (selectedImage >= 0) {
-                const int selectedLayerNum = filterViewHandler.getSelectedLayer();
-                const int selectedUnit = filterViewHandler.getSelectedUnit();
-                const std::string blobName = filterResponsesToVisualize[selectedLayerNum];
-                const float activationValue = net.blob_by_name(blobName)->cpu_data()[selectedUnit];
-                std::cout << "activated at " << activationValue << std::endl;
-                featProjector.computeProjection(blobName,selectedImage,selectedUnit,activationValue);
-                std::cout << "stored as " << featProjector.getResponse(blobName)[selectedUnit] << std::endl;
-                filterResponseViz.setResponse(featProjector);
-            }
+
         }
+//        else if (filterViewHandler.hasUnitSelection()) {
+//            std::cout << "selected unit " << filterViewHandler.getSelectedUnit() << " in layer " << filterViewHandler.getSelectedLayer() << std::endl;
+//            int selectedImage = filterResponseViz.getSelection();
+//            if (selectedImage >= 0) {
+//                const int selectedLayerNum = filterViewHandler.getSelectedLayer();
+//                const int selectedUnit = filterViewHandler.getSelectedUnit();
+//                const std::string blobName = filterResponsesToVisualize[selectedLayerNum];
+//                const float activationValue = net.blob_by_name(blobName)->cpu_data()[selectedUnit];
+//                std::cout << "activated at " << activationValue << std::endl;
+//                featProjector.computeProjection(blobName,selectedImage,selectedUnit,activationValue);
+//                std::cout << "stored as " << featProjector.getResponse(blobName)[selectedUnit] << std::endl;
+//                filterResponseViz.setResponse(featProjector);
+//            }
+//        }
         if (toolViewHandler.hasButtonSelection()) {
             ToolboxButton selectedButton = (ToolboxButton)toolViewHandler.getSelectedButton();
             switch (selectedButton) {

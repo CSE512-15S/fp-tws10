@@ -1,12 +1,7 @@
 #include "font_face.h"
 
 #include <iostream>
-
-static inline int nextP2 (int a) {
-    int rval=1;
-    while(rval<a) rval<<=1;
-    return rval;
-}
+#include "util/misc.h"
 
 FontFace::FontFace(FT_Library & ftLibrary, const std::string fontFile, const int fontSize) {
 

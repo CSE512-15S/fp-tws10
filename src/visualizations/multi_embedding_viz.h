@@ -47,6 +47,8 @@ public:
                 subviz->getMaxViewportSize() + subviz->getMaxViewportCenter();
     }
 
+    void centerOnFeature(const int unitNum);
+
 private:
     // -=-=-=-=-=- methods -=-=-=-=-=-
     void clear();

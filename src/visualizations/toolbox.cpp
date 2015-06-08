@@ -29,7 +29,7 @@ Toolbox::Toolbox(const uchar3 * classColors,
 
     sectionHeights_[LabelSection] = nClasses_*labelRowHeight_ + 2*labelPadVertical_;
     sectionHeights_[ButtonSection] = iconRenderSize_ + 2*iconRenderSpacing_;
-    sectionHeights_[OverviewSection] = overviewHeight_;
+    sectionHeights_[OverviewSection] = 256; // TODO
 
     int runningTotal = 0;
     for (int i=0; i<NumSections; ++i) {
@@ -186,7 +186,7 @@ int Toolbox::getClass(const float2 point) {
 
 void Toolbox::processOverviewCentering(const float2 point, const float windowWidth) {
 
-    const float2 overviewPoint = make_float2(point.x, sectionStarts_[OverviewSection] + overviewHeight_ - point.y);
+    const float2 overviewPoint = make_float2(point.x, sectionStarts_[OverviewSection] + windowWidth - point.y);
     const float2 normalizedPoint = overviewPoint/make_float2(windowWidth,windowWidth);
     const float2 viewportPoint = activeEmbeddingViz_->getMaxViewportSize()*(normalizedPoint - make_float2(0.5,0.5)) + activeEmbeddingViz_->getMaxViewportCenter();
     activeEmbeddingViz_->centerViewport(viewportPoint);
