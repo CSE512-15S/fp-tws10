@@ -179,10 +179,10 @@ void MultiEmbeddingViz::render(const float2 windowSize) {
 //    glScalef(1.f/zoom_,1.f/zoom_,1.f/zoom_);
 //    glTranslatef(-scroll_.x,-scroll_.y+subvizPaddingPercent_,0);
 
-    const float pointSizeWindow = pointSizeViewport_*((1 - 2*subvizPaddingPercent_)/dims_)*windowSize.x;
+    const float pointSizeWindow = std::max(1.f,pointSizeViewport_*((1 - 2*subvizPaddingPercent_)/dims_)*windowSize.x*sqrtf(1.f/zoom_));
 
     pointShader_.bind();
-    pointShader_.setScale(std::max(1.f,pointSizeWindow*sqrtf(1.f/zoom_)));
+    pointShader_.setScale(pointSizeWindow);
     pointShader_.unbind();
 
     glTranslatef(0,visibleAxisRangeY.x,0);
@@ -214,6 +214,19 @@ void MultiEmbeddingViz::render(const float2 windowSize) {
         imageTex_.Upload(images_ + (hoveredPointIndex/(width_*height_))*imageWidth_*imageHeight_,GL_LUMINANCE,GL_FLOAT);
         const float2 hoveredViewportPoint = hoverViz->getEmbeddedPoint(hoveredPointIndex);
         const float2 hoveredWindowPoint = getWindowPoint(getViewportPointOfSubvizPoint(hoverViz->getNormalizedPoint(hoveredViewportPoint),hoveredSubvizRow,hoveredSubvizCol),windowSize);
+
+        // draw bigger point
+        glPointSize(2*pointSizeWindow);
+        glBegin(GL_POINTS);
+        glColor3ub(255,255,255);
+        glVertex(hoveredWindowPoint);
+        glEnd();
+        glPointSize(1.5*pointSizeWindow);
+        glBegin(GL_POINTS);
+        glColor(hoverViz->getColoring(hoveredPointIndex));
+        glVertex(hoveredWindowPoint);
+        glEnd();
+        glPointSize(1);
 
         static const float2 hoverOffset = make_float2(imageWidth_/4,imageHeight_/4);
         static const float2 textureSize = make_float2(4*imageWidth_,4*imageHeight_);

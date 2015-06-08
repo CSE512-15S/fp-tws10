@@ -54,6 +54,19 @@ void SingleEmbeddingViz::render(const float2 windowSize) {
         const float2 hoveredWindowPoint = getWindowPoint(hoveredViewportPoint,windowSize);
 //        std::cout << hoveredViewportPoint.x << ", " << hoveredViewportPoint.y << " -> " <<  hoveredWindowPoint.x << ", " << hoveredWindowPoint.y << std::endl;
 
+        // draw bigger point
+        glPointSize(2*pointSizeWindow);
+        glBegin(GL_POINTS);
+        glColor3ub(255,255,255);
+        glVertex(hoveredWindowPoint);
+        glEnd();
+        glPointSize(1.5*pointSizeWindow);
+        glBegin(GL_POINTS);
+        glColor(subViz_.getColoring(hoveredPointIndex));
+        glVertex(hoveredWindowPoint);
+        glEnd();
+        glPointSize(1);
+
         static const float2 hoverOffset = make_float2(imageWidth_/4,imageHeight_/4);
         static const float2 textureSize = make_float2(4*imageWidth_,4*imageHeight_);
 

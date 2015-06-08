@@ -39,6 +39,8 @@ public:
 
     inline float2 getNormalizedPoint(const float2 embeddingPoint) { return (embeddingPoint - getMaxViewportCenter())/getMaxViewportSize() + make_float2(0.5); }
 
+    inline uchar3 getColoring(const int point) { return coloring_[point]; }
+
     void getEnclosedPoints(std::vector<int> & enclosedPoints, const std::vector<float2> & viewportLassoPoints);
 
 private:

@@ -110,21 +110,21 @@ void EmbeddingSubViz::render(const float2 windowSize, const float2 viewportSize,
 
     pointShader_.unbind();
 
-    if (hoveredPointIndex_ >= 0 && hoveredPointIndex_ < nEmbedded_) {
+//    if (hoveredPointIndex_ >= 0 && hoveredPointIndex_ < nEmbedded_) {
 
-        // draw bigger point
-        glPointSize(12);
-        glBegin(GL_POINTS);
-        glColor3ub(255,255,255);
-        glVertex2f(xCoords_[hoveredPointIndex_],yCoords_[hoveredPointIndex_]);
-        glEnd();
-        glPointSize(9);
-        glBegin(GL_POINTS);
-        glColor(coloring_[hoveredPointIndex_]);
-        glVertex2f(xCoords_[hoveredPointIndex_],yCoords_[hoveredPointIndex_]);
-        glEnd();
-        glPointSize(1);
-    }
+//        // draw bigger point
+//        glPointSize(12);
+//        glBegin(GL_POINTS);
+//        glColor3ub(255,255,255);
+//        glVertex2f(xCoords_[hoveredPointIndex_],yCoords_[hoveredPointIndex_]);
+//        glEnd();
+//        glPointSize(9);
+//        glBegin(GL_POINTS);
+//        glColor(coloring_[hoveredPointIndex_]);
+//        glVertex2f(xCoords_[hoveredPointIndex_],yCoords_[hoveredPointIndex_]);
+//        glEnd();
+//        glPointSize(1);
+//    }
 
     glPopMatrix();
 }
