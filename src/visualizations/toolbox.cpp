@@ -92,7 +92,7 @@ void Toolbox::render(const float2 windowSize) {
     if (activeEmbeddingViz_->getZoom() < showOverviewZoomThreshold_) {
 
         int nZooms = std::min(1 - log(activeEmbeddingViz_->getZoom())/log(20),1.);
-        std::cout << "showing " << nZooms << " zooms" << std::endl;
+//        std::cout << "showing " << nZooms << " zooms" << std::endl;
 
         const int overviewSectionBottom = windowSize.y - windowSize.x - sectionStarts_[OverviewSection];
         const float2 overviewSize = make_float2(windowSize.x,windowSize.x);
