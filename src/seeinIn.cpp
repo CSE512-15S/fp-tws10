@@ -26,6 +26,7 @@
 #include "util/caffe_helpers.h"
 #include "util/gl_helpers.h"
 #include "util/image_io.h"
+#include "util/selection_manager.h"
 #include "util/string_format.h"
 #include "visualizations/filter_response_viz.h"
 #include "visualizations/multi_embedding_viz.h"
@@ -98,7 +99,8 @@ int main(int argc, char * * argv) {
     std::vector<uchar3> testColors(nTestImages);
     for (int i=0; i<nTestImages; ++i) { testColors[i] = digitColors[testLabels[i]]; }
 
-    std::vector<float> selection(nTestImages,0.5f);
+//    std::vector<float> selection(nTestImages,0.5f);
+    SelectionManager selection(nTestImages);
 
     // -=-=-=-=- process test data -=-=-=-=-
     boost::shared_ptr<caffe::Blob<float> > inputBlob = net.blobs()[net.input_blob_indices()[0]];
@@ -130,10 +132,10 @@ int main(int argc, char * * argv) {
     ScatterPlotShader pointShader;
 
     // -=-=-=-=- set up visualizations -=-=-=-=-
-    SingleEmbeddingViz embeddingViz(embeddingViewAspectRatio,testImages,imageWidth,imageHeight,imageTex,pointShader,selection.data());
+    SingleEmbeddingViz embeddingViz(embeddingViewAspectRatio,testImages,imageWidth,imageHeight,imageTex,pointShader,selection.getSelection().data());
     embeddingViz.setEmbedding((const float2 *)outputBlob->cpu_data(),testColors.data(),nTestImages);
 
-    MultiEmbeddingViz multiEmbeddingViz(embeddingViewAspectRatio,testImages,imageWidth,imageHeight,imageTex,pointShader,selection.data());
+    MultiEmbeddingViz multiEmbeddingViz(embeddingViewAspectRatio,testImages,imageWidth,imageHeight,imageTex,pointShader,selection.getSelection().data());
 
     // -=-=-=-=- set up mouse handlers -=-=-=-=-
     SingleEmbeddingViewMouseHandler embeddingViewHandler(&embeddingViz);
@@ -185,15 +187,14 @@ int main(int argc, char * * argv) {
 
     std::map<std::string,int> blobStrides;
     std::map<std::string,int2> blobReceptiveFields;
-    getBlobStridesAndReceptiveFields(net,blobsToVisualize,
-                                     blobStrides,blobReceptiveFields);
+    getBlobStridesAndReceptiveFields(net,blobsToVisualize,blobStrides,blobReceptiveFields);
 
 //    std::map<std::string,pangolin::GlTexture*> layerResponseTextures;
     float filterVizZoom = 2.f;
     FilterResponseViz filterResponseViz(net,blobsToVisualize,
                                         blobStrides,filterView.GetBounds().w,filterView.GetBounds().h,fontManager,
                                         filterVizZoom,16);
-    filterResponseViz.setSelection(selection);
+    filterResponseViz.setSelection(selection.getSelection());
 
     FilterViewMouseHandler filterViewHandler(&filterResponseViz);
     filterView.SetHandler(&filterViewHandler);
@@ -375,7 +376,7 @@ int main(int argc, char * * argv) {
                     {
                         selectedPoint = activeEmbeddingHandler->getHoveredOverPoint();
                         if (selectedPoint == -1) {
-                            std::fill(selection.begin(),selection.end(),0.5f);
+                            selection.clearSelection();
                             if (multiembeddingVizActive) {
                                 multiEmbeddingViz.updateSelectionCoarseToFine();
                             }
@@ -391,12 +392,9 @@ int main(int argc, char * * argv) {
                             multiEmbeddingViz.setSubselection(enclosedPoints);
                             multiEmbeddingViz.updateSelectionFineToCoarse();
                         } else {
-                            std::fill(selection.begin(),selection.end(),0.0f);
-                            for (int i=0; i<enclosedPoints.size(); ++i) {
-                                selection[enclosedPoints[i]] = 1.f;
-                            }
+                            selection.setSelection(enclosedPoints);
                         }
-                        filterResponseViz.setSelection(selection);
+                        filterResponseViz.setSelection(selection.getSelection());
                         activeEmbeddingHandler->clearLassoPoints();
                         hasSelection = true;
                     } break;
@@ -412,8 +410,11 @@ int main(int argc, char * * argv) {
             if (multiembeddingVizActive && multiEmbeddingViz.hasSubselection()) {
                 multiEmbeddingViz.setSubselection(selectedPoint);
             } else {
-                std::memset(selection.data(),0.f,selection.size()*sizeof(float));
-                selection[selectedImage] = 1.f;
+                if (activeEmbeddingHandler->isAppendSelction()) {
+                    selection.appendSelection(selectedImage);
+                } else {
+                    selection.setSelection(selectedImage);
+                }
             }
         }
 
@@ -512,9 +513,9 @@ int main(int argc, char * * argv) {
             const int selectedClass = toolViewHandler.getSelectedClass();
             if (selectedClass >= 0 && selectedClass < nClasses) {
                 for (int i=0; i<nTestImages; ++i) {
-                    selection[i] = testLabels[i] == selectedClass ? 1.f : 0.f;
+                    selection.getSelection()[i] = testLabels[i] == selectedClass ? SelectionManager::selectedVal_ : SelectionManager::unselectedVal_;
                 }
-                filterResponseViz.setSelection(selection);
+                filterResponseViz.setSelection(selection.getSelection());
                 if (multiembeddingVizActive) {
                     multiEmbeddingViz.updateSelectionCoarseToFine();
                 }

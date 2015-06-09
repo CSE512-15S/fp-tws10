@@ -24,6 +24,8 @@ public:
 
     inline bool hasSelection() { bool retVal = hasSelection_; hasSelection_ = false; return retVal;  }
 
+    inline bool isAppendSelction() { return appendSelection_; }
+
     inline int getHoveredOverPoint() { return viz_->getHoveredOverPoint(); }
 
 protected:
@@ -42,6 +44,10 @@ protected:
 
     void zoomOut(pangolin::View & v, const int x, const int y);
 
+    void processLassoClick(pangolin::View & v, const int x, const int y);
+
+    void processSingleClick(int buttonState);
+
     // -=-=-=-=-=- members -=-=-=-=-=-
     EmbeddingViz * viz_;
 
@@ -50,6 +56,7 @@ protected:
     std::vector<float2> lassoPoints_;
 
     bool hasSelection_;
+    bool appendSelection_;
 
     float2 lastMouse_;
     bool scrolled_;

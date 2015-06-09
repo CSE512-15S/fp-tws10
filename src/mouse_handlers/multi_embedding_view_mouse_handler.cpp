@@ -10,27 +10,10 @@ void MultiEmbeddingViewMouseHandler::Mouse(pangolin::View & v, pangolin::MouseBu
             if (!pressed && !scrolled_) {
                 switch (selectionMode_) {
                     case SelectionModeSingle:
-                        hasSelection_ = true;
+                        processSingleClick(button_state);
                         break;
                     case SelectionModeLasso:
-                        {
-                            std::cout << "lasso click" << std::endl;
-                            float2 vpPoint = getViewportPoint(v,make_float2(x,y));
-                            if (lassoPoints_.size() == 0) {
-                                // first lasso point - add the click, and then another point for the temporary next point
-                                lassoPoints_.push_back(vpPoint);
-                                lassoPoints_.push_back(vpPoint);
-                            } else if (lassoPoints_.size() > 2 &&
-                                       length(vpPoint - lassoPoints_.front()) <
-                                       viz_->getViewportUnitsPerPixel(make_float2(v.GetBounds().w,v.GetBounds().h)).x*stickyStartThresholdPixels_) {
-                                // lasso is complete - close the loop
-                                lassoPoints_.back() = lassoPoints_.front();
-                                hasSelection_ = true;
-                            } else {
-                                // latch the current point
-                                lassoPoints_.push_back(vpPoint);
-                            }
-                        }
+                        processLassoClick(v,x,y);
                         break;
                 }
             } else {

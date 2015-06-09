@@ -91,6 +91,8 @@ set(sources
     src/util/gl_helpers.cpp
     src/util/image_io.h
     src/util/image_io.cpp
+    src/util/selection_manager.h
+    src/util/selection_manager.cpp
     src/util/string_format.h
     src/util/string_format.cpp
 
