@@ -180,50 +180,18 @@ int main(int argc, char * * argv) {
     bool hasSelection = false;
 
     // -=-=-=-=- set up layer visualizations -=-=-=-=-
-    {
-        std::vector<std::string> blobsToVisualize;
-        getBlobsToVisualize(net,blobsToVisualize);
-        for (std::string blobName : blobsToVisualize) {
-            std::cout << blobName << std::endl;
-        }
-    }
-
     std::vector<std::string> blobsToVisualize;
     getBlobsToVisualize(net,blobsToVisualize);
 
-//    filterResponsesToVisualize.push_back("data");
-//    filterResponsesToVisualize.push_back("conv1");
-//    filterResponsesToVisualize.push_back("pool1");
-//    filterResponsesToVisualize.push_back("conv2");
-//    filterResponsesToVisualize.push_back("pool2");
-//    filterResponsesToVisualize.push_back("ip1");
-//    filterResponsesToVisualize.push_back("ip2");
-//    filterResponsesToVisualize.push_back("feat");
-
-    std::map<std::string,int> layerRelativeScales;
-    layerRelativeScales["data"] = 1;
-    layerRelativeScales["conv1"] = 1;
-    layerRelativeScales["pool1"] = 2;
-    layerRelativeScales["conv2"] = 2;
-    layerRelativeScales["pool2"] = 4;
-    layerRelativeScales["ip1"] = 4;
-    layerRelativeScales["ip2"] = 4;
-    layerRelativeScales["feat"] = 4;
-
-    std::map<std::string,int2> layerReceptiveFields;
-    layerReceptiveFields["data"] = make_int2(1,1);
-    layerReceptiveFields["conv1"] = make_int2(5,5);
-    layerReceptiveFields["pool1"] = make_int2(6,6);
-    layerReceptiveFields["conv2"] = make_int2(14,14);
-    layerReceptiveFields["pool2"] = make_int2(16,16);
-    layerReceptiveFields["ip1"] = make_int2(28,28);
-    layerReceptiveFields["ip2"] = make_int2(28,28);
-    layerReceptiveFields["feat"] = make_int2(28,28);
+    std::map<std::string,int> blobStrides;
+    std::map<std::string,int2> blobReceptiveFields;
+    getBlobStridesAndReceptiveFields(net,blobsToVisualize,
+                                     blobStrides,blobReceptiveFields);
 
 //    std::map<std::string,pangolin::GlTexture*> layerResponseTextures;
     float filterVizZoom = 2.f;
     FilterResponseViz filterResponseViz(net,blobsToVisualize,
-                                        layerRelativeScales,filterView.GetBounds().w,filterView.GetBounds().h,fontManager,
+                                        blobStrides,filterView.GetBounds().w,filterView.GetBounds().h,fontManager,
                                         filterVizZoom,16);
     filterResponseViz.setSelection(selection);
 
@@ -291,8 +259,8 @@ int main(int argc, char * * argv) {
                         multiEmbeddingViz.setEmbedding(embeddingBlob->cpu_data(),dims,
                                                        testColors.data(),nTestImages,
                                                        embeddingBlob->width(),embeddingBlob->height(),
-                                                       layerReceptiveFields[blobName],
-                                                       layerRelativeScales[blobName]);
+                                                       blobReceptiveFields[blobName],
+                                                       blobStrides[blobName]);
                     }
 
                     viz = &multiEmbeddingViz;
@@ -480,8 +448,8 @@ int main(int argc, char * * argv) {
                         multiEmbeddingViz.setEmbedding(embeddingBlob->cpu_data(),dims,
                                                        testColors.data(),nTestImages,
                                                        embeddingBlob->width(),embeddingBlob->height(),
-                                                       layerReceptiveFields[blobName],
-                                                       layerRelativeScales[blobName]);
+                                                       blobReceptiveFields[blobName],
+                                                       blobStrides[blobName]);
                     }
                     multiEmbeddingViz.setZoom(1.f);
 
