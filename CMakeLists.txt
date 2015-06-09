@@ -49,19 +49,19 @@ include_directories(${CAFFE_ROOT}/include
 link_directories(${CAFFE_ROOT}/build/lib)
 link_libraries(caffe)
 
-set(tSNE_ROOT /home/tws10/Development/extern/tSNE)
-include_directories(${tSNE_ROOT})
-set(tSNE_sources
-    ${tSNE_ROOT}/sptree.cpp
-    ${tSNE_ROOT}/tsne.cpp
-)
+#set(tSNE_ROOT /home/tws10/Development/extern/tSNE)
+#include_directories(${tSNE_ROOT})
+#set(tSNE_sources
+#    ${tSNE_ROOT}/sptree.cpp
+#    ${tSNE_ROOT}/tsne.cpp
+#)
 
 set(sources
+    src/seeinIn.h
+    src/seeinIn.cpp
+
     src/feature_projector.h
     src/feature_projector.cpp
-    src/mnist_io.h
-    src/mnist_io.cpp
-
     src/fonts/font_face.h
     src/fonts/font_face.cpp
     src/fonts/font_manager.h
@@ -111,6 +111,7 @@ set(sources
 )
 
 include_directories(${PROJECT_SOURCE_DIR}/src)
+include_directories(${PROJECT_SOURCE_DIR}/examples)
 
 if (CUDA_FOUND)
 message(STATUS "Found CUDA ${CUDA_VERSION_STRING}")
@@ -120,12 +121,14 @@ include_directories(${CUDA_TOOLKIT_ROOT_DIR}/samples/common/inc)
 
 cuda_add_executable(
         # executable
-        seeinIn
+        seeinInMNIST
         # main
-        src/seeinIn.cpp
+        examples/seeinInMNIST.cpp
         # support sources
         ${sources}
-        ${tSNE_sources}
+        examples/mnist_io.h
+        examples/mnist_io.cpp
+        #${tSNE_sources}
 )
 else ()
 add_definitions(-DCPU_ONLY)
@@ -133,12 +136,14 @@ include_directories(${PROJECT_SOURCE_DIR}/tmp_inc)
 
 add_executable(
         # executable
-        seeinIn
+        seeinInMNIST
         # main
-        src/seeinIn.cpp
+        examples/seeinInMNIST.cpp
         # support sources
         ${sources}
-        ${tSNE_sources}
+        examples/mnist_io.h
+        examples/mnist_io.cpp
+        #${tSNE_sources}
 )
 endif()
 

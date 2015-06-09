@@ -17,7 +17,6 @@
 #include <helper_math.h>
 
 #include "feature_projector.h"
-#include "mnist_io.h"
 #include "fonts/font_manager.h"
 #include "mouse_handlers/single_embedding_view_mouse_handler.h"
 #include "mouse_handlers/filter_view_mouse_handler.h"
@@ -46,27 +45,6 @@ static const int filterViewWidth = guiWidth-embeddingViewWidth;
 static const int filterViewHeight = guiHeight;
 static const float filterViewAspectRatio = filterViewWidth/(float)filterViewHeight;
 
-static const std::string weightFile = "/home/tws10/Development/caffe/examples/siamese/mnist_siamese_iter_50000.caffemodel";
-static const std::string netFile = "../networks/mnist_siamese.prototxt";
-
-static const int nClasses = 10;
-static const uchar3 digitColors[nClasses] = {
-    make_uchar3(166,206,227 ),
-    make_uchar3(31,120,180  ),
-    make_uchar3(178,223,138 ),
-    make_uchar3(51,160,44   ),
-    make_uchar3(251,154,153 ),
-    make_uchar3(227,26,28   ),
-    make_uchar3(253,191,111 ),
-    make_uchar3(255,127,0   ),
-    make_uchar3(202,178,214 ),
-    make_uchar3(106,61,154  )
-};
-
-static const std::string digitNames[nClasses] = {
-    "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"
-};
-
 inline void printBlobSize(boost::shared_ptr<caffe::Blob<float> > blob) {
     std::cout << blob->num() << " x " << blob->channels() << " x " << blob->height() << " x " << blob->width() << std::endl;
 }
@@ -76,7 +54,11 @@ inline bool fileExists(std::string filename) {
     return stat(filename.c_str(), &buffer) == 0;
 }
 
-int main(int argc, char * * argv) {
+int run(int argc, char * * argv,
+        const std::string networkFilename, const std::string weightFilename,
+        float * testImages, const int imageWidth,
+        const int imageHeight, const int nTestImages, unsigned char * testLabels,
+        const int nClasses, const uchar3 * classColors, const std::string * classNames) {
 
     // -=-=-=-=- set up caffe -=-=-=-=-
     caffe::GlobalInit(&argc,&argv);
@@ -87,17 +69,13 @@ int main(int argc, char * * argv) {
 #endif // CPU_ONLY
 
     // -=-=-=-=- load learned network -=-=-=-=-
-    caffe::Net<float> net(netFile,caffe::TEST);
-    net.CopyTrainedLayersFrom(weightFile);
+    caffe::Net<float> net(networkFilename,caffe::TEST);
+    net.CopyTrainedLayersFrom(weightFilename);
 
     // -=-=-=-=- load mnist test data -=-=-=-=-
-    int nTestImages, imageWidth, imageHeight;
-    float * testImages = loadMNISTImages(mnistTestImageFile,nTestImages, imageWidth, imageHeight);
-    std::vector<unsigned char> testLabels;
-    loadMNISTLabels(mnistTestLabelFile,testLabels);
-    assert(nTestImages == testLabels.size());
+
     std::vector<uchar3> testColors(nTestImages);
-    for (int i=0; i<nTestImages; ++i) { testColors[i] = digitColors[testLabels[i]]; }
+    for (int i=0; i<nTestImages; ++i) { testColors[i] = classColors[testLabels[i]]; }
 
 //    std::vector<float> selection(nTestImages,0.5f);
     SelectionManager selection(nTestImages);
@@ -109,7 +87,7 @@ int main(int argc, char * * argv) {
     net.ForwardPrefilled();
 
     // -=-=-=-=- set up pangolin -=-=-=-=-
-    pangolin::CreateGlutWindowAndBind("Seein' In", guiWidth, guiHeight,GLUT_MULTISAMPLE | GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+    pangolin::CreateGlutWindowAndBind("Seein' In --- " + net.name() , guiWidth, guiHeight,GLUT_MULTISAMPLE | GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 
     glewInit();
 
@@ -124,10 +102,6 @@ int main(int argc, char * * argv) {
     FontManager fontManager("GaramondNo8");
 
     // -=-=-=-=- set up point shader -=-=-=-=-
-    int maxTexBufferSize;
-    glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE,&maxTexBufferSize);
-    std::cout << maxTexBufferSize << std::endl;
-
     boost::shared_ptr<caffe::Blob<float> > outputBlob = net.blobs()[net.output_blob_indices()[0]];
     ScatterPlotShader pointShader;
 
@@ -153,7 +127,7 @@ int main(int argc, char * * argv) {
 
     pangolin::View toolView;
     toolView.SetBounds(0,1,0,pangolin::Attach::Pix(panelWidth));
-    Toolbox toolboxViz(digitColors,digitNames,nClasses,fontManager, overviewWidth, overviewHeight, overviewTex);
+    Toolbox toolboxViz(classColors,classNames,nClasses,fontManager, overviewWidth, overviewHeight, overviewTex);
     toolboxViz.setButtonActive(LassoSelectionButton,false);
     toolboxViz.setActiveEmbeddingViz(activeEmbeddingViz);
 
@@ -229,7 +203,7 @@ int main(int argc, char * * argv) {
 
         for (int i=0; i<blobsToVisualize.size(); ++i) {
             std::string blobName = blobsToVisualize[i];
-            std::string cachedFilename = stringFormat("/tmp/seeinIn.overview%02d.png",i);
+            std::string cachedFilename = stringFormat("/tmp/seeinIn.%s.overview%02d.png",net.name().c_str(),i);
             if (fileExists(cachedFilename)) {
 
                 std::cout << "loading cached preview for " << blobName << std::endl;
