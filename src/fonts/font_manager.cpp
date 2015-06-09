@@ -6,7 +6,7 @@
 #include FT_FREETYPE_H
 #include <ftglyph.h>
 
-#include <fontconfig.h>
+#include <fontconfig/fontconfig.h>
 
 FontManager::FontManager(const std::string fontName) {
 

@@ -1,5 +1,5 @@
 project("Seein' In")
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8)
 
 # -DCMAKE_BUILD_TYPE=Release
 
@@ -8,53 +8,48 @@ if( NOT CMAKE_BUILD_TYPE )
 endif()
 
 add_definitions(-std=c++11)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/CMakeModules/")
 
+# find packages with modules
 find_package(CUDA QUIET)
-
-find_package(Gflags REQUIRED)
 find_package(Protobuf REQUIRED)
 find_package(Pangolin REQUIRED)
+find_package(Freetype REQUIRED)
 
+# find packages with pkg-config
+find_package(PkgConfig)
+pkg_check_modules(fontconfig REQUIRED fontconfig)
+pkg_check_modules(gflags REQUIRED libgflags)
+
+# pangolin
 include_directories(${Pangolin_INCLUDE_DIRS})
 link_directories(${Pangolin_LIBRARY_DIRS})
 link_libraries(${Pangolin_LIBRARIES})
 
+# fontconfig
+include_directories(${fontconfig_INCLUDEDIR})
+link_libraries(${fontconfig_LIBRARIES})
 
-include_directories(/usr/include/eigen3)
-
-#fontconfig
-include_directories(/usr/include/fontconfig)
-link_libraries(fontconfig)
-
-#freetype
-find_package(Freetype REQUIRED)
+# freetype
 include_directories(${FREETYPE_INCLUDE_DIRS})
 link_libraries(${FREETYPE_LIBRARIES})
 
-#gflags
+# gflags
 include_directories(${gflags_INCLUDE_DIR})
 link_libraries(gflags)
 
-#glog
+# glog
 link_libraries(glog)
 
-#protobuf
+# protobuf
 include_directories(${PROTOBUF_INCLUDE_DIR})
 link_libraries(${PROTOBUF_LIBRARY})
 
-set(CAFFE_ROOT /home/tws10/Development/caffe)
+# caffe
+set(CAFFE_ROOT /usr/local/caffe/ CACHE PATH "path to the caffe root directory")
 include_directories(${CAFFE_ROOT}/include
                     ${CAFFE_ROOT}/build/src/)
 link_directories(${CAFFE_ROOT}/build/lib)
 link_libraries(caffe)
-
-#set(tSNE_ROOT /home/tws10/Development/extern/tSNE)
-#include_directories(${tSNE_ROOT})
-#set(tSNE_sources
-#    ${tSNE_ROOT}/sptree.cpp
-#    ${tSNE_ROOT}/tsne.cpp
-#)
 
 set(sources
     src/seeinIn.h
@@ -128,7 +123,6 @@ cuda_add_executable(
         ${sources}
         examples/mnist_io.h
         examples/mnist_io.cpp
-        #${tSNE_sources}
 )
 else ()
 add_definitions(-DCPU_ONLY)
@@ -143,7 +137,6 @@ add_executable(
         ${sources}
         examples/mnist_io.h
         examples/mnist_io.cpp
-        #${tSNE_sources}
 )
 endif()
 
