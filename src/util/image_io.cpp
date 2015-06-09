@@ -3,11 +3,52 @@
 #include <png.h>
 #include <iostream>
 
+typedef unsigned long ulg;
+typedef unsigned char uch;
+
+typedef struct _mainprog_info {
+    double display_exponent;
+    ulg width;
+    ulg height;
+    void *png_ptr;
+    void *info_ptr;
+    void (*mainprog_init)(void);
+    void (*mainprog_display_row)(ulg row_num);
+    void (*mainprog_finish_display)(void);
+    uch *image_data;
+    uch **row_pointers;
+    jmp_buf jmpbuf;
+    int passes;
+    int rowbytes;
+    int channels;
+    int need_bgcolor;
+    int done;
+    uch bg_red;
+    uch bg_green;
+    uch bg_blue;
+} mainprog_info;
+
+static void png_error_handler(png_structp pngPtr, png_const_charp msg) {
+    mainprog_info * mainprog_ptr;
+
+    std::cerr << "libpng error: " << msg << std::endl;
+
+    mainprog_ptr = (mainprog_info*)png_get_error_ptr(pngPtr);
+    if (mainprog_ptr == NULL) {
+        std::cerr << "png severe error:  jmpbuf not recoverable; terminating.\n" << std::endl;
+        exit(99);
+    }
+
+    longjmp(mainprog_ptr->jmpbuf, 1);
+}
+
 void writePNG(const char * filename, const uchar3 * imgData, const int width, const int height) {
 
     FILE * fp = fopen(filename,"wb");
 
-    png_structp pngPtr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    mainprog_info progInfo;
+
+    png_structp pngPtr = png_create_write_struct(PNG_LIBPNG_VER_STRING, &progInfo, png_error_handler, NULL);
     png_infop infoPtr = png_create_info_struct(pngPtr);
 
     if (setjmp(png_jmpbuf(pngPtr))) {
@@ -41,6 +82,7 @@ png_failure:
 
 unsigned char * readPNG(const char * filename, int & width, int & height, int & channels) {
 
+
     FILE * file = fopen(filename, "r");
 
     unsigned char sig[8];
@@ -52,7 +94,9 @@ unsigned char * readPNG(const char * filename, int & width, int & height, int & 
         return 0;
     }
 
-    png_structp pngPtr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    mainprog_info progInfo;
+
+    png_structp pngPtr = png_create_read_struct(PNG_LIBPNG_VER_STRING, &progInfo, png_error_handler, NULL);
     if (!pngPtr) {
         std::cerr << "could not create png pointer" << std::endl;
         fclose(file);
@@ -67,7 +111,7 @@ unsigned char * readPNG(const char * filename, int & width, int & height, int & 
         return 0;
     }
 
-    if (setjmp(pngPtr->jmpbuf)) {
+    if (setjmp(progInfo.jmpbuf)) {
         png_destroy_read_struct(&pngPtr, &infoPtr, NULL);
         fclose(file);
         return 0;
