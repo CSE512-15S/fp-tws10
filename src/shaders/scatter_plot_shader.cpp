@@ -4,12 +4,17 @@
 
 ScatterPlotShader::ScatterPlotShader() {
 
+    std::string compileDirectory = COMPILE_DIR;
+    compileDirectory = compileDirectory.substr(1,compileDirectory.length()-2);
+    std::string fragFile = compileDirectory + "/src/shaders/scatter_plot.frag";
+    std::string vertFile = compileDirectory + "/src/shaders/scatter_plot.vert";
+
     // -=-=-=- compile program -=-=-=-
-    std::ifstream fragStream("../src/shaders/scatter_plot.frag"); // TODO
+    std::ifstream fragStream(fragFile);
     std::string fragSource( (std::istreambuf_iterator<char>(fragStream) ),
                             (std::istreambuf_iterator<char>()));
     fragStream.close();
-    std::ifstream vertStream("../src/shaders/scatter_plot.vert");
+    std::ifstream vertStream(vertFile);
     std::string vertSource( (std::istreambuf_iterator<char>(vertStream) ),
                             (std::istreambuf_iterator<char>()));
     vertStream.close();

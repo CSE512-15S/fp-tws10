@@ -114,6 +114,8 @@ message(STATUS "CUDA Toolkit Root dir: ${CUDA_TOOLKIT_ROOT_DIR}")
 message(STATUS "CUDA SDK Root dir: ${CUDA_SDK_ROOT_DIR}")
 include_directories(${CUDA_TOOLKIT_ROOT_DIR}/samples/common/inc)
 
+add_definitions(-DCOMPILE_DIR="\\"${PROJECT_SOURCE_DIR}\\"")
+
 cuda_add_executable(
         # executable
         seeinInMNIST

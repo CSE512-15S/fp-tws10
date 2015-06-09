@@ -60,6 +60,8 @@ int run(int argc, char * * argv,
         const int imageHeight, const int nTestImages, unsigned char * testLabels,
         const int nClasses, const uchar3 * classColors, const std::string * classNames) {
 
+    std::cout << "this project was compiled in " << COMPILE_DIR << std::endl;
+
     // -=-=-=-=- set up caffe -=-=-=-=-
     caffe::GlobalInit(&argc,&argv);
 
