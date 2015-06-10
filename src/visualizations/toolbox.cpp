@@ -184,18 +184,21 @@ void Toolbox::render(const float2 windowSize) {
 }
 
 std::string Toolbox::getIconFilename(ToolboxButton button) {
+
+    std::string compileDirectory = COMPILE_DIR;
+
     switch (button) {
         case PointSelectionButton:
-            return "../src/icons/pointSelection.png";
+            return compileDirectory + "/src/icons/pointSelection.png";
             break;
         case LassoSelectionButton:
-            return "../src/icons/lassoSelection.png";
+            return compileDirectory + "/src/icons/lassoSelection.png";
             break;
         case BiggerPointButton:
-            return "../src/icons/biggerPoints.png";
+            return compileDirectory + "/src/icons/biggerPoints.png";
             break;
         case SmallerPointButton:
-            return "../src/icons/smallerPoints.png";
+            return compileDirectory + "/src/icons/smallerPoints.png";
             break;
         default:
             std::cerr << "no icon image specified for button " << button << std::endl;

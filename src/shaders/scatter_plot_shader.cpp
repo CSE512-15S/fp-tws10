@@ -5,7 +5,8 @@
 ScatterPlotShader::ScatterPlotShader() {
 
     std::string compileDirectory = COMPILE_DIR;
-    compileDirectory = compileDirectory.substr(1,compileDirectory.length()-2);
+
+//    std::cout << compileDirectory << std::endl;
     std::string fragFile = compileDirectory + "/src/shaders/scatter_plot.frag";
     std::string vertFile = compileDirectory + "/src/shaders/scatter_plot.vert";
 
