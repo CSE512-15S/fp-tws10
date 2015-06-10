@@ -62,7 +62,9 @@ void getBlobStridesAndReceptiveFields(caffe::Net<float> & net, const std::vector
     for (int i=0; i<nLayers; ++i) {
         boost::shared_ptr<caffe::Layer<float> > layer = net.layers()[i];
         std::string layerType(layer->type());
-        if (layerType == std::string("Convolution")) {
+        bool isConv = layerType == std::string("Convolution");
+        bool isPool = layerType == std::string("Pooling");
+        if (isConv || isPool) {
             caffe::Blob<float> * inputBlob = net.bottom_vecs()[i][0];
             int inputBlobNum = getBlobNumber(net,inputBlob);
             assert(inputBlobNum >= 0);
@@ -73,42 +75,22 @@ void getBlobStridesAndReceptiveFields(caffe::Net<float> & net, const std::vector
             assert(outputBlobNum >= 0);
             std::string outputBlobName = net.blob_names()[outputBlobNum];
 
-            caffe::ConvolutionParameter convParam = layer->layer_param().convolution_param();
-            int2 kernelSize = convParam.has_kernel_size() ? make_int2(convParam.kernel_size()) : make_int2(convParam.kernel_w(),convParam.kernel_h());
-
+            int2 kernelSize, stride;
+            if (isConv) {
+                caffe::ConvolutionParameter convParam = layer->layer_param().convolution_param();
+                kernelSize = convParam.has_kernel_size() ? make_int2(convParam.kernel_size()) : make_int2(convParam.kernel_w(),convParam.kernel_h());
+                stride     = convParam.has_stride() ? make_int2(convParam.stride()) : make_int2(convParam.stride_w(),convParam.stride_h());
+            } else if (isPool) {
+                caffe::PoolingParameter poolParam = layer->layer_param().pooling_param();
+                kernelSize = poolParam.has_kernel_size() ? make_int2(poolParam.kernel_size()) : make_int2(poolParam.kernel_w(),poolParam.kernel_h());
+                stride = poolParam.has_stride() ? make_int2(poolParam.stride()) : make_int2(poolParam.stride_w(),poolParam.stride_h());
+            }
             if (strides.find(inputBlobName) != strides.end()) {
                 const int strideIn = strides[inputBlobName];
                 const int2 fieldIn = receptiveFields[inputBlobName];
-                const int2 normalizedFieldIn = make_int2(fieldIn.x / strideIn, fieldIn.y / strideIn);
-                const int2 normalizedFieldOut = kernelSize - make_int2(1,1) + normalizedFieldIn;
-
-                strides[outputBlobName] = strideIn;
-                receptiveFields[outputBlobName] = strideIn*normalizedFieldOut;
+                strides[outputBlobName] = strideIn*stride.x;
+                receptiveFields[outputBlobName] = strideIn*(kernelSize - make_int2(1)) + fieldIn;
             }
-        } else if (layerType == std::string("Pooling")) {
-            caffe::Blob<float> * inputBlob = net.bottom_vecs()[i][0];
-            int inputBlobNum = getBlobNumber(net,inputBlob);
-            assert(inputBlobNum >= 0);
-            std::string inputBlobName = net.blob_names()[inputBlobNum];
-
-            caffe::Blob<float> * outputBlob = net.top_vecs()[i][0];
-            int outputBlobNum = getBlobNumber(net,outputBlob);
-            assert(outputBlobNum >= 0);
-            std::string outputBlobName = net.blob_names()[outputBlobNum];
-
-            caffe::PoolingParameter poolParam = layer->layer_param().pooling_param();
-            int2 poolSize = poolParam.has_kernel_size() ? make_int2(poolParam.kernel_size()) : make_int2(poolParam.kernel_w(),poolParam.kernel_h());
-            int2 poolStride = poolParam.has_stride() ? make_int2(poolParam.stride()) : make_int2(poolParam.stride_w(),poolParam.stride_h());
-
-            if (strides.find(inputBlobName) != strides.end()) {
-                const int strideIn = strides[inputBlobName];
-                strides[outputBlobName] = poolStride.x * strideIn;
-                const int2 fieldIn = receptiveFields[inputBlobName];
-                const int2 normalizedFieldIn = make_int2(fieldIn.x / strideIn, fieldIn.y / strideIn);
-                const int2 normalizedFieldOut = poolSize - make_int2(1,1) + normalizedFieldIn;
-                receptiveFields[outputBlobName] = strideIn*normalizedFieldOut;
-            }
-
         } else if (layerType == std::string("InnerProduct")) {
             caffe::Blob<float> * inputBlob = net.bottom_vecs()[i][0];
             int inputBlobNum = getBlobNumber(net,inputBlob);

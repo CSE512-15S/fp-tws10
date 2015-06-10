@@ -165,6 +165,10 @@ int run(int argc, char * * argv,
     std::map<std::string,int2> blobReceptiveFields;
     getBlobStridesAndReceptiveFields(net,blobsToVisualize,blobStrides,blobReceptiveFields);
 
+    for (std::string blob : blobsToVisualize) {
+        std::cout << blob << ": " << blobStrides[blob] << ", " << blobReceptiveFields[blob].x << std::endl;
+    }
+
 //    std::map<std::string,pangolin::GlTexture*> layerResponseTextures;
     float filterVizZoom = 2.f;
     FilterResponseViz filterResponseViz(net,blobsToVisualize,
