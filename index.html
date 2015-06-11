@@ -5,35 +5,67 @@
     <title>Seein' In</title>
     <link href='http://fonts.googleapis.com/css?family=EB+Garamond' rel='stylesheet' type='text/css'>
     <style>
+    a {
+      color: #000;
+      text-decoration: none;
+      font-size: 120%;
+      display: inline-block;
+      margin: 0 auto;
+      width: 190px;
+      text-align: center;
+    }
+    a:hover {
+      color: #888;
+    }
     body {
       font-family: 'EB Garamond', serif;
     }
     div {
+      margin: 0 auto;
+    }
+    div.main {
       max-width: 600px;
       min-width: 600px;
-      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      font-size: 300%;
+      margin: 40px 0 0 0;
+    }
+    h3 {
+      text-align: center;
+      font-size: 150%;
+      margin: 0;
     }
     img {
       margin: 0 auto;
       display: block;
     }
+    span {
+      text-align: center;
+      display: inline-block;
+      width: 15px;
+    }
     </style>
   </head>
   <body>
   
-  <div>
+  <div class="main">
   <h1>Seein' In</h1>
-  <hr/>
   <h3>Tanner Schmidt</h3>
-  
-  <p> Seein' In is an interactive tool designed to help deep learning practitioners gain valuable intuition about the operation of convolutional neural networks. It focuses on: </p>
-  <ul>
-    <li><strong>Density:</strong> showing concise visual summaries of massive quantities of high-dimensional data</li>
-    <li><strong>Depth:</strong> allowing the user to view data as it lives at any layer of the network</li>
-    <li><strong>Speed:</strong> fast rendering allows for interactivity, enabling faster analysis and iterative network design</li>
-  </ul>
+  <hr/>
+  <div><a href="final/poster-tws10.pdf">Poster</a><span>|</span><a href="final/paper-tws10.pdf">Paper</a><span>|</span><a href="https://github.com/CSE512-15S/fp-tws10">Code</a></div>
+  <hr/>
   
   <img src="images/fullWindow.png" width="600px"/>
+  
+  <p><strong>Abstract: </strong>This paper presents Seein’ In, an interactive tool for visualizing trained convolutional neural networks. The core visualization
+is a layer-by-layer scatter plot matrix, plotting pairs of dimensions of the intermediate feature maps produced by the network given
+a large input dataset. This display is coordinated with another display showing at once all activations produced by a single image, or
+the average activation produced by a subset of the images. A variety of navigation techniques support and encourage exploration of
+the vast amount of data contained in these displays. This tool should prove useful for machine learning researchers wishing to make
+more informed decisions about network architectures and learning parameters.</p>
+  
   
   </div>
   
