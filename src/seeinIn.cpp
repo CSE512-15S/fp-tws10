@@ -56,7 +56,7 @@ inline bool fileExists(std::string filename) {
 
 int run(int argc, char * * argv,
         const std::string networkFilename, const std::string weightFilename,
-        float * testImages, const int imageWidth,
+        float * testImages, const int imageChannels, const int imageWidth,
         const int imageHeight, const int nTestImages, unsigned char * testLabels,
         const int nClasses, const uchar3 * classColors, const std::string * classNames) {
 
@@ -108,10 +108,10 @@ int run(int argc, char * * argv,
     ScatterPlotShader pointShader;
 
     // -=-=-=-=- set up visualizations -=-=-=-=-
-    SingleEmbeddingViz embeddingViz(embeddingViewAspectRatio,testImages,imageWidth,imageHeight,imageTex,pointShader,selection.getSelection().data());
+    SingleEmbeddingViz embeddingViz(embeddingViewAspectRatio,testImages,imageChannels,imageWidth,imageHeight,imageTex,pointShader,selection.getSelection().data());
     embeddingViz.setEmbedding((const float2 *)outputBlob->cpu_data(),testColors.data(),nTestImages);
 
-    MultiEmbeddingViz multiEmbeddingViz(embeddingViewAspectRatio,testImages,imageWidth,imageHeight,imageTex,pointShader,selection.getSelection().data());
+    MultiEmbeddingViz multiEmbeddingViz(embeddingViewAspectRatio,testImages, imageChannels,imageWidth,imageHeight,imageTex,pointShader,selection.getSelection().data());
 
     // -=-=-=-=- set up mouse handlers -=-=-=-=-
     SingleEmbeddingViewMouseHandler embeddingViewHandler(&embeddingViz);

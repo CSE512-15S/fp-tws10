@@ -12,11 +12,11 @@ class EmbeddingViz {
 public:
 
     EmbeddingViz(const float aspectRatio, const float minZoom,
-                 const float * images,
+                 const float * images, const int imageChannels,
                  const int imageWidth, const int imageHeight,
                  pangolin::GlTexture & imageTex) :
         zoom_(1.f), scroll_(make_float2(0.f)), aspectRatio_(aspectRatio),
-        images_(images), imageWidth_(imageWidth), imageHeight_(imageHeight),
+        images_(images), imageChannels_(imageChannels), imageWidth_(imageWidth), imageHeight_(imageHeight),
         imageTex_(imageTex), minZoom_(minZoom), maxZoom_(1.f), basePointSize_(1.f)
          { }
 
@@ -90,6 +90,7 @@ protected:
     const float * images_;
     const int imageWidth_;
     const int imageHeight_;
+    const int imageChannels_;
     pangolin::GlTexture & imageTex_;
 
     static constexpr float overviewSizePercent_ = 0.2;

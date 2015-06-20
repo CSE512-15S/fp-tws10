@@ -7,7 +7,7 @@
 
 int run(int argc, char * * argv,
         const std::string networkFilename, const std::string weightFilename,
-        float * testImages, const int imageWidth, const int imageHeight,
+        float * testImages, const int imageChannels, const int imageWidth, const int imageHeight,
         const int nTestImages, unsigned char * testLabels,
         const int nClasses, const uchar3 * classColors, const std::string * classNames);
 

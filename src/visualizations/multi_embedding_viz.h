@@ -8,7 +8,7 @@
 
 class MultiEmbeddingViz : public EmbeddingViz {
 public:
-    MultiEmbeddingViz(const float aspectRatio, const float * images,
+    MultiEmbeddingViz(const float aspectRatio, const float * images, const int imageChannels,
                       const int imageWidth, const int imageHeight,
                       pangolin::GlTexture & imageTex,
                       ScatterPlotShader & pointShader,

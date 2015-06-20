@@ -36,6 +36,7 @@ int main(int argc, char * * argv) {
 
     int nTestImages, imageWidth, imageHeight;
     float * testImages = loadMNISTImages(mnistTestImageFile,nTestImages, imageWidth, imageHeight);
+    const int imageChannels = 1;
 
     std::vector<unsigned char> testLabels;
     loadMNISTLabels(mnistTestLabelFile,testLabels);
@@ -43,7 +44,7 @@ int main(int argc, char * * argv) {
 
     return run(argc,argv,
                netFile,weightFile,
-               testImages,imageWidth,imageHeight,
+               testImages,imageChannels,imageWidth,imageHeight,
                nTestImages, testLabels.data(),
                nClasses,digitColors,digitNames);
 

@@ -1,12 +1,12 @@
 #include "single_embedding_viz.h"
 #include "util/gl_helpers.h"
 
-SingleEmbeddingViz::SingleEmbeddingViz(const float aspectRatio, const float * images,
+SingleEmbeddingViz::SingleEmbeddingViz(const float aspectRatio, const float * images, const int imageChannels,
                                        const int imageWidth, const int imageHeight,
                                        pangolin::GlTexture & imageTex,
                                        ScatterPlotShader & pointShader,
                                        float * selection) :
-    EmbeddingViz(aspectRatio,0.1f,images,imageWidth,imageHeight,imageTex),
+    EmbeddingViz(aspectRatio,0.1f,images,imageChannels,imageWidth,imageHeight,imageTex),
     subViz_(aspectRatio,pointShader,selection,0), pointShader_(pointShader), xCoords_(0), yCoords_(0) {
 
 }
@@ -51,7 +51,7 @@ void SingleEmbeddingViz::render(const float2 windowSize) {
     int hoveredPointIndex = subViz_.getHoveredOverPoint();
     if (hoveredPointIndex >= 0 && hoveredPointIndex < subViz_.getNumEmbeddedPoints()) {
 
-        imageTex_.Upload(images_ + hoveredPointIndex*imageWidth_*imageHeight_,GL_LUMINANCE,GL_FLOAT);
+        imageTex_.Upload(images_ + hoveredPointIndex*imageChannels_*imageWidth_*imageHeight_,GL_LUMINANCE,GL_FLOAT);
         const float2 hoveredViewportPoint = subViz_.getEmbeddedPoint(hoveredPointIndex);
         const float2 hoveredWindowPoint = getWindowPoint(hoveredViewportPoint,windowSize);
 //        std::cout << hoveredViewportPoint.x << ", " << hoveredViewportPoint.y << " -> " <<  hoveredWindowPoint.x << ", " << hoveredWindowPoint.y << std::endl;

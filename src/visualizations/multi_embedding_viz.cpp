@@ -5,11 +5,12 @@
 #include <limits>
 
 MultiEmbeddingViz::MultiEmbeddingViz(const float aspectRatio, const float * images,
+                                     const int imageChannels,
                                      const int imageWidth, const int imageHeight,
                                      pangolin::GlTexture & imageTex,
                                      ScatterPlotShader & pointShader,
                                      float * selection) :
-    EmbeddingViz(aspectRatio,0.005f,images,imageWidth,imageHeight,imageTex),
+    EmbeddingViz(aspectRatio,0.005f,images,imageChannels,imageWidth,imageHeight,imageTex),
     hoveredSubvizIndex_(0), pointShader_(pointShader), selection_(selection), colorCopies_(0), selectionCopies_(0) {
 
 }
@@ -264,7 +265,20 @@ void MultiEmbeddingViz::render(const float2 windowSize) {
         const int hoveredSubvizCol = hoveredSubvizIndex_ % dims_;
         const int hoveredSubvizRow = hoveredSubvizIndex_ / dims_;
 
-        imageTex_.Upload(images_ + (hoveredPointIndex/(width_*height_))*imageWidth_*imageHeight_,GL_LUMINANCE,GL_FLOAT);
+        if (imageChannels_ == 1) {
+            imageTex_.Upload(images_ + (hoveredPointIndex/(width_*height_))*imageWidth_*imageHeight_,GL_LUMINANCE,GL_FLOAT);
+        } else if (imageChannels_ == 3) {
+            static std::vector<float3> swizzled(imageWidth_*imageHeight_);
+            static int lastUploaded = -1;
+            if (hoveredPointIndex/(width_*height_) != lastUploaded) {
+                const float * unswizzled = images_ + (hoveredPointIndex/(width_*height_))*imageChannels_*imageWidth_*imageHeight_;
+                for (int i=0; i<imageWidth_*imageHeight_; ++i) {
+                    swizzled[i] = make_float3(unswizzled[i],unswizzled[i + imageWidth_*imageHeight_],unswizzled[i + 2*imageWidth_*imageHeight_]);
+                }
+                imageTex_.Upload(swizzled.data(),GL_RGB,GL_FLOAT);
+                lastUploaded = hoveredPointIndex/(width_*height_);
+            }
+        }
         const float2 hoveredViewportPoint = hoverViz->getEmbeddedPoint(hoveredPointIndex);
         const float2 hoveredWindowPoint = getWindowPoint(getViewportPointOfSubvizPoint(hoverViz->getNormalizedPoint(hoveredViewportPoint),hoveredSubvizRow,hoveredSubvizCol),windowSize);
 

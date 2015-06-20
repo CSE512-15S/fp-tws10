@@ -32,6 +32,7 @@ int main(int argc, char * * argv) {
 
     const int imageWidth = 32;
     const int imageHeight = 32;
+    const int imageChannels = 3;
 
     std::vector<unsigned char> testLabels;
     float * testImages = loadSVHNLabelsAndImages(svhnTestFile,testLabels);
@@ -40,7 +41,7 @@ int main(int argc, char * * argv) {
 
     return run(argc,argv,
                netFile,weightFile,
-               testImages,imageWidth,imageHeight,
+               testImages,imageChannels,imageWidth,imageHeight,
                nTestImages, testLabels.data(),
                nClasses,digitColors,digitNames);
 

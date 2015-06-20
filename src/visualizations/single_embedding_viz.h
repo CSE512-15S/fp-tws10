@@ -13,7 +13,7 @@
 class SingleEmbeddingViz : public EmbeddingViz {
 public:
 
-    SingleEmbeddingViz(const float aspectRatio, const float * images,
+    SingleEmbeddingViz(const float aspectRatio, const float * images, const int imageChannels,
                        const int imageWidth, const int imageHeight,
                        pangolin::GlTexture & imageTex,
                        ScatterPlotShader & pointShader,
