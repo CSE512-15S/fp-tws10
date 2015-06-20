@@ -3,6 +3,9 @@
 #include <iostream>
 #include <fstream>
 
+static const int mnistMagicLabelNumber = 2049;
+static const int mnistMagicImageNumber = 2051;
+
 void loadMNISTLabels(const std::string filename, std::vector<unsigned char> & labels) {
 
     std::ifstream stream;

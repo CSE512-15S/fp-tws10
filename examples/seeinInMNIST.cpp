@@ -3,8 +3,16 @@
 #include <vector_functions.h>
 #include <assert.h>
 
-static const std::string weightFile = "/home/tws10/Development/caffe/examples/siamese/mnist_siamese_iter_50000.caffemodel";
-static const std::string netFile = "../networks/mnist_siamese.prototxt";
+static const std::string mnistTrainImageFile = "../data/mnist/train-images-idx3-ubyte";
+static const std::string mnistTrainLabelFile = "../data/mnist/train-labels-idx1-ubyte";
+static const std::string mnistTestImageFile  = "../data/mnist/t10k-images-idx3-ubyte";
+static const std::string mnistTestLabelFile  = "../data/mnist/t10k-labels-idx1-ubyte";
+
+//static const std::string weightFile = "/home/tws10/Development/caffe/examples/siamese/mnist_siamese_recomb_iter_50000.caffemodel";
+//static const std::string netFile = "/home/tws10/Development/caffe/examples/siamese/mnist_siamese_recomb.prototxt";
+
+static const std::string weightFile = "/home/tws10/Development/caffe/examples/mnist/lenet_iter_10000.caffemodel";
+static const std::string netFile =    "/home/tws10/Development/caffe/examples/mnist/lenet.prototxt";
 
 static const int nClasses = 10;
 static const uchar3 digitColors[nClasses] = {

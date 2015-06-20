@@ -108,40 +108,94 @@ set(sources
 include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/examples)
 
-if (CUDA_FOUND)
-message(STATUS "Found CUDA ${CUDA_VERSION_STRING}")
-message(STATUS "CUDA Toolkit Root dir: ${CUDA_TOOLKIT_ROOT_DIR}")
-message(STATUS "CUDA SDK Root dir: ${CUDA_SDK_ROOT_DIR}")
-include_directories(${CUDA_TOOLKIT_ROOT_DIR}/samples/common/inc)
-
+# supply compile-time directory to code
 set(compileDirectory \"${PROJECT_SOURCE_DIR}\")
-message(STATUS ${compileDirectory})
 add_definitions(-DCOMPILE_DIR=${compileDirectory})
 
-cuda_add_executable(
-        # executable
-        seeinInMNIST
-        # main
-        examples/seeinInMNIST.cpp
-        # support sources
-        ${sources}
-        examples/mnist_io.h
-        examples/mnist_io.cpp
-)
-else ()
-add_definitions(-DCPU_ONLY)
-include_directories(${PROJECT_SOURCE_DIR}/tmp_inc)
+# cache example-building options
+set(BUILD_MNIST_EXAMPLE ON CACHE BOOL "build the MNIST example")
+set(BUILD_SVHN_EXAMPLE  ON CACHE BOOL "build the SVHN example")
 
-add_executable(
+if(BUILD_SVHN_EXAMPLE)
+  set(MATLAB_ROOT /usr/local/MATLAB/ CACHE PATH "path to the MATLAB directory")
+  include_directories(${MATLAB_ROOT}/extern/include)
+  link_libraries(${MATLAB_ROOT}/bin/glnxa64/libmat.so)
+  link_libraries(${MATLAB_ROOT}/bin/glnxa64/libmx.so)
+endif()
+
+# set up library output
+set(BUILD_SHARED_LIBS ON)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
+if(CUDA_FOUND)
+  message(STATUS "Found CUDA ${CUDA_VERSION_STRING}")
+  message(STATUS "CUDA Toolkit Root dir: ${CUDA_TOOLKIT_ROOT_DIR}")
+  message(STATUS "CUDA SDK Root dir: ${CUDA_SDK_ROOT_DIR}")
+  include_directories(${CUDA_TOOLKIT_ROOT_DIR}/samples/common/inc)
+
+  cuda_add_library(seeinIn ${sources})
+
+  if(BUILD_MNIST_EXAMPLE)
+    cuda_add_executable(
         # executable
         seeinInMNIST
         # main
         examples/seeinInMNIST.cpp
         # support sources
-        ${sources}
         examples/mnist_io.h
         examples/mnist_io.cpp
-)
+    )
+  endif()
+
+  if(BUILD_SVHN_EXAMPLE)
+    cuda_add_executable(
+      # executable
+      seeinInSVHN
+      # main
+      examples/seeinInSVHN.cpp
+      # support sources
+      examples/svhn_io.h
+      examples/svhn_io.cpp
+    )
+  endif()
+
+else()
+  add_definitions(-DCPU_ONLY)
+  include_directories(${PROJECT_SOURCE_DIR}/tmp_inc)
+
+  add_library(seeinIn ${sources})
+
+  if(BUILD_MNIST_EXAMPLE)
+    add_executable(
+        # executable
+        seeinInMNIST
+        # main
+        examples/seeinInMNIST.cpp
+        # support sources
+        examples/mnist_io.h
+        examples/mnist_io.cpp
+    )
+  endif()
+
+  if(BUILD_SVHN_EXAMPLE)
+    cuda_add_executable(
+      # executable
+      seeinInSVHN
+      # main
+      examples/seeinInSVHN.cpp
+      # support sources
+      examples/svhn_io.h
+      examples/svhn_io.cpp
+    )
+  endif()
+
 endif()
+
+if(BUILD_MNIST_EXAMPLE)
+  target_link_libraries(seeinInMNIST seeinIn)
+endif()
+if(BUILD_SVHN_EXAMPLE)
+  target_link_libraries(seeinInSVHN seeinIn)
+endif()
+
 
 
