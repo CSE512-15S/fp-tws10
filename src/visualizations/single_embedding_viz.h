@@ -2,7 +2,7 @@
 #define SINGLE_EMBEDDING_VIZ_H
 
 #include <pangolin/pangolin.h>
-#include <pangolin/glsl.h>
+#include <pangolin/gl/glsl.h>
 #include <vector_types.h>
 #include <vector_functions.h>
 #include <helper_math.h>

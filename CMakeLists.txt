@@ -50,6 +50,8 @@ include_directories(${CAFFE_ROOT}/include
                     ${CAFFE_ROOT}/build/src/)
 link_directories(${CAFFE_ROOT}/build/lib)
 link_libraries(caffe)
+include_directories(/usr/include/hdf5/serial)
+link_directories(/usr/lib/hdf5/serial)
 
 set(sources
     src/seeinIn.h

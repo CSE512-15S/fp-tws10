@@ -2,7 +2,7 @@
 #define SCATTER_PLOT_SHADER_H
 
 #include <pangolin/pangolin.h>
-#include <pangolin/glsl.h>
+#include <pangolin/gl/glsl.h>
 
 class ScatterPlotShader {
 public:

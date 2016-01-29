@@ -46,6 +46,8 @@ void writePNG(const char * filename, const uchar3 * imgData, const int width, co
 
     FILE * fp = fopen(filename,"wb");
 
+    png_byte* rowPointers[height];
+
     mainprog_info progInfo;
 
     png_structp pngPtr = png_create_write_struct(PNG_LIBPNG_VER_STRING, &progInfo, png_error_handler, NULL);
@@ -65,8 +67,6 @@ void writePNG(const char * filename, const uchar3 * imgData, const int width, co
                   PNG_COMPRESSION_TYPE_DEFAULT,
                   PNG_FILTER_TYPE_DEFAULT);
 
-
-    png_byte* rowPointers[height];
     for (int y = 0; y<height; ++y) {
         rowPointers[y] = (png_byte*)&imgData[y*width];
     }

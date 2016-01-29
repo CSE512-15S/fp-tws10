@@ -1,6 +1,6 @@
 #include <pangolin/pangolin.h>
-#include <pangolin/gl.h>
-#include <pangolin/timer.h>
+#include <pangolin/gl/gl.h>
+#include <pangolin/utils/timer.h>
 
 #include <fstream>
 #include <iostream>
@@ -89,7 +89,10 @@ int run(int argc, char * * argv,
     net.ForwardPrefilled();
 
     // -=-=-=-=- set up pangolin -=-=-=-=-
-    pangolin::CreateGlutWindowAndBind("Seein' In --- " + net.name() , guiWidth, guiHeight,GLUT_MULTISAMPLE | GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+    pangolin::Params params;
+    params.Set(pangolin::PARAM_SAMPLE_BUFFERS,1);
+    params.Set(pangolin::PARAM_SAMPLES,16);
+    pangolin::CreateWindowAndBind("Seein' In --- " + net.name() , guiWidth, guiHeight,params);
 
     glewInit();
 
@@ -505,7 +508,7 @@ int run(int argc, char * * argv,
         CheckGlDieOnError();
 
         glClearColor(0,0,0,1);
-        pangolin::FinishGlutFrame();
+        pangolin::FinishFrame();
 
     }
 
